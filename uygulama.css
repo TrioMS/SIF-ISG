@@ -78,6 +78,62 @@
   .regLayout .tw{max-height:none!important}
   main{padding-bottom:calc(86px + env(safe-area-inset-bottom))!important}
 }
+/* ── ENVANTER LİSTELERİ: telefonda satır başına KART ──
+   7-9 sütunlu tablo 375px'e sığmıyor, hücreler harf harf kırılıyordu. Telefonda
+   tablo başlığı gizlenir, her satır bir kart olur. Hücreler SIRAYLA üretilir
+   (renderReg / renderAct): sütun sırası değişirse aşağıdaki nth-child'lar da
+   değişmeli. Numara bağlantısı (.lnk) kartın tamamını kaplar → karta dokunmak
+   kaydı açar; Referans bağlantısı üstte kalır.
+   Olay:    1 sıra · 2 Olay No · 3 Tarih · 4 Tür · 5 Lokasyon · 6 Aksiyon · 7 Durum
+   Aksiyon: 1 sıra · 2 No · 3 Açılış · 4 Tanım · 5 Lokasyon · 6 Referans · 7 Sorumlu · 8 Termin · 9 Durum */
+@media(max-width:640px){
+  .regLayout .tw{background:transparent!important;border:none!important;box-shadow:none!important;border-radius:0;overflow:visible!important}
+  .regLayout .tw table,.regLayout .tw tbody{display:block;width:100%}
+  .regLayout .tw thead{display:none}
+  #regBody tr,#actBody tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px;row-gap:8px;position:relative;
+      background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  #regBody td,#actBody td{display:block;padding:0!important;border:none!important;background:none!important;min-width:0;
+      overflow-wrap:break-word!important;word-break:normal;font-size:13.5px;line-height:1.35;text-align:left}
+  #regBody td.sn,#actBody td.sn{display:none}
+  /* küçük etiketli bilgi hücreleri */
+  #regBody td:nth-child(3)::before,#regBody td:nth-child(5)::before,#regBody td:nth-child(6)::before,
+  #actBody td:nth-child(3)::before,#actBody td:nth-child(5)::before,#actBody td:nth-child(6)::before,
+  #actBody td:nth-child(7)::before,#actBody td:nth-child(8)::before{display:block;font-size:10.5px;font-weight:600;
+      letter-spacing:.4px;text-transform:uppercase;color:var(--text2);margin-bottom:2px}
+  #regBody td:nth-child(3)::before{content:'Tarih'}
+  #regBody td:nth-child(5)::before{content:'Lokasyon'}
+  #regBody td:nth-child(6)::before{content:'Aksiyon'}
+  #actBody td:nth-child(3)::before{content:'Açılış'}
+  #actBody td:nth-child(5)::before{content:'Lokasyon'}
+  #actBody td:nth-child(6)::before{content:'Referans'}
+  #actBody td:nth-child(7)::before{content:'Sorumlu'}
+  #actBody td:nth-child(8)::before{content:'Termin'}
+  /* Olay kartı: No · Tür | Durum · Tarih | Lokasyon | Aksiyon */
+  #regBody tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}
+  #regBody td:nth-child(2){grid-column:1/-1;grid-row:1;font-weight:700;font-size:14px}
+  #regBody td:nth-child(4){grid-column:1/3;grid-row:2;font-weight:600;font-size:14.5px}
+  #regBody td:nth-child(7){grid-column:3;grid-row:2;justify-self:end;align-self:start;text-align:right}
+  #regBody td:nth-child(3),#regBody td:nth-child(5),#regBody td:nth-child(6){grid-row:3;font-size:12.5px}
+  /* Aksiyon kartı: No · Tanım · Durum · Termin | Sorumlu | Lokasyon · Referans | Açılış */
+  #actBody td:nth-child(2){grid-column:1/-1;grid-row:1;font-size:14px}
+  #actBody td:nth-child(4){grid-column:1/-1;grid-row:2;font-weight:600;font-size:14.5px}
+  #actBody td:nth-child(9){grid-column:1/-1;grid-row:3}
+  #actBody td:nth-child(8),#actBody td:nth-child(7),#actBody td:nth-child(5){grid-row:4;font-size:12.5px}
+  #actBody td:nth-child(8){grid-column:1}
+  #actBody td:nth-child(7){grid-column:2}
+  #actBody td:nth-child(5){grid-column:3}
+  #actBody td:nth-child(6),#actBody td:nth-child(3){grid-row:5;font-size:12.5px}
+  #actBody td:nth-child(6){grid-column:1/3}
+  #actBody td:nth-child(3){grid-column:3}
+  /* karta dokun → kaydı aç */
+  #regBody td:nth-child(2) .lnk::after,#actBody td:nth-child(2) .lnk::after{content:'';position:absolute;inset:0;border-radius:14px}
+  #actBody td:nth-child(6) .lnk{position:relative;z-index:1}
+  #regBody tr:active,#actBody tr:active{border-color:var(--jcb)}
+  #regBody .pill,#actBody .pill{white-space:nowrap}
+  /* "Kayıt yok." satırı */
+  #regBody tr:has(td.empty),#actBody tr:has(td.empty){display:block;text-align:center}
+  #regBody td.empty,#actBody td.empty{text-align:center;color:var(--text2)}
+}
 /* Kurulum düğmesi / iPhone yönergesi (giriş ekranı) */
 #kurBox:empty{display:none}
 #kurBox{margin-top:14px}
