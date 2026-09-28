@@ -785,12 +785,14 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 
 <!-- ══════════ 2 · KÜTÜK ══════════ -->
 <section class="view" id="v-reg">
-  <h2 style="font-size:19px;margin-bottom:14px">Olay Envanteri</h2>
+  <!-- srcAc / srcKapat / srcPerde / body.aramaAcik: telefonda açılır arama penceresi.
+       Görünümü uygulama.css'te (SİF App oturumu); masaüstünde display:none. Sınıf adları o dosyayla sözleşme. -->
+  <h2 style="font-size:19px;margin-bottom:14px">Olay Envanteri<button type="button" class="srcAc" onclick="document.body.classList.add('aramaAcik')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Ara</button></h2>
   <div class="kpis" id="regKpi"></div>
 
   <div class="regLayout">
    <aside class="srcPanel">
-    <h4>Arama</h4>
+    <h4>Arama<button type="button" class="srcKapat" aria-label="Kapat" onclick="document.body.classList.remove('aramaAcik')">×</button></h4>
     <div class="fld"><label class="f">Olay No</label><input type="text" id="fNo" onkeydown="if(event.key==='Enter')renderReg()" placeholder="SIF-IZM-INC-2026-001"></div>
     <div class="fld"><label class="f">Lokasyon</label><select id="fLok"></select></div>
     <div class="fld"><label class="f">Olay Türü</label><select id="fTur"></select></div>
@@ -803,7 +805,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     <div class="fld"><label class="f">Kazazede Adı</label><input type="text" id="fKisi" onkeydown="if(event.key==='Enter')renderReg()"></div>
     <div class="fld"><label class="f">Metin İçinde Ara</label><input type="text" id="q" onkeydown="if(event.key==='Enter')renderReg()" placeholder="yer, açıklama, bulgu…"></div>
     <div class="bar" style="margin-top:12px">
-      <button class="btn pri sm" style="flex:1" onclick="renderReg()">Ara</button>
+      <button class="btn pri sm" style="flex:1" onclick="renderReg();document.body.classList.remove('aramaAcik')">Ara</button>
       <button class="btn sm" onclick="filtreTemizle()">Temizle</button>
     </div>
     <div class="sep"></div>
@@ -824,11 +826,11 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 
 <!-- ══════════ 3 · AKSİYON ══════════ -->
 <section class="view" id="v-act">
-  <h2 style="font-size:19px;margin-bottom:14px">Aksiyon Listesi</h2>
+  <h2 style="font-size:19px;margin-bottom:14px">Aksiyon Listesi<button type="button" class="srcAc" onclick="document.body.classList.add('aramaAcik')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Ara</button></h2>
   <div class="kpis" id="actKpi"></div>
   <div class="regLayout">
    <aside class="srcPanel">
-    <h4>Arama</h4>
+    <h4>Arama<button type="button" class="srcKapat" aria-label="Kapat" onclick="document.body.classList.remove('aramaAcik')">×</button></h4>
     <div class="fld"><label class="f">Aksiyon No</label><input type="text" id="aNo" onkeydown="if(event.key==='Enter')renderAct()" placeholder="…-A01"></div>
     <div class="fld"><label class="f">Referans (Olay No)</label><input type="text" id="aRef" onkeydown="if(event.key==='Enter')renderAct()"></div>
     <div class="fld"><label class="f">Lokasyon</label><select id="aLok"></select></div>
@@ -841,7 +843,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     <div class="fld"><label class="f">Sıralama</label><select id="aSort"><option value="tarih" selected>Açılış tarihine göre</option><option value="termin">Termine göre</option><option value="no">Aksiyon numarasına göre</option><option value="oncelik">Önceliğe göre</option></select></div>
     <div class="fld"><label class="f">Metin İçinde Ara</label><input type="text" id="aq" onkeydown="if(event.key==='Enter')renderAct()" placeholder="tanım, birim, not…"></div>
     <div class="bar" style="margin-top:12px">
-      <button class="btn pri sm" style="flex:1" onclick="renderAct()">Ara</button>
+      <button class="btn pri sm" style="flex:1" onclick="renderAct();document.body.classList.remove('aramaAcik')">Ara</button>
       <button class="btn sm" onclick="aktFiltreTemizle()">Temizle</button>
     </div>
     <div class="sep"></div>
@@ -5299,6 +5301,11 @@ function go(v, fromPop){
   }
   navAktif(v);
   document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  /* Telefon: sekme değişince arama penceresi kapanır, yeni sekme EN ÜSTTEN açılır
+     (yoksa önceki sekmenin kaydırma konumunda, ortadan açılıyordu). Aynı sekmede
+     yeniden çizimde (ör. applyPerms → go('set')) kaydırmaya dokunulmaz. */
+  document.body.classList.remove('aramaAcik');
+  if(suan!==v) window.scrollTo(0,0);
   /* Form + Yeni Aksiyon dar, tablo ekranları geniş */
   document.querySelector('main').classList.toggle('dar', v==='form'||v==='yeniaksiyon');
   if(v==='form') numaraYenile();
@@ -7483,6 +7490,7 @@ async function airCek(){
     <feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -0.6 0 -0.6 3.4 -0.6 0 -0.6 0"/>
   </filter></svg>
 </div>
+<div class="srcPerde" onclick="document.body.classList.remove('aramaAcik')"></div>   <!-- telefon arama penceresinin perdesi (uygulama.css) -->
 <script>
 /* ══════════ TELEFON UYGULAMASI (PWA) ══════════
    • Çevrimdışı katman sw.js — yalnız güvenli kaynakta (https ya da localhost)
