@@ -85,42 +85,7 @@ nav button.on{background:var(--jcb);border-color:var(--jcb);color:#141414;box-sh
 .navGrp:hover .navSub{display:flex}
 .navGrp.kapat .navSub{display:none}   /* alt sekmeye tıklandıktan sonra kapalı kalsın */
 .navSub button{width:100%;text-align:left;padding:9px 15px;font-size:13px;border-radius:7px}
-/* ── TELEFON DÜZENİ (≤640px) ──
-   Masaüstü düzeninde üst bant + alt alta dizilen sekmeler ekranın ~%40'ını
-   kaplıyordu. Telefonda: üst bant ince, sekmeler ALTTA sabit çubuk (başparmak
-   erişimi). Açılır gruplar (Olaylar/Aksiyonlar) telefonda hover olmadığı için
-   açılamazdı; burada grup başlığı gizlenir, alt sekmeler doğrudan çubuğa dizilir.
-   env(safe-area-*) → iPhone çentiği ve alt çizgisi. --navH 0 yazılır (bkz. upd). */
-@media(max-width:640px){
-  header{padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));gap:8px;flex-wrap:nowrap}
-  .hdLogo{height:26px}
-  .me{padding:3px 9px 3px 3px;min-width:0;flex:0 1 auto}
-  .me .t2{display:none}
-  .me .t1{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  header .hbtn{padding:6px 9px}
-  nav{position:fixed;top:auto;bottom:0;left:0;right:0;flex-wrap:nowrap;gap:2px;
-      padding:5px 4px calc(5px + env(safe-area-inset-bottom));border-top:1px solid #2a2a2a;box-shadow:0 -6px 18px rgba(0,0,0,.35);z-index:80}
-  #nav>button,.navGrp{min-width:0}
-  .navGrp{display:contents}
-  .navGrp .navTop,.navBrand{display:none}
-  .navSub{display:contents!important}
-  nav button,.navSub button{flex:1 1 0;min-width:0;width:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-      padding:6px 2px;background:transparent;border:none;border-radius:10px;font-family:var(--font);font-size:10.5px;font-weight:600;
-      letter-spacing:0;line-height:1.15;color:#a8a8a8;white-space:normal;text-align:center;box-shadow:none}
-  nav button svg{margin-right:0!important;width:21px;height:21px}
-  nav button:hover{background:transparent}
-  nav button.on{background:rgba(245,197,24,.12);color:var(--jcb);box-shadow:none}
-  main{padding:14px 10px calc(86px + env(safe-area-inset-bottom))}
-  .aiFab{bottom:calc(80px + env(safe-area-inset-bottom))!important}   /* aşağıdaki 560px kuralı sonra geldiği için !important */
-  .me .av{flex:none}
-  .toast{bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100% - 32px)}
-}
-/* Kurulum düğmesi / iPhone yönergesi (giriş ekranı) */
-#kurBox:empty{display:none}
-#kurBox{margin-top:14px}
-#kurBox .kurBtn{width:100%;background:transparent;color:var(--jcb);border:1px solid var(--jcb);border-radius:10px;padding:11px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
-#kurBox .kurIpucu{font-size:12px;line-height:1.55;color:#c9c9c9;background:#111114;border:1px solid #2a2b30;border-radius:10px;padding:10px 12px}
-#kurBox .kurIpucu b{color:#fff}
+/* Telefon görünümü (alt sekme çubuğu, kurulum düğmesi) → uygulama.css — <head> sonunda yüklenir. */
 main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
 /* ── ANALİZ GRAFİKLERİ (SİF siyah/sarı) ── */
 .anGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -551,6 +516,7 @@ body.dark .anAI .dip{border-top-color:var(--border)}
 /* "Aksiyona Alindi" rozeti gece modunda koyu yesil zeminde koyu yesil yaziydi (okunmuyordu) */
 body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;border-color:#3f8f5c}
 </style>
+<link rel="stylesheet" href="uygulama.css">   <!-- telefon görünümü; kendi stillerinden SONRA yüklenmeli -->
 </head>
 <body>
 
