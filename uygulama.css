@@ -39,6 +39,44 @@
   .aiFab{bottom:calc(80px + env(safe-area-inset-bottom))!important}   /* HTML'deki 560px kuralını ezsin */
   .me .av{flex:none}
   .toast{bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100% - 32px)}
+  /* Gizli toast (opacity 0, 80px aşağıda) tam orta sekmenin (Olay Envanteri)
+     üstüne düşüp dokunuşu yutuyordu → görünmezken tıklanamaz ve görünmez olsun. */
+  .toast:not(.on){pointer-events:none;visibility:hidden;transition:.25s,visibility 0s .25s}
+}
+/* ── ENVANTER ARAMASI: telefonda açılır pencere ──
+   Masaüstünde arama paneli listenin solunda durur. Telefonda panel listenin
+   üstüne yığılıp ekranı kaplıyordu; burada gizlenir, başlığın yanındaki
+   "Ara" düğmesi (.srcAc) body'ye .aramaAcik ekler → panel alttan açılan
+   pencere olur. İşaretleme portal oturumunda: .srcAc, .srcKapat, .srcPerde.
+   Masaüstünde bu üç öğe hiç görünmez. */
+.srcAc,.srcKapat,.srcPerde{display:none}
+@media(max-width:640px){
+  .srcAc{display:inline-flex;align-items:center;gap:6px;float:right;margin-top:-2px;padding:7px 14px;border-radius:999px;
+      background:var(--jcb);color:#111;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+  .srcAc svg{width:16px;height:16px}
+  .view:has(.srcAc) .regLayout .srcPanel{display:none}   /* düğme yoksa (portal eklemeden) panel eskisi gibi görünür */
+  body.aramaAcik .view.on .srcPanel{display:block;position:fixed;left:0;right:0;top:auto;bottom:0;z-index:95;
+      max-height:86vh!important;overflow-y:auto!important;margin:0;border-radius:18px 18px 0 0;
+      padding:14px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.5)}
+  body.aramaAcik .srcPerde{display:block;position:fixed;inset:0;z-index:94;background:rgba(0,0,0,.55)}
+  body.aramaAcik{overflow:hidden}
+  body.aramaAcik .view.on .srcPanel h4{display:flex;align-items:center;justify-content:space-between;font-size:13px;margin-bottom:12px}
+  .srcKapat{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;
+      background:transparent;border:1px solid var(--border);color:var(--text);font-size:20px;line-height:1;cursor:pointer}
+  body.aramaAcik .srcPanel input,body.aramaAcik .srcPanel select{font-size:16px;padding:10px}   /* 16px: iOS odakta yakınlaştırmasın */
+  body.aramaAcik .srcPanel label.f{font-size:12.5px}
+  body.aramaAcik .srcPanel .fld{margin-bottom:9px}
+  body.aramaAcik .srcPanel .btn{padding:11px 14px;font-size:14px}
+  body.aramaAcik .srcPanel .dt input[type=date]{width:46px;flex:none}
+  body.aramaAcik .srcPanel .dt input[type=date]::-webkit-calendar-picker-indicator{width:20px;height:20px}
+  /* Ara/Temizle pencere kaydırılsa da altta görünür kalsın */
+  body.aramaAcik .srcPanel .fld+.bar{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));z-index:1;
+      margin:12px -16px 0!important;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border)}
+  /* listeBoy() tabloyu panelin boyuna göre kısar; panel gizliyken bu 200px'e
+     düşer. Telefonda liste sayfayla birlikte kaysın; alt boşluk sekme
+     çubuğunun altında kalmasın (satır içi stili ezmek için !important). */
+  .regLayout .tw{max-height:none!important}
+  main{padding-bottom:calc(86px + env(safe-area-inset-bottom))!important}
 }
 /* Kurulum düğmesi / iPhone yönergesi (giriş ekranı) */
 #kurBox:empty{display:none}
