@@ -1,0 +1,27 @@
+{
+  "name": "SİF İSG Olay Bildirimi",
+  "short_name": "SİF İSG",
+  "description": "SİF İş Makineleri — sahadan hızlı olay bildirimi ve aksiyon takibi",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "hizli_olay_bildirimi.html?kaynak=uygulama",
+  "scope": "./",
+  "id": "sif-isg-olay-bildirimi",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "icons": [
+    { "src": "ikon/ikon_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "ikon/ikon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "ikon/ikon_maskable_512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Olay Bildir",
+      "short_name": "Bildir",
+      "url": "hizli_olay_bildirimi.html?kaynak=uygulama#bildir",
+      "icons": [{ "src": "ikon/ikon_192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
