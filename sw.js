@@ -2,7 +2,7 @@
    Telefona "uygulama" olarak kurulduğunda şantiyede ağ yokken de açılsın diye.
 
    KURALLAR
-   • SAYFA (HTML) AĞ-ÖNCE: ağ varsa her açılışta taze dosya gelir, önbellek yalnız
+   • SAYFA (HTML, uygulama.css, manifest) AĞ-ÖNCE: ağ varsa her açılışta taze dosya gelir, önbellek yalnız
      ağ yokken devreye girer. Tersini yapmak (önbellek-önce) "değişiklik gelmedi"
      şikâyetinin ta kendisi olurdu.
    • GÖRSELLER önbellekten verilir ve arkada tazelenir. MOTOR DOSYALARI (lib/ altındaki
@@ -12,7 +12,7 @@
      yanıtı saklanmaz. Olay kayıtları zaten uygulamanın kendi deposunda
      (localStorage / IndexedDB) durur; bu katman onlara dokunmaz.
    • Kabuk dosyaları değişince SURUM'ü yükselt: eski önbellek silinir. */
-const SURUM = 'sif-isg-2026.09.28d';
+const SURUM = 'sif-isg-2026.09.28e';
 const KABUK = [
   'hizli_olay_bildirimi.html',
   'manifest.json',
@@ -28,7 +28,7 @@ const KABUK = [
 const DIS_IZINLI = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(SURUM).then(c => c.addAll(KABUK)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(SURUM).then(c => c.addAll(KABUK.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -37,8 +37,10 @@ self.addEventListener('activate', e => {
     .then(() => self.clients.claim()));
 });
 
+/* Sayfa + görünüm (uygulama.css) + manifest: ağ-önce. CSS bayatken-tazele olsaydı
+   her görsel düzeltme telefona ancak İKİNCİ açılışta gelirdi. */
 function sayfaMi(req, url) {
-  return req.mode === 'navigate' || /\.html?$/i.test(url.pathname);
+  return req.mode === 'navigate' || /\.(html?|css|json)$/i.test(url.pathname);
 }
 
 /* Ağ-önce, 5 sn içinde cevap yoksa önbellek (şantiyede zayıf sinyal). */
@@ -48,7 +50,9 @@ function agOnce(req) {
     const yedek = () => caches.match(req, { ignoreSearch: true })
       .then(r => r || caches.match('hizli_olay_bildirimi.html', { ignoreSearch: true }));
     const sure = setTimeout(() => { yedek().then(r => { if (r && !bitti) { bitti = true; coz(r); } }); }, 5000);
-    fetch(req).then(r => {
+    /* no-cache: GitHub Pages dosyayı 10 dk tarayıcı önbelleğinde tutar; sunucuya
+       sorarak (ETag) taze kopya alınır, değişmediyse 304 ile ucuz döner. */
+    fetch(req, { cache: 'no-cache' }).then(r => {
       if (r && r.ok) { const k = r.clone(); caches.open(SURUM).then(c => c.put(req, k)); }
       clearTimeout(sure);
       if (!bitti) { bitti = true; coz(r); }
