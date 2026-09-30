@@ -180,6 +180,9 @@ body.dark .sagKayit{color:#8ab4f8}
 .anAI li .aiKaynakNo{margin-left:6px;font-size:11px;color:var(--text3)}
 /* Takip bolumu basligindaki sayac (N aksiyon - X kapandi - Y gecikti) */
 .anAI .grp .grpSay{margin-left:8px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--text2)}
+/* Telefon widget düzenleme öğeleri varsayılan GİZLİ. Görünümleri uygulama.css'te
+   (body.wDuzen / body.wListeAcik); o dosya yüklenmese de ekranda çıkmasınlar. */
+.wBar,.wSil,.wPanel,.wPerde{display:none}
 /* Kalıcı analiz başlığı: son analiz · öğrenme motoru · veri değişti notu · geçmiş */
 .anAI .aiMeta{padding:10px 16px 0;font-size:12px;line-height:1.55;color:var(--text2)}
 .anAI .aiMeta:empty{display:none}
@@ -884,6 +887,8 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 
 <!-- ══════════ ANALİZ ══════════ -->
 <section class="view on" id="v-analiz">
+  <!-- Telefon: analiz düzenleme çubuğu (uzun basınca body.wDuzen; görünümü uygulama.css). Masaüstünde gizli. -->
+  <div class="wBar"><div class="wBaslik">Analizi düzenle<small>Taşımak için sürükleyin · − ile kaldırın</small></div><button type="button" class="wEkle" onclick="wListeAc()">+ Widget</button><button type="button" class="wBitti" onclick="wDuzenKapat()">Bitti</button></div>
   <div class="kpis" id="anKpi"></div>
   <div class="anGrid" id="anCharts"></div>
   <div class="anAI" id="anAI" style="display:none"></div>
@@ -907,6 +912,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
          kalır. Geri getirmek için bu düğmeyi eklemek ya da konsolda
          airPanelAc() çağırmak yeterli. -->
     <button data-s="ansag">Analiz Sağlığı</button>
+    <button data-s="widget">Widget</button>
     <button data-s="gen">Genel</button>
   </div>
 
@@ -1103,6 +1109,18 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
   </div>
 
   <!-- airtable bağlantısı -->
+  <!-- widget — Analiz sayfasının TELEFON düzeni (hangi KPI/grafik görünür). Liste wListeYaz ile
+       çizilir; aynı içerik telefondaki "+ Widget" penceresinde de var. Düzen cihaz+kullanıcı başına. -->
+  <div class="sub" id="s-widget">
+    <div class="card" style="max-width:620px">
+      <h3>Widget</h3>
+      <div class="cb">
+        <div class="hint">Analiz sayfasının telefon düzeni · bu cihaza ve kullanıcıya özel</div>
+        <div id="wListeAyar"></div>
+        <button type="button" class="btn sm" style="margin-top:12px" onclick="wSifirla()">Varsayılan düzene dön</button>
+      </div>
+    </div>
+  </div>
   <!-- analiz sağlığı — motorun neyi göremediğini gösterir -->
   <div class="sub" id="s-ansag">
     <div class="card" style="max-width:860px">
@@ -4565,9 +4583,11 @@ document.querySelectorAll('#setTabs button').forEach(b=>b.onclick=()=>{
   if(b.dataset.s==='ansag' && typeof anSaglikCalistir==='function'){ anSaglikCalistir();
     if(typeof ogrPanelYaz==='function') ogrPanelYaz();
     if(typeof ocrDurumYaz==='function') ocrDurumYaz(); }
-  /* Kaydet cubugu Airtable ve Analiz Sağlığı sekmelerinde islevsiz — gizlenir */
+  if(b.dataset.s==='widget' && typeof wListeYaz==='function') wListeYaz();
+  /* Kaydet cubugu Airtable, Analiz Sağlığı ve Widget sekmelerinde islevsiz — gizlenir
+     (Widget düzeni anında kaydedilir; Ayarlar'ın beklet/kaydet akışına girmez) */
   const kb=document.getElementById('setKaydetBar');
-  if(kb) kb.style.display = (b.dataset.s==='air'||b.dataset.s==='ansag') ? 'none' : '';
+  if(kb) kb.style.display = (b.dataset.s==='air'||b.dataset.s==='ansag'||b.dataset.s==='widget') ? 'none' : '';
 });
 /* ── ORGANİZASYON — LOKASYON BAZLI HİYERARŞİ ──
    l.org = { tesisMuduru:{ad,mail}, kilit:[{rol,ad,mail}],
@@ -5340,6 +5360,7 @@ function go(v, fromPop){
      (yoksa önceki sekmenin kaydırma konumunda, ortadan açılıyordu). Aynı sekmede
      yeniden çizimde (ör. applyPerms → go('set')) kaydırmaya dokunulmaz. */
   document.body.classList.remove('aramaAcik');
+  if(v!=='analiz' && typeof wDuzenKapat==='function') wDuzenKapat();   /* telefon widget düzenlemesi Analiz'e özgü */
   if(suan!==v) window.scrollTo(0,0);
   /* Form + Yeni Aksiyon dar, tablo ekranları geniş */
   document.querySelector('main').classList.toggle('dar', v==='form'||v==='yeniaksiyon');
@@ -5372,6 +5393,9 @@ window.addEventListener('popstate', e=>{
   /* GERİ tuşu: açık bir modal varsa önce onu kapat (sayfa değişmez) */
   const mods=document.querySelectorAll('.ov.on');
   if(mods.length){ mods.forEach(m=>m.classList.remove('on')); return; }
+  /* Telefon widget katmanları: önce liste, sonra düzenleme modu kapanır (sayfa değişmez) */
+  if(document.body.classList.contains('wListeAcik')){ wListeKapat(); return; }
+  if(document.body.classList.contains('wDuzen')){ wDuzenKapat(); return; }
   const v=(e.state&&e.state.v) || (location.hash||'').replace(/^#/,'') || 'analiz';
   if(document.getElementById('v-'+v)) go(v, true);
 });
@@ -7091,21 +7115,22 @@ function renderAnaliz(animate){
     lok: sayimla(base.map(r=>lokAd(r.lokasyon))).map(x=>x.ad)
   };
   _radVals=null;  // radar animasyonu 0'dan büyüsün
-  const card=(t,body,ek)=>`<div class="anCard${animate?' ani':''}${ek?' '+ek:''}"><h3><span>${t}</span></h3><div class="anCb">${body}</div></div>`;
-  const maskCard=t=>`<div class="anCard"><h3><span>${t}</span></h3><div class="anCb"><div class="anEmpty">Özel nitelikli sağlık verisi — görüntüleme yetkiniz yok (KVKK).</div></div></div>`;
+  /* w: kalıcı widget kimliği (telefon düzeni, bkz. W_VARSAYILAN). KVKK maskeli kart AYNI kimliği taşır. */
+  const card=(w,t,body,ek)=>`<div class="anCard${animate?' ani':''}${ek?' '+ek:''}" data-w="${w}"><h3><span>${t}</span></h3><div class="anCb">${body}</div></div>`;
+  const maskCard=(w,t)=>`<div class="anCard" data-w="${w}"><h3><span>${t}</span></h3><div class="anCb"><div class="anEmpty">Özel nitelikli sağlık verisi — görüntüleme yetkiniz yok (KVKK).</div></div></div>`;
   const sg=can('saglik');
   $('anCharts').innerHTML=
-     card('Olay Türü','<div class="anWrap" data-chart="tur"></div>')
+     card('c-tur','Olay Türü','<div class="anWrap" data-chart="tur"></div>')
     /* Yaralanma Türü, boş kalan ikinci hücreye taşındı */
-    +(sg?card('Yaralanma Türü','<div class="anWrap" data-chart="yara"></div>'):maskCard('Yaralanma Türü'))
+    +(sg?card('c-yara','Yaralanma Türü','<div class="anWrap" data-chart="yara"></div>'):maskCard('c-yara','Yaralanma Türü'))
     /* Vücut şeması dikey olduğu için sağ sütunda İKİ SATIR boyunca yukarı uzar */
-    +(sg?card('Etkilenen Vücut Bölgesi','<div class="anWrap" data-chart="vucut"></div>','anTall')
-        :maskCard('Etkilenen Vücut Bölgesi'))
-    +card('Lokasyon','<div class="anWrap" data-chart="lok">'+radarSkeleton()+'</div>')
-    +card('Olay Kaynağı',anBarSkeleton('kaynak','kaynak'))
-    +(anDom.bulgu.length?card('Bulgular',anBarSkeleton('bulgu','bulgu')):'')
-    +card('Kök Sebep Kategorisi',anBarSkeleton('kok','kok'))
-    +(anDom.kokTek.length?card('Kök Sebepler',anBarSkeleton('kokTek','kokTek')):'');
+    +(sg?card('c-vucut','Etkilenen Vücut Bölgesi','<div class="anWrap" data-chart="vucut"></div>','anTall')
+        :maskCard('c-vucut','Etkilenen Vücut Bölgesi'))
+    +card('c-lok','Lokasyon','<div class="anWrap" data-chart="lok">'+radarSkeleton()+'</div>')
+    +card('c-kaynak','Olay Kaynağı',anBarSkeleton('kaynak','kaynak'))
+    +(anDom.bulgu.length?card('c-bulgu','Bulgular',anBarSkeleton('bulgu','bulgu')):'')
+    +card('c-kok','Kök Sebep Kategorisi',anBarSkeleton('kok','kok'))
+    +(anDom.kokTek.length?card('c-koktek','Kök Sebepler',anBarSkeleton('kokTek','kokTek')):'');
   anGuncelle(animate);
 }
 /* HAFİF GÜNCELLEME — çapraz filtre tıklamasında: iskelet aynı kalır, değerler
@@ -7149,15 +7174,17 @@ function anGuncelle(animate){
   const insTip=calToplam>0
     ? sel.length+' olay / '+calToplam+' çalışan × 100'+(eksikCal?' · not: bazı lokasyonların çalışan sayısı girilmemiş':'')
     : 'Lokasyon çalışan sayısı girilmemiş — Ayarlar → Lokasyonlar';
+  /* 5. sütun: kalıcı widget kimliği (telefon düzeni, bkz. W_VARSAYILAN) */
   $('anKpi').innerHTML=[
-    [sel.length,'Olay','',''],
-    [insStr,'100 Çalışan Başına Olay','',''],
-    [sel.filter(r=>cidOf(r.sonuc).agir).length,'Ciddi Olay','color:var(--red)',''],
-    [sel.filter(r=>r.sonuc==='nearmiss').length,'Ucuz Atlatma','color:var(--blue-700)',''],
-    [sel.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekleyen Olay','color:var(--amber-700)',''],
-    [st.acik,'Açık Aksiyon','',''],[st.gecikti,'Geciken Aksiyon','color:var(--red)',''],   /* Aksiyon Listesi ile aynı (dışlayan) tanım */
-    [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),'']
-  ].map(([v,l,s,t])=>`<div class="kpi"${t?` title="${esc(t)}"`:''}><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
+    [sel.length,'Olay','','','k-olay'],
+    [insStr,'100 Çalışan Başına Olay','','','k-100calisan'],
+    [sel.filter(r=>cidOf(r.sonuc).agir).length,'Ciddi Olay','color:var(--red)','','k-ciddi'],
+    [sel.filter(r=>r.sonuc==='nearmiss').length,'Ucuz Atlatma','color:var(--blue-700)','','k-ucuz'],
+    [sel.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekleyen Olay','color:var(--amber-700)','','k-inceleme'],
+    [st.acik,'Açık Aksiyon','','','k-acikaks'],[st.gecikti,'Geciken Aksiyon','color:var(--red)','','k-gecikenaks'],   /* Aksiyon Listesi ile aynı (dışlayan) tanım */
+    [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),'','k-kapatmaoran']
+  ].map(([v,l,s,t,w])=>`<div class="kpi" data-w="${w}"${t?` title="${esc(t)}"`:''}><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
+  wUygula();   /* #anKpi her çizimde baştan yazılıyor → sıra/gizleme/− düğmesi yeniden işlenir */
   const setW=(chart,html)=>{ const w=document.querySelector(`#anCharts [data-chart="${chart}"]`); if(w) w.innerHTML=html; };
   setW('tur', anPie(pieTop(sayimla(setFor('tur').map(turAd)),6),'tur',secOf('tur'),animate));   /* top 6 + Diğer */
 
@@ -7176,6 +7203,186 @@ function anGuncelle(animate){
     if(bx && bx.dataset.open==='1' && bx.querySelector('.body')) anAIYaz(false);
     else anAIGeriYukle(); }
 }
+/* ══════════ TELEFON: ANALİZ DÜZENİ (WİDGET) ══════════
+   Telefonda (≤640px) KPI balonları ve grafik kartları uzun basınca düzenlenir:
+   sürükleyerek taşınır, − ile kaldırılır, "+ Widget" listesinden geri eklenir.
+   • SIRALAMA DOM'U YENİDEN DİZEREK YAPILMAZ: her öğe style="--wo:N" taşır, CSS
+     (uygulama.css, @media ≤640px) order:var(--wo) ile dizer. Masaüstünde bu
+     değişken hiçbir şey yapmaz → masaüstü düzeni DEĞİŞMEZ.
+   • Gizli öğe .wGizli alır (yine yalnız telefonda gizlenir).
+   • Düzen CİHAZ + KULLANICI başınadır: hse::HOB::an_duzen::<kullanıcı id>.
+     Değer yalnız widget kimlikleridir {sira:[…], gizli:[…]} — kişi verisi girmez.
+   • #anKpi her süzgeç tıklamasında baştan yazıldığı için wUygula() her çizimden
+     sonra çağrılır (anGuncelle sonu).
+   Sınıf adları (wDuzen, wBar, wSil, wGizli, wTasi, wListeAcik, wPanel, wPerde,
+   wGrup, wSatir, data-w, --wo) uygulama.css ile SÖZLEŞMEDİR; değiştirmeyin.
+   AI Analiz kutusu (#anAI) bu kapsamda değildir. */
+const W_VARSAYILAN={
+  k:['k-olay','k-100calisan','k-ciddi','k-ucuz','k-inceleme','k-acikaks','k-gecikenaks','k-kapatmaoran'],
+  c:['c-tur','c-yara','c-vucut','c-lok','c-kaynak','c-bulgu','c-kok','c-koktek']
+};
+const W_AD={
+  'k-olay':'Olay','k-100calisan':'100 Çalışan Başına Olay','k-ciddi':'Ciddi Olay','k-ucuz':'Ucuz Atlatma',
+  'k-inceleme':'İnceleme Bekleyen Olay','k-acikaks':'Açık Aksiyon','k-gecikenaks':'Geciken Aksiyon',
+  'k-kapatmaoran':'Aksiyon Kapatılma Oranı',
+  'c-tur':'Olay Türü','c-yara':'Yaralanma Türü','c-vucut':'Etkilenen Vücut Bölgesi','c-lok':'Lokasyon',
+  'c-kaynak':'Olay Kaynağı','c-bulgu':'Bulgular','c-kok':'Kök Sebep Kategorisi','c-koktek':'Kök Sebepler'
+};
+const wGrupOf = id => String(id).charAt(0);            /* 'k' KPI · 'c' grafik — taşıma grup içinde kalır */
+const wAnahtar = () => 'hse::HOB::an_duzen::'+((typeof SES!=='undefined'&&SES&&SES.id)||'anon');
+const wTel = () => { try{ return matchMedia('(max-width:640px)').matches; }catch(e){ return false; } };
+const W_TUM = W_VARSAYILAN.k.concat(W_VARSAYILAN.c);
+
+/* Öğeyi VARSAYILAN yerine koyar: varsayılan sırada kendisinden önce gelen,
+   görünür en yakın öğenin hemen arkasına; öyle öğe yoksa grubun başına. */
+function wYerlestir(sira, id, gizli){
+  const g=wGrupOf(id), vars=W_VARSAYILAN[g];
+  sira=sira.filter(x=>x!==id);
+  for(let i=vars.indexOf(id)-1;i>=0;i--){
+    const p=sira.indexOf(vars[i]);
+    if(p>=0 && !(gizli||[]).includes(vars[i])){ sira.splice(p+1,0,id); return sira; }
+  }
+  const ilk=sira.findIndex(x=>wGrupOf(x)===g);
+  sira.splice(ilk<0?sira.length:ilk,0,id);
+  return sira;
+}
+/* Kayıt okunur ve TEMİZLENİR: bilinmeyen/tekrarlı kimlik atılır, sonradan
+   eklenmiş (kayıtta olmayan) widget varsayılan yerine konur. */
+function wOku(){
+  let d=null; try{ d=store.get(wAnahtar(), null); }catch(e){}
+  let sira=(d&&Array.isArray(d.sira))?d.sira.filter(x=>W_TUM.includes(x)):[];
+  sira=sira.filter((x,i)=>sira.indexOf(x)===i);
+  const gizli=(d&&Array.isArray(d.gizli))?d.gizli.filter((x,i,a)=>W_TUM.includes(x)&&a.indexOf(x)===i):[];
+  W_TUM.forEach(id=>{ if(!sira.includes(id)) sira=wYerlestir(sira, id, []); });
+  return {sira:sira, gizli:gizli};
+}
+function wYaz(d){ try{ store.set(wAnahtar(), {sira:d.sira, gizli:d.gizli}); }catch(e){} }
+/* Yalnız --wo değerleri (sürüklerken her yer değiştirmede) */
+function wSiraUygula(d){
+  const say={k:0,c:0}, sn={};
+  d.sira.forEach(id=>{ sn[id]=say[wGrupOf(id)]++; });
+  document.querySelectorAll('#anKpi [data-w],#anCharts [data-w]').forEach(el=>{
+    const n=sn[el.dataset.w]; el.style.setProperty('--wo', n!=null?n:99); });
+}
+function wUygula(){
+  const d=wOku();
+  wSiraUygula(d);
+  document.querySelectorAll('#anKpi [data-w],#anCharts [data-w]').forEach(el=>{
+    const id=el.dataset.w;
+    el.classList.toggle('wGizli', d.gizli.includes(id));
+    if(!el.querySelector(':scope > .wSil'))
+      el.insertAdjacentHTML('afterbegin', `<button type="button" class="wSil" aria-label="Kaldır" onclick="wKaldir('${id}')">−</button>`);
+  });
+  if(document.body.classList.contains('wListeAcik') || ($('s-widget')&&$('s-widget').classList.contains('on'))) wListeYaz();
+}
+function wKaldir(id){
+  const d=wOku(); if(!d.gizli.includes(id)) d.gizli.push(id);
+  wYaz(d); wUygula();
+}
+function wTik(id, acik){
+  if(!acik){ wKaldir(id); return; }
+  const d=wOku();
+  d.gizli=d.gizli.filter(x=>x!==id);
+  d.sira=wYerlestir(d.sira, id, d.gizli);
+  wYaz(d); wUygula();
+}
+function wSifirla(){
+  try{ localStorage.removeItem(wAnahtar()); }catch(e){}
+  wUygula(); wListeYaz();
+}
+/* Liste: TİK = sayfada görünüyor, BOŞ = kaldırılmış. Aynı içerik telefondaki
+   pencerede (#wListe) ve Ayarlar → Widget'ta (#wListeAyar) çizilir. */
+function wListeYaz(){
+  const d=wOku();
+  const grup=(baslik,ids)=>`<div class="wGrup">${baslik}</div>`
+    + ids.map(id=>`<label class="wSatir"><input type="checkbox"${d.gizli.includes(id)?'':' checked'} onchange="wTik('${id}',this.checked)"><span>${esc(W_AD[id]||id)}</span></label>`).join('');
+  const html=grup('KPI Balonları', W_VARSAYILAN.k)+grup('Grafikler', W_VARSAYILAN.c);
+  ['wListe','wListeAyar'].forEach(i=>{ const el=$(i); if(el) el.innerHTML=html; });
+}
+/* Geri tuşu (Android) önce açık katmanı kapatsın diye her katman bir history
+   girdisi bırakır; popstate işleyicisi bu sınıflara bakar. */
+function wGecmisIt(){ try{ history.pushState({v:'analiz', w:1}, '', location.pathname+location.search+'#analiz'); }catch(e){} }
+function wDuzenAc(){
+  if(document.body.classList.contains('wDuzen')) return;
+  document.body.classList.add('wDuzen');
+  try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
+  wGecmisIt();
+}
+function wDuzenKapat(){
+  if(typeof wSurukleBitir==='function') wSurukleBitir(true);
+  wListeKapat();
+  document.body.classList.remove('wDuzen');
+}
+function wListeAc(){ wListeYaz(); document.body.classList.add('wListeAcik'); wGecmisIt(); }
+function wListeKapat(){ document.body.classList.remove('wListeAcik'); }
+
+/* Uzun basma + sürükleme. Olaylar belgeye BİR KEZ bağlanır (#anKpi/#anCharts
+   her çizimde yeniden yazıldığı için öğelere bağlamak kaybolurdu). */
+let wSurukleBitir=null;
+(function(){
+  let bas=null, sur=null, tikYut=0;
+  const hedef = t => (t&&t.closest) ? t.closest('#anKpi [data-w],#anCharts [data-w]') : null;
+  function basla(el, e){
+    sur={el:el, id:el.dataset.w, g:wGrupOf(el.dataset.w), sx:e.clientX, sy:e.clientY, pid:e.pointerId, d:wOku(), son:null, dx:0, dy:0};
+    el.classList.add('wTasi');
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+  }
+  function hareket(e){
+    sur.dx=e.clientX-sur.sx; sur.dy=e.clientY-sur.sy;
+    sur.el.style.transform=`translate(${sur.dx}px,${sur.dy}px) scale(1.04)`;
+    const alt=document.elementsFromPoint(e.clientX, e.clientY)
+      .map(n=>n.closest&&n.closest('[data-w]'))
+      .find(n=>n && n!==sur.el && n.dataset.w && wGrupOf(n.dataset.w)===sur.g && !n.classList.contains('wGizli'));
+    if(!alt){ sur.son=null; return; }
+    if(alt===sur.son) return;                      /* aynı öğeyle ileri-geri titremesin */
+    sur.son=alt;
+    const a=sur.d.sira.indexOf(sur.id), b=sur.d.sira.indexOf(alt.dataset.w);
+    if(a<0||b<0) return;
+    /* Yer değiştirince öğe yeni yerine kayar; parmağın altında kalsın diye
+       başlangıç noktası kayma kadar düzeltilir (merkezler üzerinden, ölçek etkisiz). */
+    const r0=sur.el.getBoundingClientRect();
+    const m0x=r0.left+r0.width/2-sur.dx, m0y=r0.top+r0.height/2-sur.dy;
+    sur.d.sira[a]=alt.dataset.w; sur.d.sira[b]=sur.id;
+    wSiraUygula(sur.d);
+    sur.el.style.transform='none';
+    const r1=sur.el.getBoundingClientRect();
+    sur.sx+=(r1.left+r1.width/2)-m0x; sur.sy+=(r1.top+r1.height/2)-m0y;
+    sur.dx=e.clientX-sur.sx; sur.dy=e.clientY-sur.sy;
+    sur.el.style.transform=`translate(${sur.dx}px,${sur.dy}px) scale(1.04)`;
+  }
+  wSurukleBitir=function(iptal){
+    if(!sur) return;
+    const s=sur; sur=null;
+    s.el.style.transform=''; s.el.classList.remove('wTasi');
+    try{ s.el.releasePointerCapture(s.pid); }catch(_){}
+    if(iptal) wUygula(); else { wYaz(s.d); wUygula(); }
+  };
+  document.addEventListener('pointerdown', e=>{
+    if(!wTel()) return;                                   /* masaüstünde hiçbir şey olmaz */
+    const el=hedef(e.target); if(!el) return;
+    if(e.target.closest('.wSil')) return;                  /* − düğmesi kendi işini yapar */
+    if(document.body.classList.contains('wDuzen')){ basla(el, e); return; }
+    if(e.pointerType==='mouse' && e.button!==0) return;
+    if(bas) clearTimeout(bas.t);
+    bas={x:e.clientX, y:e.clientY, t:setTimeout(()=>{
+      bas=null; tikYut=Date.now()+700;                     /* bırakınca gelen tık grafik süzgecini açmasın */
+      wDuzenAc(); }, 500)};
+  }, {passive:true});
+  document.addEventListener('pointermove', e=>{
+    /* 10px'ten fazla kayan parmak sayfayı kaydırıyordur — uzun basma sayılmaz */
+    if(bas && Math.hypot(e.clientX-bas.x, e.clientY-bas.y)>10){ clearTimeout(bas.t); bas=null; }
+    if(sur && e.pointerId===sur.pid) hareket(e);
+  }, {passive:true});
+  const birak=e=>{ if(bas){ clearTimeout(bas.t); bas=null; } if(sur && e.pointerId===sur.pid) wSurukleBitir(false); };
+  document.addEventListener('pointerup', birak);
+  document.addEventListener('pointercancel', birak);
+  document.addEventListener('click', e=>{
+    if(tikYut && Date.now()<tikYut && hedef(e.target) && !e.target.closest('.wSil')){ tikYut=0; e.stopPropagation(); e.preventDefault(); }
+  }, true);
+  /* Uzun basınca Android'in bağlam menüsü / iOS büyüteci açılmasın */
+  document.addEventListener('contextmenu', e=>{ if(wTel() && hedef(e.target)) e.preventDefault(); });
+})();
+
 function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); renderDatalists(); refreshCounts(); }
 
 /* ══════════ AÇILIŞ ══════════ */
@@ -7599,7 +7806,10 @@ async function airCek(){
     <feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -0.6 0 -0.6 3.4 -0.6 0 -0.6 0"/>
   </filter></svg>
 </div>
-<div class="srcPerde" onclick="document.body.classList.remove('aramaAcik')"></div>   <!-- telefon arama penceresinin perdesi (uygulama.css) -->
+<div class="srcPerde" onclick="document.body.classList.remove('aramaAcik')"></div>
+<!-- telefon Widget listesi (body.wListeAcik; görünümü uygulama.css) -->
+<div class="wPerde" onclick="wListeKapat()"></div>
+<div class="wPanel"><h4>Widget'lar<button type="button" class="wKapat" onclick="wListeKapat()">×</button></h4><div id="wListe"></div><button type="button" class="wSifirla" onclick="wSifirla()">Varsayılan düzene dön</button></div>   <!-- telefon arama penceresinin perdesi (uygulama.css) -->
 <script>
 /* ══════════ TELEFON UYGULAMASI (PWA) ══════════
    • Çevrimdışı katman sw.js — yalnız güvenli kaynakta (https ya da localhost)
