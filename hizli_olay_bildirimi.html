@@ -6935,8 +6935,16 @@ function aiRapor(){
   const mt=hseMetrikler(V, kapAks);   // kapanış hızı/zamanında oranı da tam aksiyon kümesinden
   /* BULGULAR = yalnızca girilen veriden türeyen olgular (yorum/uydurma gösterge YOK) */
   const B=[];
-  B.push(`Bu kümede <b>${n} olay</b>: <b>${ciddi}</b> ciddi (ölümlü kaza, kaza dışı ölüm, kayıp günlü olay, kalıcı engel, meslek hastalığı), `
-        +`<b>${nm}</b> ucuz atlatma, <b>${n-ciddi-nm}</b> diğer (kısıtlı iş göremezlik, tıbbi müdahale, ilk yardım, yangın, araç, maddi hasar, güvenlik).`);
+  /* Parantez içleri SABİT METİN DEĞİL, bu kümedeki gerçek türlerden adetleriyle
+     üretilir. Eskiden sabitti: ciddi tanımı değişince (Kaza Dışı Ölüm çıkarıldı)
+     metin eski listeyi söylemeye devam ediyordu, "diğer" de bazı türleri hiç
+     anmıyordu. Yalnız kümede BULUNAN türler yazılır, çoktan aza. */
+  const turDokum = uy => { const m={};
+    V.filter(r=>uy(r)).forEach(r=>{ const a=cidOf(r.sonuc).ad; m[a]=(m[a]||0)+1; });
+    return Object.keys(m).sort((a,b)=>m[b]-m[a]||a.localeCompare(b,'tr')).map(a=>`${m[a]} ${esc(a)}`).join(', '); };
+  const ciddiDok=turDokum(r=>ciddiAnaliz(r.sonuc)), digerDok=turDokum(r=>!ciddiAnaliz(r.sonuc)&&r.sonuc!=='nearmiss');
+  B.push(`Bu kümede <b>${n} olay</b>: <b>${ciddi}</b> ciddi${ciddiDok?` (${ciddiDok})`:''}, `
+        +`<b>${nm}</b> ucuz atlatma, <b>${n-ciddi-nm}</b> diğer${digerDok?` (${digerDok})`:''}.`);
   if(topTur) B.push(`En sık olay türü <b>${esc(topTur.ad)}</b> — ${topTur.n} olay (%${yuz(topTur.n)}).`);
   if(topKay) B.push(`En sık olay kaynağı <b>${esc(topKay.ad)}</b> — ${topKay.n} olay (%${Math.round(topKay.n/n*100)}).`);
   if(topKok) B.push(`En sık kök sebep alanı <b>${esc(topKok.ad)}</b> — ${topKok.n} olayda.`);
