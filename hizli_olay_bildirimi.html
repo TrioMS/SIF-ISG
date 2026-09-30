@@ -1578,6 +1578,14 @@ function aksTerminDurum(a){
   return {ad:'Açık',pil:'p-blu',gun:d};
 }
 const cidOf = k => CIDDIYET.find(c=>c.k===k) || {k:k,ad:k||'—',pil:'p-gry',agir:false};
+/* ANALİZDE "CİDDİ OLAY" (kullanıcı kararı, 30.09.2026): agir işaretlilerden Kaza Dışı
+   Ölüm HARİÇ. agir işaretinin kendisi DEĞİŞMEDİ — bildirim akışı (dağıtım matrisi
+   'yalnız ciddi olaylar' alıcıları, ACİL konu ibaresi, resmî bildirim uyarısı) ve
+   Airtable 'Ciddi Olay' alanı onu kullanmaya devam eder; işle ilgisiz bir ölüm de
+   üst yönetime ve hekime acil bildirilir. Analiz balonu, rapor, benzer olay ve
+   olay değerlendirmesi bu işlevi kullanır. */
+const CIDDI_ANALIZ_HARIC=['naddeath'];
+const ciddiAnaliz = k => !!cidOf(k).agir && !CIDDI_ANALIZ_HARIC.includes(k);
 const OTORITE = ['SGK iş kazası bildirimi (3 iş günü)','Kolluk / emniyet','Çalışma ve Sosyal Güvenlik Bakanlığı','İşveren / müşteri','Sigorta şirketi','Çevre otoritesi','Bildirim gerekmiyor'];
 const YARA = ['Kesik','Ezilme / sıkışma','Kırık','Burkulma / incinme','Yanık','Göze yabancı cisim','Elektrik çarpması','Kimyasal / gaz maruziyeti','Düşme travması','Çoklu travma','Yaralanma yok','Diğer'];
 const BOLGE = ['Baş / yüz','Göz','Boyun','Omuz','Kol / dirsek','El / parmak','Gövde / sırt','Karın','Kalça / leğen','Bacak / diz','Ayak / parmak','Çoklu bölge','İç organ','—'];
@@ -3615,7 +3623,7 @@ function renderReg(){
     [V.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekliyor','color:var(--amber-700)','bildirildi'],
     [V.filter(r=>r.durum==='inceleme').length,'İncelemesi Süren Olay','color:var(--blue-700)','inceleme'],
     [V.filter(r=>r.durum==='rapor').length,'Rapor Gönderildi','color:var(--green)','rapor'],
-    [V.filter(r=>cidOf(r.sonuc).agir).length,'Ciddi Olay','color:var(--red)',undefined]
+    [V.filter(r=>ciddiAnaliz(r.sonuc)).length,'Ciddi Olay','color:var(--red)',undefined]
   ].map(([v,l,s,f])=>
     `<div class="kpi${f!==undefined?' clk':''}${f&&f===regSecF?' on':''}"${f!==undefined?` onclick="regKpiFiltre('${f||''}')" title="${f?'Yalnız bu durumu göster':'Filtreyi temizle'}"`:''}>`
     +`<div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
@@ -3692,7 +3700,7 @@ function olayDegerlendir(r){
   const lokAyni=diger.filter(x=>x.lokasyon===r.lokasyon).length;
   const benzer=diger.filter(x=>turAd(x)===turAd(r)&&kaynakAd(x)===kaynakAd(r)).length;
   const kaynakAyni=diger.filter(x=>kaynakAd(x)===kaynakAd(r)).length;
-  const ciddi=cidOf(r.sonuc).agir;
+  const ciddi=ciddiAnaliz(r.sonuc);
   const lokSayisi=new Set(tumu.map(x=>x.lokasyon)).size||1, ortLok=n/lokSayisi;
   const yak=diger.filter(x=>x.lokasyon===r.lokasyon&&x.tarih&&r.tarih&&Math.abs((new Date(x.tarih)-new Date(r.tarih))/86400000)<=30).length;
   const hotspot = n>=4 && (lokAyni+1)>=Math.max(2,ortLok*1.5);
@@ -3785,7 +3793,7 @@ function benzerOlaylar(r){
     if(kaynakAd(r)!=='—'&&kaynakAd(x)===kaynakAd(r)){ skor+=2; ned.push('aynı kaynak'); }
     const ortak=[...new Set((x.kokSebep||[]).map(katOf))].filter(k=>myKat.has(k));
     if(ortak.length){ skor+=Math.min(2,ortak.length); ned.push('ortak kök sebep'); }
-    if(cidOf(r.sonuc).agir&&cidOf(x.sonuc).agir){ skor+=1; ned.push('benzer ciddiyet'); }
+    if(ciddiAnaliz(r.sonuc)&&ciddiAnaliz(x.sonuc)){ skor+=1; ned.push('benzer ciddiyet'); }
     if(skor>=2) out.push({rec:x,skor,ned});
   });
   out.sort((a,b)=> b.skor-a.skor || String(b.rec.tarih||'').localeCompare(String(a.rec.tarih||'')));
@@ -5837,7 +5845,7 @@ function anEkBoyut(V){
   const rapor=V.filter(r=>r.durum==='rapor');
   o.raporSay=rapor.length;
   o.kokYok=rapor.filter(r=>!((r.kokSebep||[]).length)).length;
-  o.ciddiAksiyonsuz=V.filter(r=>cidOf(r.sonuc).agir && !((r.aksiyonlar||[]).length)).length;
+  o.ciddiAksiyonsuz=V.filter(r=>ciddiAnaliz(r.sonuc) && !((r.aksiyonlar||[]).length)).length;
 
   return o;
 }
@@ -6812,7 +6820,7 @@ function anSaglikCalistir(){
   const V=gorunurKayitlar();
   const sv=$('anSaglikSurum'); if(sv) sv.textContent='Analiz motoru sürümü: '+AN_MOTOR_SURUM;
   if(!V.length){ kutu.innerHTML='<div class="anEmpty">Görebildiğiniz kapsamda hiç kayıt yok — analiz çalıştırılamaz.</div>'; return; }
-  const n=V.length, rapor=V.filter(r=>r.durum==='rapor'), ciddiler=V.filter(r=>cidOf(r.sonuc).agir);
+  const n=V.length, rapor=V.filter(r=>r.durum==='rapor'), ciddiler=V.filter(r=>ciddiAnaliz(r.sonuc));
   const saglik=can('saglik');
   const yuz=(a,b)=>b?Math.round(a/b*100):0;
 
@@ -6904,7 +6912,7 @@ function aiRapor(){
   window._AI_OY=[];        /* oy düğmelerinin sıra kaydı her çizimde sıfırlanır */
   const V=anKume(); if(!V.length) return 'Analiz için kayıt bulunamadı.';
   const n=V.length, sy=f=>V.filter(f).length, yuz=x=>Math.round(x/n*100);
-  const ciddi=sy(r=>cidOf(r.sonuc).agir), nm=sy(r=>r.sonuc==='nearmiss'), yaralanmali=sy(r=>yaralanmaliMi(r.sonuc));
+  const ciddi=sy(r=>ciddiAnaliz(r.sonuc)), nm=sy(r=>r.sonuc==='nearmiss'), yaralanmali=sy(r=>yaralanmaliMi(r.sonuc));
   const topTur=enSik(sayimla(V.map(turAd)));
   const topKay=enSik(sayimla(V.map(r=>kaynakAd(r)).filter(x=>x&&x!=='—')));
   const topKok=enSik(sayimla(V.flatMap(r=>(r.kokSebep||[]).map(katOf))));
@@ -7381,7 +7389,7 @@ function anGuncelle(animate){
   $('anKpi').innerHTML=[
     [sel.length,'Olay','','Analiz kapsamındaki tüm olaylar','k-olay'],
     [insStr,'100 Çalışan Başına Olay',insRenk(insSayi),insTip+(hedefIns!=null?` · hedef ≤ ${hedefIns}`:' · hedef tanımlanmamış (Ayarlar → Genel)'),'k-100calisan'],
-    [sel.filter(r=>cidOf(r.sonuc).agir).length,'Ciddi Olay','','Ciddi olay: '+CIDDIYET.filter(c=>c.agir).map(c=>c.ad).join(', '),'k-ciddi'],
+    [sel.filter(r=>ciddiAnaliz(r.sonuc)).length,'Ciddi Olay','','Ciddi olay: '+CIDDIYET.filter(c=>ciddiAnaliz(c.k)).map(c=>c.ad).join(', '),'k-ciddi'],
     [sel.filter(r=>r.sonuc==='nearmiss').length,'Ucuz Atlatma','','Olay sonucu: Ucuz Atlatma (NM)','k-ucuz'],
     [sel.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekleyen Olay','','İlk bildirimi yapılmış, inceleme raporu henüz girilmemiş olaylar','k-inceleme'],
     [st.acik,'Açık Aksiyon','','Termini geçmemiş, onay beklemeyen açık aksiyonlar (Aksiyon Listesi ile aynı tanım)','k-acikaks'],
@@ -7437,7 +7445,7 @@ function anKpiTik(w){
     go('act'); AKT_ANZ=Object.assign(et(ids.length),{ids:ids}); renderAct();
     return;
   }
-  const uy = w==='k-ciddi' ? (r=>cidOf(r.sonuc).agir)
+  const uy = w==='k-ciddi' ? (r=>ciddiAnaliz(r.sonuc))
            : w==='k-ucuz' ? (r=>r.sonuc==='nearmiss')
            : w==='k-inceleme' ? (r=>r.durum==='bildirildi')
            : (()=>true);                                   /* k-olay, k-100calisan */
