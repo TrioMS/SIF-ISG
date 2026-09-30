@@ -442,7 +442,7 @@ tbody tr:hover{background:var(--surface2)}
 /* ── KPI ── */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
-.kpi .v{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1}
+.kpi .v{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}   /* sabit rakam genişliği: sayaç akarken titremesin */
 .sn{color:var(--text3);font-variant-numeric:tabular-nums;text-align:left;padding-left:6px!important;padding-right:2px!important}   /* liste sıra no — dar, Olay No’ya yakın */
 .durumEk{color:var(--text);font-size:11.5px;white-space:nowrap}
 .kpi.clk{cursor:pointer;transition:border-color .15s,box-shadow .15s}
@@ -3588,6 +3588,7 @@ function renderReg(){
   ].map(([v,l,s,f])=>
     `<div class="kpi${f!==undefined?' clk':''}${f&&f===regSecF?' on':''}"${f!==undefined?` onclick="regKpiFiltre('${f||''}')" title="${f?'Yalnız bu durumu göster':'Filtreyi temizle'}"`:''}>`
     +`<div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
+  kpiSay('regKpi');   /* rakamlar önceki değerden akarak sayar (Hukuk portalı ile aynı) */
   requestAnimationFrame(function(){ requestAnimationFrame(listeBoy); }); setTimeout(listeBoy,60);   // layout otursun, sonra ölç
 }
 /* Kütükte olay numarasına tıklamak: kayıt yetkisi olan DOĞRUDAN FORMA gider
@@ -4318,6 +4319,7 @@ function renderAct(){
   $('actKpi').innerHTML=kpiSet.map(([v,l,s,f])=>
     `<div class="kpi${f!==undefined?' clk':''}${f&&f===sec?' on':''}"${f!==undefined?` onclick="aktKpiFiltre('${f}')" title="${f?'Yalnız “'+esc(f)+'” göster':'Filtreyi temizle'}"`:''}>`
     +`<div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
+  kpiSay('actKpi');
   renderUyari();
   requestAnimationFrame(function(){ requestAnimationFrame(listeBoy); }); setTimeout(listeBoy,60);   // layout otursun, sonra ölç
 }
@@ -7327,6 +7329,7 @@ function anGuncelle(animate){
     [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),'','k-kapatmaoran']
   ].map(([v,l,s,t,w])=>`<div class="kpi" data-w="${w}"${t?` title="${esc(t)}"`:''}><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
   wUygula();   /* #anKpi her çizimde baştan yazılıyor → sıra/gizleme/− düğmesi yeniden işlenir */
+  kpiSay('anKpi');
   const setW=(chart,html)=>{ const w=document.querySelector(`#anCharts [data-chart="${chart}"]`); if(w) w.innerHTML=html; };
   setW('tur', anPie(pieTop(sayimla(setFor('tur').map(turAd)),6),'tur',secOf('tur'),animate));   /* top 6 + Diğer */
 
@@ -7345,6 +7348,43 @@ function anGuncelle(animate){
     if(bx && bx.dataset.open==='1' && bx.querySelector('.body')) anAIYaz(false);
     else anAIGeriYukle(); }
 }
+/* ── KPI SAYACI ── Hukuk portalındaki sayacın (sayacYaz) kardeşi: balondaki
+   rakam önceki değerinden yenisine ~0,5 sn'de, sona doğru yavaşlayarak akar;
+   ilk açılışta sıfırdan sayar. Güvenlik kuralları aynı: değişmediyse başlamaz,
+   hareket azaltma açıksa çalışmaz, SON kare hedef metnin KENDİSİNİ yazar.
+   Fark: burada balonlar her çizimde innerHTML ile baştan yazılıyor, düğüm
+   yaşamıyor — önceki değer bu yüzden balon kimliğine göre _kpiOnceki'de tutulur
+   (data-w ya da etiket). Rakam olmayan değer ("—") sayılmaz, hafızası silinir. */
+const _kpiOnceki={};
+const kpiAzHareket = () => { try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } };
+function kpiSay(kapId){
+  const kap=$(kapId); if(!kap) return;
+  kap.querySelectorAll('.kpi').forEach((k,i)=>{
+    const v=k.querySelector('.v'); if(!v) return;
+    const l=k.querySelector('.l');
+    const anahtar=kapId+'|'+(k.dataset.w||(l&&l.textContent)||i);
+    const metin=v.textContent.trim(), m=metin.match(/^(%?)(\d+(?:[.,]\d+)?)$/);
+    if(!m){ delete _kpiOnceki[anahtar]; return; }
+    const hedef=parseFloat(m[2].replace(',','.')), ond=(m[2].split(/[.,]/)[1]||'').length, on=m[1];
+    const bas=(anahtar in _kpiOnceki) ? _kpiOnceki[anahtar] : 0;
+    _kpiOnceki[anahtar]=hedef;
+    if(bas===hedef || kpiAzHareket() || typeof requestAnimationFrame!=='function' || typeof performance==='undefined') return;
+    const yaz=x=>on+(ond ? x.toFixed(ond) : String(Math.round(x)));
+    /* HEDEF metin ekranda KALIR; başlangıç değeri yalnız ilk karede yazılır.
+       Kare hiç gelmezse (sekme arka planda, telefon kilitli) doğru rakam durur.
+       Eskiden başlangıç önceden yazılıyordu ve arka planda balon ESKİ rakamda
+       takılı kalıyordu (ölçüldü). rAF boyamadan önce çalıştığı için titreme yok. */
+    let t0=null; const sure=520;
+    requestAnimationFrame(function kare(s){
+      if(!v.isConnected) return;                   /* balon yeniden yazıldı → bu sayaç biter */
+      if(t0===null) t0=s;
+      const kk=Math.min(1,(s-t0)/sure), e=1-Math.pow(1-kk,3);
+      if(kk<1){ v.textContent=yaz(bas+(hedef-bas)*e); requestAnimationFrame(kare); }
+      else v.textContent=metin;                    /* son kare: hedefin kendisi */
+    });
+  });
+}
+
 /* ══════════ TELEFON: ANALİZ DÜZENİ (WİDGET) ══════════
    Telefonda (≤640px) KPI balonları ve grafik kartları uzun basınca düzenlenir:
    sürükleyerek taşınır, − ile kaldırılır, "+ Widget" listesinden geri eklenir.
