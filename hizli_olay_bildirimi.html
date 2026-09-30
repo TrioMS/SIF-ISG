@@ -454,6 +454,15 @@ tbody tr:hover{background:var(--surface2)}
 .kpi.clk{cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .kpi.clk:hover{border-color:var(--jcb-600);box-shadow:0 2px 10px rgba(245,197,24,.25)}
 .kpi.on{border-color:var(--jcb);box-shadow:0 0 0 2px var(--jcb-light) inset}
+/* "Analizden" süzgeç etiketi (Olay Envanteri / Aksiyon Listesi, anzCipYaz) */
+.anzCip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:8px 10px 8px 12px;
+  background:var(--jcb-light);border:1px solid var(--jcb);border-radius:10px;font-size:13px;color:var(--text)}
+.anzCip .aiBadge{margin-right:0}
+.anzCip .anzKapat{margin-left:auto;width:26px;height:26px;border-radius:50%;border:1px solid var(--jcb-600);background:#fff;
+  color:var(--text);font-size:16px;line-height:1;cursor:pointer}
+.anzCip .anzKapat:hover{background:var(--jcb)}
+body.dark .anzCip{background:rgba(245,197,24,.12);color:#eee}
+body.dark .anzCip .anzKapat{background:transparent;color:#eee}
 .kpi .l{font-size:11.5px;color:var(--text2);margin-top:3px}
 /* ── SATIR BLOKLARI ── */
 .arow{border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px;margin-bottom:10px;background:var(--surface2)}
@@ -1125,6 +1134,14 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
         <div style="max-width:240px"><label class="f">“Yaklaşıyor” Eşiği (Gün)</label>
           <input type="number" id="g_yaklasan" min="1" max="90" oninput="setGen('yaklasanGun',this.value)" onchange="genYaziBitti()">
           <div class="hint">Termine bu kadar gün kalınca uyarı çıkar. Geciken aksiyon her zaman uyarır.</div></div>
+      </div>
+    </div>
+    <div class="card" style="max-width:620px">
+      <h3>Analiz Göstergeleri</h3>
+      <div class="cb">
+        <div style="max-width:300px"><label class="f">100 Çalışan Başına Olay — Hedef (üst sınır)</label>
+          <input type="number" id="g_insHedef" min="0" step="0.1" placeholder="tanımlanmamış" oninput="setGen('insHedef',this.value)" onchange="genYaziBitti()">
+          <div class="hint">Analiz balonu hedefte ya da altında <b style="color:var(--green)">yeşil</b>, üstünde <b style="color:var(--red)">kırmızı</b> görünür; boş bırakılırsa renklendirilmez. Değer kayıtlı tüm olaylar üzerinden hesaplanır (yıllıklandırılmaz) — hedefi buna göre girin.</div></div>
       </div>
     </div>
     <div class="card" style="max-width:620px">
@@ -3544,6 +3561,7 @@ const gorunurKayitlar = () => RECS.filter(r=>lokGorebilir(r.lokasyon));
 function filtreTemizle(){
   ['fNo','fTar1','fTar2','fSicil','fKisi','q'].forEach(id=>{ if($(id)){ $(id).value=''; delete $(id).dataset.iso; } });
   ['fLok','fTur','fSt'].forEach(id=>{ if($(id)) $(id).value=''; });
+  REG_ANZ=null;   /* analiz balonundan gelen süzgeç de kalkar */
   renderReg();
 }
 function renderReg(){
@@ -3551,7 +3569,9 @@ function renderReg(){
   const q=v('q'), fno=v('fNo'), fsicil=v('fSicil'), fkisi=v('fKisi');
   const fl=$('fLok').value, fc='', fs=$('fSt').value, ft=$('fTur')?$('fTur').value:'';   /* olay sonucu filtresi kalktı (tür ile birleşti) */
   const t1=dtOku('fTar1'), t2=dtOku('fTar2');
+  anzCipYaz('v-reg', REG_ANZ, 'REG_ANZ=null;renderReg()');
   const rows=gorunurKayitlar().filter(r=>{
+    if(REG_ANZ && !REG_ANZ.ids.includes(r.id)) return false;   /* analiz balonundan gelen küme */
     if(fl&&r.lokasyon!==fl) return false;
     if(fc&&r.sonuc!==fc) return false;
     if(fs&&r.durum!==fs) return false;
@@ -4233,6 +4253,7 @@ function oranRenk(o){ return o==null?'' : o<50?'color:var(--red)' : o<=85?'color
 function aktFiltreTemizle(){
   ['aNo','aRef','aSor','aTar1','aTar2','aq'].forEach(id=>{ if($(id)){ $(id).value=''; delete $(id).dataset.iso; } });
   ['aLok','aSt','aKay'].forEach(id=>{ if($(id)) $(id).value=''; });
+  AKT_ANZ=null;
   if($('aSort')) $('aSort').value='tarih';   /* varsayilan siralama: acilis tarihi */
 
   renderAct();
@@ -4257,7 +4278,9 @@ function renderAct(){
   const fkay=$('aKay')?$('aKay').value:'';   /* ai: AI önerisinden açılan (aiOneri damgası) */
   const onlyMine=(st==='Bana Atananlar');   /* Durum listesindeki özel seçenek */
   const tumu=allActions().length;
+  anzCipYaz('v-act', AKT_ANZ, 'AKT_ANZ=null;renderAct()');
   let rows=allActions().filter(({a,no,r})=>{
+    if(AKT_ANZ && !AKT_ANZ.ids.includes(a.id)) return false;   /* analiz balonundan gelen küme */
     const td=aksTerminDurum(a);
     /* Durum süzgeci KPI balonlarıyla BİREBİR aynı tanımı kullanır (dışlayan kümeler):
        Gecikti → gecikmiş onay bekleyenler de dahil · Onay Bekliyor → yalnız termini geçmemişler */
@@ -5139,11 +5162,12 @@ function clearPers(){ if(!confirm(`${PERS.length} personel kaydı silinsin mi? (
 function setGen(f,v){
   GEN[f]= f==='kod' ? v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)
         : f==='yaklasanGun' ? Math.max(1,Math.min(90,parseInt(v,10)||7))
+        : f==='insHedef' ? ((v===''||v==null||!isFinite(parseFloat(v))) ? null : Math.max(0,parseFloat(v)))
         : v;
   saveGen(); renderGen(); renderUyari();
   /* applyPerms() görünüm tazeler → go('set') → Ayarlar'daki bütün tablolar
      baştan çizilir. Her tuş vuruşunda gereksiz; yazım bitince çalışır. */
-  if(!['ad','kod','mailWebhook','arsivYol','portalUrl','testMail','yaklasanGun'].includes(f)) applyPerms();
+  if(!['ad','kod','mailWebhook','arsivYol','portalUrl','testMail','yaklasanGun','insHedef'].includes(f)) applyPerms();
 }
 function genYaziBitti(){ renderGen(); applyPerms(); renderUyari(); }
 async function arsivTest(){
@@ -5206,6 +5230,7 @@ function renderGen(){
   const kldr=$('arsivKaldirBtn'); if(kldr) kldr.style.display=GEN.arsivAd?'':'none';
   yaz('g_arsivYol',GEN.arsivYol||'');
   yaz('g_yaklasan',GEN.yaklasanGun||7);
+  yaz('g_insHedef',GEN.insHedef==null?'':GEN.insHedef);
   const y2=$('gYak2'); if(y2) y2.textContent=GEN.yaklasanGun||7;
   const l=LOK[0]?LOK[0].kod:'IZM';
   $('genOrnek').textContent=`${GEN.kod}-${l}-INC-${bugun().slice(0,4)}-001`;
@@ -7344,16 +7369,25 @@ function anGuncelle(animate){
   const insTip=calToplam>0
     ? sel.length+' olay / '+calToplam+' çalışan × 100'+(eksikCal?' · not: bazı lokasyonların çalışan sayısı girilmemiş':'')
     : 'Lokasyon çalışan sayısı girilmemiş — Ayarlar → Lokasyonlar';
-  /* 5. sütun: kalıcı widget kimliği (telefon düzeni, bkz. W_VARSAYILAN) */
+  /* TEK RENK (kullanıcı kararı, 30.09.2026): sayılar renklendirilmez; yalnız iki
+     ORAN kurala göre renklenir — kapatılma oranı (oranRenk) ve 100 çalışan başına
+     olay (insRenk, Ayarlar → Genel'deki hedefe göre; hedef yoksa renksiz).
+     TIKLAMA: balon, o anki analiz kapsamındaki (lokasyon + çapraz süzgeç) TAM O
+     kayıtları listeler (anKpiTik) — sayı ile liste aynı kümeden gelir, birebir tutar.
+     5. sütun: kalıcı widget kimliği (telefon düzeni, bkz. W_VARSAYILAN). */
+  const insSayi=calToplam>0 ? Math.round(sel.length/calToplam*100*10)/10 : null;
+  const hedefIns=insHedef();
+  AN_KPI_KUME={ sel:sel, aks:kapAks, kapsam: anFiltre ? `${AN_AD[anFiltre.boyut]}: ${anFiltreMetin(anFiltre)}` : (fl?lokAd(fl):'Tüm lokasyonlar') };
   $('anKpi').innerHTML=[
-    [sel.length,'Olay','','','k-olay'],
-    [insStr,'100 Çalışan Başına Olay','','','k-100calisan'],
-    [sel.filter(r=>cidOf(r.sonuc).agir).length,'Ciddi Olay','color:var(--red)','','k-ciddi'],
-    [sel.filter(r=>r.sonuc==='nearmiss').length,'Ucuz Atlatma','color:var(--blue-700)','','k-ucuz'],
-    [sel.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekleyen Olay','color:var(--amber-700)','','k-inceleme'],
-    [st.acik,'Açık Aksiyon','','','k-acikaks'],[st.gecikti,'Geciken Aksiyon','color:var(--red)','','k-gecikenaks'],   /* Aksiyon Listesi ile aynı (dışlayan) tanım */
-    [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),'','k-kapatmaoran']
-  ].map(([v,l,s,t,w])=>`<div class="kpi" data-w="${w}"${t?` title="${esc(t)}"`:''}><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
+    [sel.length,'Olay','','Analiz kapsamındaki tüm olaylar','k-olay'],
+    [insStr,'100 Çalışan Başına Olay',insRenk(insSayi),insTip+(hedefIns!=null?` · hedef ≤ ${hedefIns}`:' · hedef tanımlanmamış (Ayarlar → Genel)'),'k-100calisan'],
+    [sel.filter(r=>cidOf(r.sonuc).agir).length,'Ciddi Olay','','Ciddi olay: '+CIDDIYET.filter(c=>c.agir).map(c=>c.ad).join(', '),'k-ciddi'],
+    [sel.filter(r=>r.sonuc==='nearmiss').length,'Ucuz Atlatma','','Olay sonucu: Ucuz Atlatma (NM)','k-ucuz'],
+    [sel.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekleyen Olay','','İlk bildirimi yapılmış, inceleme raporu henüz girilmemiş olaylar','k-inceleme'],
+    [st.acik,'Açık Aksiyon','','Termini geçmemiş, onay beklemeyen açık aksiyonlar (Aksiyon Listesi ile aynı tanım)','k-acikaks'],
+    [st.gecikti,'Geciken Aksiyon','','Termini geçmiş, kapanmamış aksiyonlar (onay bekleyen gecikmişler dahil)','k-gecikenaks'],   /* Aksiyon Listesi ile aynı (dışlayan) tanım */
+    [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),kapanmaTip+' · %50 altı kırmızı, %50–85 turuncu, %85 üstü yeşil','k-kapatmaoran']
+  ].map(([v,l,s,t,w])=>`<div class="kpi clk" data-w="${w}" onclick="anKpiTik('${w}')" title="${esc(t)}${t?'\n':''}Tıklayın: bu kayıtları listele"><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
   wUygula();   /* #anKpi her çizimde baştan yazılıyor → sıra/gizleme/− düğmesi yeniden işlenir */
   kpiSay('anKpi');
   const setW=(chart,html)=>{ const w=document.querySelector(`#anCharts [data-chart="${chart}"]`); if(w) w.innerHTML=html; };
@@ -7381,6 +7415,49 @@ function anGuncelle(animate){
     if(bx && bx.dataset.open==='1' && bx.querySelector('.body')) anAIYaz(false);
     else anAIGeriYukle(); }
 }
+/* ── ANALİZ BALONU → LİSTE ──
+   Balona tıklanınca, balonu HESAPLAYAN kümenin (AN_KPI_KUME, anGuncelle yazar)
+   kayıtları ilgili listede açılır. Liste kimlik kümesiyle süzülür (REG_ANZ /
+   AKT_ANZ); böylece balondaki sayı ile listedeki satır sayısı BİREBİR tutar —
+   tanımlar iki yerde ayrı ayrı yazılıp birbirinden kaymaz. Listenin üstünde
+   "Analizden: … ×" etiketi durur; × ya da Temizle süzgeci kaldırır. */
+let AN_KPI_KUME=null, REG_ANZ=null, AKT_ANZ=null;
+const AN_KPI_AD={'k-olay':'Olay','k-100calisan':'100 Çalışan Başına Olay','k-ciddi':'Ciddi Olay','k-ucuz':'Ucuz Atlatma',
+  'k-inceleme':'İnceleme Bekleyen Olay','k-acikaks':'Açık Aksiyon','k-gecikenaks':'Geciken Aksiyon','k-kapatmaoran':'Kapanan Aksiyon'};
+function anKpiTik(w){
+  if(document.body.classList.contains('wDuzen')) return;   /* telefon widget düzenlemesinde tıklama liste açmaz */
+  const K=AN_KPI_KUME; if(!K) return;
+  const ad=AN_KPI_AD[w]||w, et=(n)=>({ad:ad, kapsam:K.kapsam, n:n});
+  if(w.startsWith('k-') && ['k-acikaks','k-gecikenaks','k-kapatmaoran'].includes(w)){
+    const td=a=>aksTerminDurum(a);
+    const uy = w==='k-acikaks' ? (a=>td(a).ad==='Açık')
+             : w==='k-gecikenaks' ? (a=>td(a).gecikti)
+             : (a=>{ const t=td(a).ad; return t==='Kapandı'||t==='Gecikmeli Kapandı'; });
+    const ids=K.aks.filter(uy).map(a=>a.id);
+    go('act'); AKT_ANZ=Object.assign(et(ids.length),{ids:ids}); renderAct();
+    return;
+  }
+  const uy = w==='k-ciddi' ? (r=>cidOf(r.sonuc).agir)
+           : w==='k-ucuz' ? (r=>r.sonuc==='nearmiss')
+           : w==='k-inceleme' ? (r=>r.durum==='bildirildi')
+           : (()=>true);                                   /* k-olay, k-100calisan */
+  const ids=K.sel.filter(uy).map(r=>r.id);
+  go('reg'); REG_ANZ=Object.assign(et(ids.length),{ids:ids}); renderReg();
+}
+/* Listenin üstündeki "Analizden" etiketi (kutu yoksa oluşturulur) */
+function anzCipYaz(kapId, s, temizle){
+  const kap=$(kapId); if(!kap) return;
+  let c=kap.querySelector(':scope > .anzCip');
+  if(!s){ if(c) c.remove(); return; }
+  if(!c){ c=document.createElement('div'); c.className='anzCip'; const h=kap.querySelector('h2'); if(h) h.after(c); else kap.prepend(c); }
+  c.innerHTML=`<span class="aiBadge" style="background:var(--ink);color:var(--jcb)">Analizden</span><b>${esc(s.ad)}</b> · ${esc(s.kapsam)} · ${s.n} kayıt`
+    +`<button type="button" class="anzKapat" onclick="${temizle}" aria-label="Süzgeci kaldır" title="Süzgeci kaldır">×</button>`;
+}
+/* 100 çalışan başına olay: hedef Ayarlar → Genel'den (üst sınır). Hedefte ya da
+   altında yeşil, üstünde kırmızı; hedef girilmemişse RENKSİZ (uydurma eşik yok). */
+function insHedef(){ const h=parseFloat(GEN.insHedef); return (isFinite(h)&&h>=0)?h:null; }
+function insRenk(v){ const h=insHedef(); if(v==null||h==null) return ''; return v<=h?'color:var(--green)':'color:var(--red)'; }
+
 /* ── KPI SAYACI ── Hukuk portalındaki sayacın (sayacYaz) kardeşi: balondaki
    rakam önceki değerinden yenisine ~0,5 sn'de, sona doğru yavaşlayarak akar;
    ilk açılışta sıfırdan sayar. Güvenlik kuralları aynı: değişmediyse başlamaz,
