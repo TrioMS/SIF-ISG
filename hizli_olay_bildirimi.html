@@ -1474,14 +1474,14 @@ const KAYNAKLAR = ['İş makinesi / ağır ekipman','Kaldırma ekipmanı (vinç,
    kendi sonuc kodları da listede kalır ki geçmiş veri okunabilsin.
    agir = "Ciddi Olay" KPI'sında sayılan türler. */
 const CIDDIYET = [
-  {k:'olumlu',   ad:'Ölümlü Kaza',                  pil:'p-red', agir:true},
-  {k:'naddeath', ad:'Kaza Dışı Ölüm',               pil:'p-red', agir:true},
-  {k:'lti',      ad:'Kayıp Günlü Olay (LTI)',       pil:'p-red', agir:true},
-  {k:'disab',    ad:'Fiziksel Engel',               pil:'p-red', agir:true},
-  {k:'occill',   ad:'Meslek Hastalığı',             pil:'p-red', agir:true},
-  {k:'rwc',      ad:'Kısıtlı İş Göremezlik (RWC)', pil:'p-amb', agir:false},
-  {k:'mti',      ad:'Tıbbi Müdahaleli Olay (MTC)',  pil:'p-amb', agir:false},
-  {k:'fac',      ad:'İlk Yardım (FAC)',      pil:'p-amb', agir:false},
+  {k:'olumlu',   ad:'Ölümlü Kaza',                  pil:'p-red', agir:true, yarali:true},
+  {k:'naddeath', ad:'Kaza Dışı Ölüm',               pil:'p-red', agir:true, yarali:true},
+  {k:'lti',      ad:'Kayıp Günlü Olay (LTI)',       pil:'p-red', agir:true, yarali:true},
+  {k:'disab',    ad:'Fiziksel Engel',               pil:'p-red', agir:true, yarali:true},
+  {k:'occill',   ad:'Meslek Hastalığı',             pil:'p-red', agir:true, yarali:true},
+  {k:'rwc',      ad:'Kısıtlı İş Göremezlik (RWC)', pil:'p-amb', agir:false, yarali:true},
+  {k:'mti',      ad:'Tıbbi Müdahaleli Olay (MTC)',  pil:'p-amb', agir:false, yarali:true},
+  {k:'fac',      ad:'İlk Yardım (FAC)',      pil:'p-amb', agir:false, yarali:true},
   {k:'vehicle',  ad:'Araç Kazası',                  pil:'p-amb', agir:false},
   {k:'fire',     ad:'Yangın',                       pil:'p-amb', agir:false},
   {k:'nearmiss', ad:'Ucuz Atlatma (NM)',                   pil:'p-blu', agir:false},
@@ -1489,7 +1489,7 @@ const CIDDIYET = [
   {k:'nonoccill',ad:'İş Dışı Hastalık',             pil:'p-gry', agir:false},
   {k:'security', ad:'Güvenlik Olayı',               pil:'p-gry', agir:false},
   /* ↓ yalnız ESKİ kayıtlar için (artık seçilemez) */
-  {k:'agir',     ad:'Ağır Yaralanma / Uzuv Kaybı',  pil:'p-red', agir:true},
+  {k:'agir',     ad:'Ağır Yaralanma / Uzuv Kaybı',  pil:'p-red', agir:true, yarali:true},
   {k:'diger',    ad:'Diğer',                        pil:'p-gry', agir:false}
 ];
 /* Kayıt durumu = iki aşamalı akış. Aşama 1 ilk bildirim, aşama 2 inceleme raporu. */
@@ -1585,6 +1585,30 @@ const cidOf = k => CIDDIYET.find(c=>c.k===k) || {k:k,ad:k||'—',pil:'p-gry',agi
    üst yönetime ve hekime acil bildirilir. Analiz balonu, rapor, benzer olay ve
    olay değerlendirmesi bu işlevi kullanır. */
 const CIDDI_ANALIZ_HARIC=['naddeath'];
+/* AI önerisinden açılıp süren aksiyonlar için öneri — "termini yaklaşanlar" ancak
+   GERÇEKTEN varsa söylenir (eşik: Ayarlar → Genel → yaklaşıyor günü). D: aksTerminDurum
+   sonuçları. Süren aksiyon yoksa (yalnız taslak/iptal) boş döner, öneri yazılmaz. */
+function aiYaklasanMetin(D){
+  const esik=parseInt(GEN.yaklasanGun,10)||7;
+  const suren=D.filter(x=>(x.ad==='Açık'||x.ad==='Onay Bekliyor') && !x.gecikti);
+  if(!suren.length) return '';
+  const yak=suren.filter(x=>x.gun!=null && x.gun>=0 && x.gun<=esik).length;
+  return yak
+    ? `AI önerisinden açılan <b>${suren.length}</b> aksiyon sürüyor; <b>${yak}</b> tanesinin termini ${esik} gün içinde dolacak — bunları önceliklendirin.`
+    : `AI önerisinden açılan <b>${suren.length}</b> aksiyon sürüyor; termini ${esik} gün içinde dolan yok — takibi sürdürün.`;
+}
+/* ── ANALİZ EŞİKLERİ — TEK KAYNAK ──
+   Renk kuralları, bulgu/öneri KOŞULLARI ve bu eşikleri SÖYLEYEN metinler buradan
+   okur. Eskiden aynı ölçü için farklı sayılar dağınıktı (terminde kapanma: renk
+   50/85, "olumlu" ≥80, öneri <60; bildirim: bulgu >2 gün, öneri "24 saat") —
+   kart yeşil değilken "olumlu" yazılabiliyordu. Değiştirmek için yalnız burası. */
+const ESIK={
+  oranKirmizi:50, oranYesil:85,   /* kapatılma / terminde kapanma oranı: <50 kırmızı · 50–85 turuncu · >85 yeşil */
+  etkinIyi:80, etkinZayif:50,     /* aksiyon etkinliği (kapanıştan sonra tekrar etmeyen alan payı) */
+  etkinOlcum:3,                   /* etkinlik hükmü için en az ölçülmüş aksiyon */
+  bildirimGun:2,                  /* olaydan kaydın açılmasına izin verilen en fazla gün */
+  nmOranAlt:3                     /* yaralanmalı olay başına beklenen en az ucuz atlatma */
+};
 const ciddiAnaliz = k => !!cidOf(k).agir && !CIDDI_ANALIZ_HARIC.includes(k);
 const OTORITE = ['SGK iş kazası bildirimi (3 iş günü)','Kolluk / emniyet','Çalışma ve Sosyal Güvenlik Bakanlığı','İşveren / müşteri','Sigorta şirketi','Çevre otoritesi','Bildirim gerekmiyor'];
 const YARA = ['Kesik','Ezilme / sıkışma','Kırık','Burkulma / incinme','Yanık','Göze yabancı cisim','Elektrik çarpması','Kimyasal / gaz maruziyeti','Düşme travması','Çoklu travma','Yaralanma yok','Diğer'];
@@ -3682,11 +3706,17 @@ function hseMetrikler(V, actsOverride){
   const puan=r=>({olumlu:10,agir:8,lti:5,rwc:3,fac:2,maddi:1,nearmiss:1})[r.sonuc]||1;
   const riskIdx=V.reduce((s,r)=>s+puan(r),0);
   const ds=V.filter(r=>r.tarih).map(r=>r.tarih).sort();
-  let trend=null;
+  /* Eğilim: kümedeki SON olay tarihinden geriye 90 gün ile önceki 90 gün. Metin bunu
+     açıkça söyler ("son 90 gün" bugünden sayılıyormuş gibi okunuyordu). Yön ayrı alanda
+     (trendYon) — öneri metne regex ile bağlanmasın. */
+  let trend=null, trendYon=null;
   if(ds.length>=6){ const sonD=new Date(ds[ds.length-1]+'T00:00:00'), g=a=>(sonD-new Date(a+'T00:00:00'))/86400000;
     const yeni=ds.filter(a=>g(a)<=90).length, eski=ds.filter(a=>g(a)>90&&g(a)<=180).length;
-    if(yeni||eski) trend = yeni>eski?`artış (son 90 gün ${yeni} · önceki 90 gün ${eski})`:(yeni<eski?`azalış (son 90 gün ${yeni} · önceki 90 gün ${eski})`:`sabit (~${yeni}/90 gün)`); }
-  return {aT:acts.length,aKap:kapali.length,geciken,zamanindaOran,ortKapanma,riskIdx,trend};
+    const son=trDate(ds[ds.length-1]);
+    if(yeni||eski){ trendYon = yeni>eski?'artis':(yeni<eski?'azalis':'sabit');
+      trend = trendYon==='sabit' ? `sabit (~${yeni}/90 gün; son olay ${son})`
+        : `${trendYon==='artis'?'artış':'azalış'} (son olay ${son} itibarıyla son 90 gün ${yeni} · önceki 90 gün ${eski})`; } }
+  return {aT:acts.length,aKap:kapali.length,geciken,zamanindaOran,ortKapanma,riskIdx,trend,trendYon};
 }
 /* Olay-bazlı BAĞLAMSAL değerlendirme — offline, kural tabanlı, deterministik.
    Tek olayı diğer kayıtlarla kıyaslar: kök sebep tekrarı, lokasyon benchmark,
@@ -3722,7 +3752,7 @@ function olayDegerlendir(r){
   if(aiA.length) poz.push(`AI önerilerinden <b>${aiA.length}</b> aksiyon başlatıldı${aiKap?` (${aiKap} tamamlandı)`:''}${aiGec?`, ${aiGec} gecikti`:''} — öneriler takip ediliyor.`);
   if(tot&&done===tot) poz.push(`Tüm düzeltici aksiyonlar (${tot}) tamamlandı.`);
   else if(done) poz.push(`${done}/${tot} düzeltici aksiyon tamamlandı.`);
-  if(mine.aKap&&mine.zamanindaOran>=80) poz.push(`Kapanan aksiyonların %${mine.zamanindaOran}'i termininde/öncesinde kapatıldı${mine.ortKapanma!=null?` (ort. ${mine.ortKapanma} gün)`:''}.`);
+  if(mine.aKap&&mine.zamanindaOran>ESIK.oranYesil) poz.push(`Kapanan aksiyonların %${mine.zamanindaOran}'i termininde/öncesinde kapatıldı${mine.ortKapanma!=null?` (ort. ${mine.ortKapanma} gün)`:''}.`);
   if(r.durum==='rapor') poz.push('İnceleme tamamlandı, nihai rapor gönderildi.');
   if((r.kokSebep||[]).length) poz.push(`${(r.kokSebep||[]).length} kök sebep + ${(r.bulgular||[]).length} bulgu ile neden analizi yapıldı.`);
   if((r.dersler||'').trim()) poz.push('Öğrenilen ders yazıldı ve paylaşıma hazır.');
@@ -3733,7 +3763,7 @@ function olayDegerlendir(r){
   if(!tot) dikkat.push('Tanımlı düzeltici aksiyon yok.');
   if(gec.length) dikkat.push(`${gec.length} aksiyonun termini geçti (en fazla ${Math.max(...gec.map(a=>-daysTo(a.termin)))} gün).`);
   if(aiGec>0) dikkat.push(`AI önerisinden başlatılan <b>${aiGec}</b> aksiyon gecikti — kök neden hâlâ açık olabilir, üzerine düşülmeli.`);
-  if(mine.aKap&&mine.zamanindaOran!=null&&mine.zamanindaOran<50) dikkat.push(`Kapanan aksiyonların %${mine.zamanindaOran}'i termininde kapatıldı.`);
+  if(mine.aKap&&mine.zamanindaOran!=null&&mine.zamanindaOran<ESIK.oranKirmizi) dikkat.push(`Kapanan aksiyonların %${mine.zamanindaOran}'i termininde kapatıldı.`);
   if(ciddi&&(!tot||gec.length)) dikkat.push(`Ciddi sonuçlu olay; ${!tot?'tanımlı aksiyon yok':gec.length+' aksiyon gecikmiş'}.`);
   if(!(r.kokSebep||[]).length) dikkat.push('Kök sebep analizi eksik.');
   if(!(r.ekler||[]).length) dikkat.push('Kanıt/ek dosya yüklenmemiş.');
@@ -3756,7 +3786,7 @@ function olayDegerlendir(r){
   /* Bildirim gecikmesi: geç bildirim delil ve tanık ifadesi kaybettirir */
   if(r.tarih&&r.olusturma){
     const gg=Math.floor((new Date(r.olusturma)-new Date(r.tarih+'T00:00:00'))/86400000);
-    if(isFinite(gg)&&gg>2&&gg<365) dikkat.push(`Olay ${gg} gün sonra kaydedilmiş — geç bildirim delil ve tanık ifadesi kaybına yol açar.`);
+    if(isFinite(gg)&&gg>ESIK.bildirimGun&&gg<365) dikkat.push(`Olay ${gg} gün sonra kaydedilmiş — geç bildirim delil ve tanık ifadesi kaybına yol açar.`);
   }
   if(/^(Evet|Kısmen)/.test(r.isDurdu||'')) dikkat.push(`Bu olayda iş durduruldu (${r.isDurdu}) — yeniden başlatma şartlarının yazılı kapatıldığı doğrulanmalı.`);
   if(ciddi && !(r.taniklar||[]).length) dikkat.push('Ciddi sonuçlu olayda tanık kaydı yok.');
@@ -3765,9 +3795,10 @@ function olayDegerlendir(r){
   kokKat.forEach(k=>{ const t=AI_ONERI[k]||AI_ONERI['Diğer']; if(t&&!oneri.includes(t)) oneri.push(t); });
   if(gec.length) oneri.push(`Geciken ${gec.length} aksiyon için sorumlulara hatırlatma gönderin; termin disiplinini gözden geçirin.`);
   if(aiGec>0) oneri.push(`AI önerisinden açılan geciken aksiyonlara öncelik verip kapatın; önerinin hedeflediği riski hâlâ taşıyorsunuz.`);
-  else if(aiA.length && aiKap<aiA.length) oneri.push(`AI önerisinden başlatılan aksiyonların takibini sürdürün; termini yaklaşanları zamanında kapatın.`);
+  else if(aiA.length && aiKap<aiA.length){ const m=aiYaklasanMetin(aiAd); if(m) oneri.push(m); }
   if(ciddi&&(!tot||gec.length)) oneri.push('Ciddi sonuçlu olayın düzeltici aksiyonlarını önceliklendirip hızla kapatın.');
-  if(mine.aKap&&mine.zamanindaOran!=null&&mine.zamanindaOran<60) oneri.push('Aksiyon kapanış hızını artırın; haftalık termin gözden geçirmesi yapın.');
+  /* "kapanış hızı" değil: ölçülen şey TERMİNİNDE kapanma ORANI (hız = ortKapanma). Yeşil değilse öneri. */
+  if(mine.aKap&&mine.zamanindaOran!=null&&mine.zamanindaOran<=ESIK.oranYesil) oneri.push(`Terminde kapanma oranı %${mine.zamanindaOran} — %${ESIK.oranYesil} üzerine çıkarmak için haftalık termin gözden geçirmesi yapın.`);
   if(hotspot) oneri.push(`${lokAd(r.lokasyon)} lokasyonunda saha denetim sıklığını ve yönetim ziyaretlerini artırın.`);
   if(benzer>=1||kaynakAyni>=2) oneri.push('Bu tür/kaynak için standart bir kontrol/eğitim önlemi tanımlayıp benzer olaylara da uygulayın.');
   if(bulguTekrar.length) oneri.push(`"${bulguTekrar[0].b}" bulgusunu kalıcı kapatan bir saha denetim/kontrol maddesi tanımlayın.`);
@@ -4262,8 +4293,8 @@ function aksStat(arr){
   return { toplam:arr.length, acik, gecikti, onay, onayZamaninda, kapandi, gecikmeli, kapali,
            taslak, iptal, gecerli, acikToplam, oran: gecerli?Math.round(kapali/gecerli*100):null };
 }
-/* Kapatılma oranı rengi: <50 kırmızı · 50–85 turuncu · >85 yeşil */
-function oranRenk(o){ return o==null?'' : o<50?'color:var(--red)' : o<=85?'color:var(--amber-700)' : 'color:var(--green)'; }
+/* Kapatılma oranı rengi: eşikler ESIK.oranKirmizi / ESIK.oranYesil (tek kaynak) */
+function oranRenk(o){ return o==null?'' : o<ESIK.oranKirmizi?'color:var(--red)' : o<=ESIK.oranYesil?'color:var(--amber-700)' : 'color:var(--green)'; }
 function aktFiltreTemizle(){
   ['aNo','aRef','aSor','aTar1','aTar2','aq'].forEach(id=>{ if($(id)){ $(id).value=''; delete $(id).dataset.iso; } });
   ['aLok','aSt','aKay'].forEach(id=>{ if($(id)) $(id).value=''; });
@@ -5786,7 +5817,9 @@ const AI_ONERI={
    kodlarından türetilir; eskiden 'lti|agir|olumlu' sabit üçlüsü kullanılıyordu
    ve RWC / tıbbi müdahale / ilk yardım / meslek hastalığı dışarıda kalıyordu —
    bu da ucuz atlatma oranını olduğundan YÜKSEK gösteriyordu. */
-const YARALANMALI_KOD = ['olumlu','naddeath','lti','disab','occill','rwc','mti','fac','agir'];
+/* Yaralanmalı kodlar TANIM TABLOSUNDAN (CIDDIYET.yarali) türetilir — eskiden elle
+   sayılmış bir listeydi; yeni tür eklenince güncellenmiyordu. */
+const YARALANMALI_KOD = CIDDIYET.filter(c=>c.yarali).map(c=>c.k);
 const yaralanmaliMi = k => YARALANMALI_KOD.includes(k);
 /* "Diğer" bir toplayıcı kutudur; daha belirgin bir seçenek varsa onu öne al.
    "En sık bulgu: Diğer" kullanıcıya yön veren bir bilgi değildir. */
@@ -5831,7 +5864,7 @@ function anEkBoyut(V){
     const g=Math.floor((new Date(r.olusturma)-new Date(r.tarih+'T00:00:00'))/86400000);
     if(isFinite(g)&&g>=0&&g<365) gk.push(g); });
   if(gk.length>=5) o.gecikme={ort:gk.reduce((s,x)=>s+x,0)/gk.length,
-                               gec:gk.filter(g=>g>2).length, kapsam:gk.length};
+                               gec:gk.filter(g=>g>ESIK.bildirimGun).length, kapsam:gk.length};
 
   /* Yoğunlaşma (Pareto): olayların %80'ini kaç farklı kaynak üretiyor */
   const kay=sayimla(V.map(r=>kaynakAd(r)).filter(x=>x&&x!=='—'));
@@ -6757,7 +6790,10 @@ function bellekIsle(kapsam, bulgular, say){
      gürültüden ibaret olur. Bu yüzden yalnız DİKKAT GEREKTİREN ifadeler
      değerlendirilir. Sezgisel bir liste — yeni bulgu metni eklenirse buraya da
      bakılmalı. */
-  const _sorunMu = t => /gecik|eksik|girilmemiş|tanımlanmamış|düşük|yetersiz|tekrar et|kapanmıyor|kalıcı çözüm üretmiyor|yazılamadı|geç açılmış|aksiyon yok|bulunamadı|uyarı/i
+  /* 30.09.2026 denetimi: sorun bildiren ama kalıba uymadığı için hiç "ısrarlı" olamayan
+     ifadeler eklendi (termini geçti, yüklenmemiş, tanık kaydı yok, geç bildirim, ekli
+     değil, başka olayda daha var, günden geç). */
+  const _sorunMu = t => /gecik|eksik|girilmemiş|tanımlanmamış|düşük|yetersiz|tekrar et|kapanmıyor|kalıcı çözüm üretmiyor|yazılamadı|geç açılmış|aksiyon yok|bulunamadı|uyarı|termini geçti|yüklenmemiş|tanık kaydı yok|geç bildirim|ekli değil|başka olayda daha var|günden geç/i
     .test(aiDumTag(t));
   /* 1) ISRARLI: aynı tespit en az 3 analizdir çıkıyor. Kapanmayan bir tespit,
         tespitin kendisinden daha önemli bir yönetim sinyalidir. */
@@ -6802,7 +6838,7 @@ function etkinlikPanelHTML(){
     +'çünkü tekrar etmeye vakti olmamıştır ve sonucu olduğundan iyi gösterir.</div>';
   if(!e.liste.length) return ayar+'<div class="hint">Henüz ölçülebilecek veri yok. Ölçüm için: kök sebebi girilmiş bir olay, '
     +'o olayda <b>kapatılmış</b> bir aksiyon ve kapanışın üzerinden '+e.esik+' gün geçmiş olması gerekir.</div>';
-  const rozet=o=> o==null?'p-gry' : o>=80?'p-grn' : o>=50?'p-amb':'p-red';
+  const rozet=o=> o==null?'p-gry' : o>=ESIK.etkinIyi?'p-grn' : o>=ESIK.etkinZayif?'p-amb':'p-red';
   return ayar
     +'<div class="tw"><table><thead><tr><th style="width:30%">Kök sebep alanı</th><th style="width:14%">Tekrar etmedi</th>'
     +'<th style="width:12%">Ölçülen</th><th style="width:12%">Henüz erken</th><th style="width:32%">Son tekrar örneği</th></tr></thead><tbody>'
@@ -6877,7 +6913,8 @@ function anSaglikCalistir(){
   else if(E.vardiyaPay<40) engel.push(['Vardiya yoğunlaşması','dağılım dengeli — yoğunlaşma eşiği (%40) aşılmadı']);
   if(!saglik) engel.push(['Kayıp gün, yaralanma türü, vücut bölgesi','sağlık verisi yetkiniz yok — bu bulgular sizin raporunuzda hiç görünmez']);
   else if(!E.kayip) engel.push(['Kayıp gün','hiçbir kayıtta kayıp gün girilmemiş']);
-  if(V.length<6) engel.push(['Zaman eğilimi','eğilim için en az 6 tarihli kayıt gerekiyor; şu an '+V.length+' var']);
+  { const tarihli=V.filter(r=>r.tarih).length;   /* hseMetrikler ile aynı ölçü: TARİHLİ kayıt */
+    if(tarihli<6) engel.push(['Zaman eğilimi','eğilim için en az 6 tarihli kayıt gerekiyor; şu an '+tarihli+' var']); }
 
   /* ── 3. ANALİZİ ZAYIFLATAN KAYITLAR (tıklanabilir) ───────────────── */
   const kokYok=rapor.filter(r=>!(r.kokSebep||[]).length);
@@ -6984,8 +7021,8 @@ function aiRapor(){
       B.push(`Olay kaynakları dağınık: %${E.pareto.pay} eşiğine ulaşmak için ${E.pareto.cesit} kaynağın <b>${E.pareto.kac}</b> tanesi gerekiyor — tek bir baskın mekanizma yok.`);
   }
   /* Gecikme bulgusu ancak gerçekten gecikme varsa yazılır; "0 kayıt geç" gürültüdür. */
-  if(E.gecikme && (E.gecikme.gec>0 || E.gecikme.ort>=1.5))
-    B.push(`Bildirim gecikmesi: olay ile kaydın açılışı arasında ortalama <b>${E.gecikme.ort.toFixed(1)} gün</b>; ${E.gecikme.kapsam} kaydın ${E.gecikme.gec} tanesi 2 günden geç açılmış.`);
+  if(E.gecikme && (E.gecikme.gec>0 || E.gecikme.ort>ESIK.bildirimGun))
+    B.push(`Bildirim gecikmesi: olay ile kaydın açılışı arasında ortalama <b>${E.gecikme.ort.toFixed(1)} gün</b>; ${E.gecikme.kapsam} kaydın ${E.gecikme.gec} tanesi ${ESIK.bildirimGun} günden geç açılmış.`);
   if(E.kokYok>0) B.push(`Raporu tamamlanmış ${E.raporSay} olaydan <b>${E.kokYok}</b> tanesinde kök sebep girilmemiş — bu olaylar sebep analizine katkı vermiyor.`);
   if(E.ciddiAksiyonsuz>0) B.push(`<b>${E.ciddiAksiyonsuz}</b> ciddi olayda hiç aksiyon tanımlanmamış.`);
   /* ── Öğrenme (B): geçmiş aksiyonların etkinliği. Öneri vermeden önce
@@ -6996,12 +7033,12 @@ function aiRapor(){
   /* Olumlu satır yalnız gerçekten olumluysa yazılır; alan zayıfsa aşağıdaki
      "tekrar etti" satırı zaten daha bilgilendirici — ikisi birden yazılınca
      aynı şey iki kez söylenmiş oluyordu. */
-  if(etkTop && etkTop.olculen>=3 && etkTop.oran!=null && etkTop.oran>=50){
+  if(etkTop && etkTop.olculen>=ESIK.etkinOlcum && etkTop.oran!=null && etkTop.oran>=ESIK.etkinZayif){
     B.push(`Öğrenme: <b>${esc(etkTop.ad)}</b> alanında kapatılmış ${etkTop.olculen} aksiyonun `
       +`<b>${etkTop.etkili}</b> tanesinde (%${etkTop.oran}) aynı lokasyonda tekrar görülmedi`
       +`${etkTop.erken?` (${etkTop.erken} aksiyon değerlendirmek için henüz erken)`:''}.`);
   }
-  const etkZayif = etk.liste.filter(s=>s.olculen>=3 && s.oran!=null && s.oran<50);
+  const etkZayif = etk.liste.filter(s=>s.olculen>=ESIK.etkinOlcum && s.oran!=null && s.oran<ESIK.etkinZayif);
   if(etkZayif.length){
     const z=etkZayif[0];
     B.push(`Öğrenme: <b>${esc(z.ad)}</b> alanında aksiyon kapatıldıktan sonra olay `
@@ -7041,7 +7078,7 @@ function aiRapor(){
       +`(${z.tekrar}/${z.olculen}) — aynı tip tedbiri yazmak yerine kontrol hiyerarşisinde yukarı çıkın: `
       +`ikaz/eğitim yerine mühendislik önlemi ya da iş yönteminin değiştirilmesi.`);
   }
-  if(etkTop && etkTop.olculen>=3 && etkTop.oran!=null && etkTop.oran>=80){
+  if(etkTop && etkTop.olculen>=ESIK.etkinOlcum && etkTop.oran!=null && etkTop.oran>=ESIK.etkinIyi){
     O.push(`<b>${esc(etkTop.ad)}</b> alanında geçmiş aksiyonlarınız işe yaramış (%${etkTop.oran} tekrar yok) — `
       +`aynı yaklaşımı bu olay kümesine de uygulayın ve yöntemi diğer lokasyonlara yayın.`);
   }
@@ -7049,18 +7086,18 @@ function aiRapor(){
   if(E.kokYok>0) O.push(`Kök sebebi girilmemiş <b>${E.kokYok}</b> raporu tamamlayın; eksik kök sebep, sebep analizini ve bu raporun isabetini doğrudan zayıflatıyor.`);
   if(E.vardiya && E.vardiyaPay>=40 && !/gündüz/i.test(E.vardiya.ad)) O.push(`Olaylar <b>${esc(E.vardiya.ad)}</b> vardiyasında yoğunlaşıyor — bu vardiyada saha gözetimi, aydınlatma, yorgunluk yönetimi ve vardiya devir teslimini gözden geçirin.`);
   if(E.saat && E.saat.pay>=35) O.push(`<b>${E.saat.ad}</b> aralığındaki yoğunlaşmanın sebebini araştırın (vardiya başlangıcı, mola dönüşü, yorgunluk, aydınlatma) ve o saatlerde denetim sıklığını artırın.`);
-  if(E.gecikme && E.gecikme.ort>2) O.push(`Bildirim ortalama <b>${E.gecikme.ort.toFixed(1)} gün</b> sonra açılıyor — geç bildirim delil ve tanık kaybına yol açar; 24 saat içinde bildirim kuralını hatırlatın.`);
+  if(E.gecikme && E.gecikme.ort>ESIK.bildirimGun) O.push(`Bildirim ortalama <b>${E.gecikme.ort.toFixed(1)} gün</b> sonra açılıyor — geç bildirim delil ve tanık kaybına yol açar; olaydan sonra en geç <b>${ESIK.bildirimGun} gün</b> içinde kayıt açılmasını hatırlatın.`);
   if(E.pareto && E.pareto.kac<=Math.ceil(E.pareto.cesit*0.4)) O.push(`Olayların büyük kısmı yalnız <b>${E.pareto.kac}</b> kaynaktan geliyor — kaynakları tek tek ele almak yerine bu ${E.pareto.kac} mekanizmaya odaklı bir kontrol programı en yüksek getiriyi verir.`);
   if(E.lokNorm && E.lokNormAdet>=2) O.push(`<b>${esc(E.lokNorm.ad)}</b> çalışan başına en yüksek olay yoğunluğuna sahip — ham sayı yerine bu normalize oranı hedef belirlemede kullanın.`);
   if(E.isDurdu>0) O.push(`İş durdurulan <b>${E.isDurdu}</b> olayda, yeniden başlatma öncesi kontrol listesinin uygulandığını ve şartların yazılı kapatıldığını doğrulayın.`);
   if(E.kayip && saglik && E.kayip.toplam>0) O.push(`Toplam <b>${E.kayip.toplam} kayıp gün</b> — işe dönüş (return-to-work) ve hafif iş programıyla kayıp günü kısaltmayı hedefleyin.`);
   /* GERİ BESLEME önerileri: AI önerisinden başlatılan aksiyonların takibi */
   if(aiGecA>0) O.push(`AI önerisinden açılan <b>${aiGecA}</b> aksiyon gecikti — bunlara öncelik verin; kök neden hâlâ kapatılmamış olabilir, üzerine düşülmeli.`);
-  else if(aiDur.length && aiKap<aiDur.length) O.push(`AI önerisinden başlatılan aksiyonların takibini sürdürün; termini yaklaşanları zamanında kapatın.`);
+  else if(aiDur.length && aiKap<aiDur.length){ const m=aiYaklasanMetin(aiDur); if(m) O.push(m); }
   else if(!aiDur.length) O.push(`AI önerilerini <b>“+ Aksiyon”</b> ile göreve dönüştürün (sorumlu + termin atayın) — böylece öneriler takip edilebilir işe döner ve bir sonraki analizde durumları buraya yansır.`);
-  if(mt.zamanindaOran!=null&&mt.zamanindaOran<60) O.push('Aksiyon kapanış hızı düşük — haftalık termin gözden geçirmesi ve sorumlu bazlı takip başlatın.');
-  if(mt.trend&&/artış/.test(mt.trend)) O.push('Olay sayısında son dönemde artış var — tetikleyen değişimi (yeni faaliyet, taşeron, mevsim) araştırıp önleyici tedbir alın.');
-  if(yaralanmali>0 && nmOran<3) O.push('Ucuz atlatma bildirimi görece düşük — proaktif erken uyarı için ucuz atlatma bildirimini teşvik edin.');
+  if(mt.zamanindaOran!=null&&mt.zamanindaOran<=ESIK.oranYesil) O.push(`Kapanan aksiyonların yalnız <b>%${mt.zamanindaOran}</b>'i termininde kapanmış — %${ESIK.oranYesil} üzerine çıkarmak için haftalık termin gözden geçirmesi ve sorumlu bazlı takip başlatın.`);
+  if(mt.trendYon==='artis') O.push('Olay sayısında son dönemde artış var — tetikleyen değişimi (yeni faaliyet, taşeron, mevsim) araştırıp önleyici tedbir alın.');
+  if(yaralanmali>0 && nmOran<ESIK.nmOranAlt) O.push(`Yaralanmalı olay başına <b>${nmOran.toFixed(1)}</b> ucuz atlatma bildirilmiş (${nm} / ${yaralanmali}; beklenen en az ${ESIK.nmOranAlt}) — proaktif erken uyarı için ucuz atlatma bildirimini teşvik edin.`);
   if(ciddi>0) O.push(`Ciddi ${ciddi} olay için kök neden analizlerinin (5 Neden / balık kılçığı) tamamlandığını ve derslerin diğer lokasyonlara yayıldığını doğrulayın.`);
   if(!O.length) O.push('Belirgin bir yoğunlaşma yok; mevcut önleyici tedbirleri sürdürün ve ucuz atlatma bildirimini teşvik edin.');
   /* Sistem iyileştirme önerisi (içsel/uydurma puanlama yerine standart, kıyaslanabilir gösterge) */
@@ -7408,7 +7445,7 @@ function anGuncelle(animate){
     [sel.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekleyen Olay','','İlk bildirimi yapılmış, inceleme raporu henüz girilmemiş olaylar','k-inceleme'],
     [st.acik,'Açık Aksiyon','','Termini geçmemiş, onay beklemeyen açık aksiyonlar (Aksiyon Listesi ile aynı tanım)','k-acikaks'],
     [st.gecikti,'Geciken Aksiyon','','Termini geçmiş, kapanmamış aksiyonlar (onay bekleyen gecikmişler dahil)','k-gecikenaks'],   /* Aksiyon Listesi ile aynı (dışlayan) tanım */
-    [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),kapanmaTip+' · %50 altı kırmızı, %50–85 turuncu, %85 üstü yeşil','k-kapatmaoran']
+    [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),kapanmaTip+` · %${ESIK.oranKirmizi} altı kırmızı, %${ESIK.oranKirmizi}–${ESIK.oranYesil} turuncu, %${ESIK.oranYesil} üstü yeşil`,'k-kapatmaoran']
   ].map(([v,l,s,t,w])=>`<div class="kpi clk" data-w="${w}" onclick="anKpiTik('${w}')" title="${esc(t)}${t?'\n':''}Tıklayın: bu kayıtları listele"><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
   wUygula();   /* #anKpi her çizimde baştan yazılıyor → sıra/gizleme/− düğmesi yeniden işlenir */
   kpiSay('anKpi');
