@@ -169,6 +169,14 @@
   .anAI li .oneriAks,.anAI li .oneriAlindi{display:flex;width:fit-content;align-items:center;min-height:30px;margin:7px 0 0;padding:4px 12px;font-size:12.5px}   /* metnin altında kendi satırı */
   .anAI li details.aiAksGecmis .oneriAks{display:flex;justify-content:center;width:100%;min-height:40px;margin:8px 0 0;border-radius:10px;font-size:13.5px}
 }
+/* ── VÜCUT ŞEMASI (telefon) ──
+   .anTall .anCb{height:100%} masaüstünde iki satırlık kartı doldurmak için.
+   Telefonda kart tek satır; %100 kartın TAMAMI demek → başlık kadar (~40px)
+   alttan taşıyor, "Ayak / parmak" yazısı kesiliyordu; silüet de bu büyük alanda
+   ortalandığı için aşağıda duruyordu. İçerik kendi boyunda kalsın. */
+@media(max-width:640px){
+  .anGrid .anTall .anCb{height:auto;display:block;padding-top:10px;padding-bottom:18px}
+}
 /* ── ANALİZ DÜZENİ (yalnız telefon): uzun bas → taşı / kaldır, Widget listesi ──
    Sözleşme (JS portal oturumunda):
    • Her KPI balonu (#anKpi .kpi) ve grafik kartı (#anCharts .anCard) data-w="<kimlik>"
