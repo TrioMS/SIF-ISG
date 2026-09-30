@@ -3647,13 +3647,15 @@ function renderReg(){
   /* Durum balonları TIKLANABİLİR (durum filtresini kurar); toplamları Görünür Kayıt'a eşittir.
      "Ciddi Olay" bir durum değil, kesişen bir ölçüt → tıklanmaz. */
   const regSecF=$('fSt')?$('fSt').value:'';
+  /* TEK RENK (Analiz balonlarıyla aynı kural, 30.09.2026): sayılar renklendirilmez;
+     yalnız ORANLAR kurala göre (Aksiyon Listesi → Kapatma Oranı, oranRenk). */
   $('regKpi').innerHTML=[
     [V.length,'Görünür Kayıt','',''],
-    [V.filter(r=>r.durum==='draft').length,'Taslak','color:var(--text2)','draft'],
-    [V.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekliyor','color:var(--amber-700)','bildirildi'],
-    [V.filter(r=>r.durum==='inceleme').length,'İncelemesi Süren Olay','color:var(--blue-700)','inceleme'],
-    [V.filter(r=>r.durum==='rapor').length,'Rapor Gönderildi','color:var(--green)','rapor'],
-    [V.filter(r=>ciddiAnaliz(r.sonuc)).length,'Ciddi Olay','color:var(--red)',undefined]
+    [V.filter(r=>r.durum==='draft').length,'Taslak','','draft'],
+    [V.filter(r=>r.durum==='bildirildi').length,'İnceleme Bekliyor','','bildirildi'],
+    [V.filter(r=>r.durum==='inceleme').length,'İncelemesi Süren Olay','','inceleme'],
+    [V.filter(r=>r.durum==='rapor').length,'Rapor Gönderildi','','rapor'],
+    [V.filter(r=>ciddiAnaliz(r.sonuc)).length,'Ciddi Olay','',undefined]
   ].map(([v,l,s,f])=>
     `<div class="kpi${f!==undefined?' clk':''}${f&&f===regSecF?' on':''}"${f!==undefined?` onclick="regKpiFiltre('${f||''}')" title="${f?'Yalnız bu durumu göster':'Filtreyi temizle'}"`:''}>`
     +`<div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
@@ -4381,14 +4383,14 @@ function renderAct(){
      Her balon TIKLANABİLİR: Durum filtresini kurar, liste anında güncellenir. */
   const kpiSet=[
     [aks.toplam,'Toplam Aksiyon','','' ],
-    [aks.acik,'Açık','color:var(--blue-700)','Açık'],
-    [aks.gecikti,'Gecikti','color:var(--red)','Gecikti'],
-    [aks.onayZamaninda,'Onay Bekliyor','color:var(--purple-700)','Onay Bekliyor'],
-    [aks.kapandi,'Zamanında Kapandı','color:var(--green)','Kapandı'],
-    [aks.gecikmeli,'Gecikmeli Kapandı','color:var(--amber-700)','Gecikmeli Kapandı']
+    [aks.acik,'Açık','','Açık'],
+    [aks.gecikti,'Gecikti','','Gecikti'],
+    [aks.onayZamaninda,'Onay Bekliyor','','Onay Bekliyor'],
+    [aks.kapandi,'Zamanında Kapandı','','Kapandı'],
+    [aks.gecikmeli,'Gecikmeli Kapandı','','Gecikmeli Kapandı']
   ];
-  if(aks.taslak) kpiSet.push([aks.taslak,'Taslak','color:var(--text2)','Taslak']);
-  if(aks.iptal)  kpiSet.push([aks.iptal,'İptal','color:var(--text3)','İptal']);
+  if(aks.taslak) kpiSet.push([aks.taslak,'Taslak','','Taslak']);
+  if(aks.iptal)  kpiSet.push([aks.iptal,'İptal','','İptal']);
   kpiSet.push([aks.oran==null?'—':'%'+aks.oran,'Kapatma Oranı',oranRenk(aks.oran),'']);
   const sec=$('aSt')?$('aSt').value:'';
   $('actKpi').innerHTML=kpiSet.map(([v,l,s,f])=>
