@@ -183,6 +183,8 @@ body.dark .sagKayit{color:#8ab4f8}
 /* Telefon widget düzenleme öğeleri varsayılan GİZLİ. Görünümleri uygulama.css'te
    (body.wDuzen / body.wListeAcik); o dosya yüklenmese de ekranda çıkmasınlar. */
 .wBar,.wSil,.wPanel,.wPerde{display:none}
+/* Lokasyon radarı: çoklu seçim ipucu */
+.radIpucu{font-size:11px;color:var(--text3);margin-top:2px}
 /* Kalıcı analiz başlığı: son analiz · öğrenme motoru · veri değişti notu · geçmiş */
 .anAI .aiMeta{padding:10px 16px 0;font-size:12px;line-height:1.55;color:var(--text2)}
 .anAI .aiMeta:empty{display:none}
@@ -5457,7 +5459,7 @@ function anMatch(r,f){ switch(f.boyut){
   case 'sonuc': return esitTR(sonucAd(r),f.deger);
   case 'kaynak': return esitTR(kaynakAd(r),f.deger);
   case 'kok': return (r.kokSebep||[]).some(s=>esitTR(katOf(s),f.deger));
-  case 'lok': return esitTR(lokAd(r.lokasyon),f.deger);
+  case 'lok': return anLokIc(lokAd(r.lokasyon),f);
   case 'kokTek': return (r.kokSebep||[]).some(s=>esitTR(kokTekAd(s),f.deger));
   case 'bulgu': return listeAd(r.bulgular,r.bulgularDiger).some(x=>esitTR(x,f.deger));
   case 'yara': return (r.kisiler||[]).some(p=>esitTR(p.yara,f.deger));
@@ -5469,7 +5471,21 @@ function kisiSayim(records,alan,haric){
     if(!v||v==='—'||(haric&&haric.some(h=>esitTR(h,v)))) return; const k=tcAd(v); m[k]=(m[k]||0)+1; }));   /* hariç listesi harf duyarsız */
   return Object.keys(m).map(k=>({ad:k,n:m[k]})).sort((a,b)=>b.n-a.n);
 }
-function anSec(boyut,deger){ anFiltre=(anFiltre&&anFiltre.boyut===boyut&&anFiltre.deger===deger)?null:{boyut,deger}; anGuncelle(false); }
+/* LOKASYON ÇOKLU SEÇİM (radar): 'lok' süzgecinde deger bir DİZİDİR — her
+   tıklama o lokasyonu seçime ekler/çıkarır, son seçim de kalkınca süzgeç
+   kapanır. Diğer boyutlar tek seçimli kalır; başka bir grafiğe tıklamak
+   (eskisi gibi) süzgeci o boyuta çevirir. Eski tek değerli süzgeç de okunur. */
+const anLokSecim = f => (f&&f.boyut==='lok') ? [].concat(f.deger) : [];
+const anLokIc = (ad,f) => anLokSecim(f).some(d=>esitTR(ad,d));
+const anFiltreMetin = f => Array.isArray(f.deger) ? f.deger.join(', ') : f.deger;
+function anSec(boyut,deger){
+  if(boyut==='lok'){
+    const s=anLokSecim(anFiltre), i=s.findIndex(d=>d===deger);
+    if(i>=0) s.splice(i,1); else s.push(deger);
+    anFiltre = s.length ? {boyut:'lok', deger:s} : null;
+  } else anFiltre=(anFiltre&&anFiltre.boyut===boyut&&anFiltre.deger===deger)?null:{boyut,deger};
+  anGuncelle(false);
+}
 function anTemizle(){ anFiltre=null; anGuncelle(false); }
 /* Grafik/rapor ETİKETLERİ Başlık Biçimi'nde gösterilir — kayıtlı VERİ değişmez.
    (Eski kayıtlar "saha denetimi / gözlem" gibi küçük harfli; ekranda "Saha Denetimi / Gözlem".) */
@@ -6740,7 +6756,7 @@ function aiRapor(){
   const kapAks=anAksKumesi(_base,(typeof anKume==='function'?anKume():_base),_fl);   /* çapraz filtre dahil — tek kaynak */
   const ast=aksStat(kapAks), aT=ast.toplam, aGec=ast.gecikti, aKap=ast.kapali, kapOran=(ast.oran==null?0:ast.oran);
   const nmOran = (yaralanmali>0)? (nm/yaralanmali) : (nm>0?Infinity:0);
-  const kapsam = anFiltre ? `${AN_AD[anFiltre.boyut]} = “${anFiltre.deger}”` : ($('anLok')&&$('anLok').value?lokAd($('anLok').value):'tüm lokasyonlar');
+  const kapsam = anFiltre ? `${AN_AD[anFiltre.boyut]} = “${anFiltreMetin(anFiltre)}”` : ($('anLok')&&$('anLok').value?lokAd($('anLok').value):'tüm lokasyonlar');
   /* Yeni boyutlar — modüle grafik eklendikçe AI da onları değerlendirir */
   const topBulgu=enSik(sayimla(V.flatMap(r=>listeAd(r.bulgular,r.bulgularDiger))));
   const saglik=can('saglik');
@@ -7001,7 +7017,7 @@ function radarSkeleton(){
     const lx=cx+(R+15)*Math.cos(a), ly=cy+(R+15)*Math.sin(a), anc=Math.abs(Math.cos(a))<0.3?'middle':(Math.cos(a)>0?'start':'end');
     labs+=`<text class="radLbl" data-anclick data-i="${i}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9" fill="#4a5260" font-weight="600" text-anchor="${anc}" dominant-baseline="middle" onclick="anSec('lok',${qA(lb)})" style="cursor:pointer">${esc(lb.split(' — ')[0])}</text>`; });
   const dots=labels.map((lb,i)=>`<circle class="radDot" data-anclick data-i="${i}" cx="${cx}" cy="${cy}" r="5" fill="#f5c518" stroke="#fff8dd" stroke-width="1" onclick="anSec('lok',${qA(lb)})" style="cursor:pointer"><title></title></circle>`).join('');
-  return `<div style="text-align:center"><svg viewBox="0 0 340 260" class="radar" style="width:100%;max-width:380px">${grid}${spokes}<polygon class="radArea" points="${cx},${cy}" fill="rgba(245,197,24,.5)" stroke="#f5c518" stroke-width="2.4"/>${dots}${labs}</svg></div>`;
+  return `<div style="text-align:center"><svg viewBox="0 0 340 260" class="radar" style="width:100%;max-width:380px">${grid}${spokes}<polygon class="radArea" points="${cx},${cy}" fill="rgba(245,197,24,.5)" stroke="#f5c518" stroke-width="2.4"/>${dots}${labs}</svg><div class="radIpucu">Birden çok lokasyon seçilebilir</div></div>`;
 }
 let _radVals=null,_radRAF=0;
 function updRadar(vals,sec){
@@ -7009,10 +7025,14 @@ function updRadar(vals,sec){
   const labels=anDom.lok, n=vals.length, {cx,cy,R}=RAD, max=Math.max(1,...vals);
   const geo=(arr)=>arr.map((val,i)=>{const a=-Math.PI/2+i/n*2*Math.PI, v=val/max; return [cx+R*v*Math.cos(a), cy+R*v*Math.sin(a)];});
   // etiket/nokta metin + renk (anlık)
-  svg.querySelectorAll('.radLbl').forEach((t,i)=>{ const on=sec===labels[i];
+  /* sec: çoklu seçimde dizi (bkz. anLokSecim) — her seçili lokasyon koyu işaretlenir */
+  const secL=[].concat(sec==null?[]:sec), onMu=i=>secL.includes(labels[i]);
+  svg.querySelectorAll('.radLbl').forEach((t,i)=>{ const on=onMu(i);
     t.textContent=labels[i].split(' — ')[0]+' ('+vals[i]+')'; t.setAttribute('fill',on?'#141414':'#4a5260'); t.setAttribute('font-weight',on?'800':'600'); });
   const dots=[...svg.querySelectorAll('.radDot')], poly=svg.querySelector('.radArea');
-  dots.forEach((d,i)=>{ const on=sec===labels[i]; d.setAttribute('fill',on?'#141414':'#f5c518'); const ti=d.querySelector('title'); if(ti) ti.textContent=labels[i]+': '+vals[i]; });
+  dots.forEach((d,i)=>{ const on=onMu(i); d.setAttribute('fill',on?'#141414':'#f5c518'); d.setAttribute('r',on?'6.5':'5'); const ti=d.querySelector('title'); if(ti) ti.textContent=labels[i]+': '+vals[i]; });
+  { const ip=svg.parentNode&&svg.parentNode.querySelector('.radIpucu');
+    if(ip) ip.textContent = secL.length ? secL.length+' lokasyon seçili · kaldırmak için yeniden dokunun' : 'Birden çok lokasyon seçilebilir'; }
   const target=geo(vals), start=_radVals?_radVals.slice():vals.map(()=>0);
   _radVals=vals.slice();
   // hedefi hemen yaz (rAF çalışmazsa doğru kalsın), sonra tween
@@ -7145,7 +7165,7 @@ function anAksKumesi(base, sel, fl){
   const olayAks=(anFiltre?sel:base).flatMap(r=>r.aksiyonlar||[]);
   let bag=SACT.filter(sactGorebilir).filter(a=>!fl||a.lokasyon===fl);
   if(anFiltre) bag = (anFiltre.boyut==='lok')
-    ? bag.filter(a=>esitTR(tcAd(lokAd(a.lokasyon)), anFiltre.deger))
+    ? bag.filter(a=>anLokIc(tcAd(lokAd(a.lokasyon)), anFiltre))
     : [];
   return olayAks.concat(bag);
 }
@@ -7167,7 +7187,7 @@ function anGuncelle(animate){
      Çalışan sayısı girilmemişse "—" gösterir (uydurmaz). Kayıtlı olaylar üzerinden — yıllıklandırılmamıştır. */
   /* Çapraz filtre 'lok' ise payda da o lokasyona daralır (KPI grafikle bağlı kalsın) */
   const scopeLok=LOK.filter(l=>l.aktif!==false && lokGorebilir(l.kod) && (!fl||l.kod===fl)
-    && (!anFiltre || anFiltre.boyut!=='lok' || esitTR(tcAd(lokAd(l.kod)), anFiltre.deger)));
+    && (!anFiltre || anFiltre.boyut!=='lok' || anLokIc(tcAd(lokAd(l.kod)), anFiltre)));
   const calToplam=scopeLok.reduce((s,l)=>s+(l.calisan||0),0);
   const eksikCal=scopeLok.some(l=>l.calisan==null);
   const insStr=calToplam>0 ? (Math.round(sel.length/calToplam*100*10)/10).toString() : '—';
