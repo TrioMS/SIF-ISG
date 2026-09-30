@@ -183,9 +183,9 @@ body.dark .sagKayit{color:#8ab4f8}
 /* Telefon widget düzenleme öğeleri varsayılan GİZLİ. Görünümleri uygulama.css'te
    (body.wDuzen / body.wListeAcik); o dosya yüklenmese de ekranda çıkmasınlar. */
 .wBar,.wSil,.wPanel,.wPerde{display:none}
-/* Ayarlar → Widget yalnız TELEFONDA (kullanıcı kararı, 30.09.2026): masaüstünde
+/* Ayarlar → Widget yalnız TELEFON/TABLETTE (kullanıcı kararı, 30.09.2026): masaüstünde
    widget düzeni kurgulanmadı, sekme orada görünmez. Masaüstüne gelince bu kural kalkar. */
-@media(min-width:641px){#setTabs [data-s="widget"],#s-widget{display:none!important}}
+@media (min-width:641px) and (hover:hover),(min-width:641px) and (pointer:fine){#setTabs [data-s="widget"],#s-widget{display:none!important}}   /* = ALT_MQ'nin tersi: yalnız fareli masaüstünde gizli */
 /* Lokasyon radarı: çoklu seçim ipucu */
 .radIpucu{font-size:11px;color:var(--text3);margin-top:2px}
 /* Kalıcı analiz başlığı: son analiz · öğrenme motoru · veri değişti notu · geçmiş */
@@ -1120,7 +1120,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     <div class="card" style="max-width:620px">
       <h3>Widget</h3>
       <div class="cb">
-        <div class="hint">Analiz sayfasının telefon düzeni · bu cihaza ve kullanıcıya özel</div>
+        <div class="hint">Analiz sayfasının telefon/tablet düzeni · bu cihaza ve kullanıcıya özel</div>
         <div id="wListeAyar"></div>
         <button type="button" class="btn sm" style="margin-top:12px" onclick="wSifirla()">Varsayılan düzene dön</button>
       </div>
@@ -7253,7 +7253,11 @@ const W_AD={
 };
 const wGrupOf = id => String(id).charAt(0);            /* 'k' KPI · 'c' grafik — taşıma grup içinde kalır */
 const wAnahtar = () => 'hse::HOB::an_duzen::'+((typeof SES!=='undefined'&&SES&&SES.id)||'anon');
-const wTel = () => { try{ return matchMedia('(max-width:640px)').matches; }catch(e){ return false; } };
+/* ALT DÜZEN SORGUSU — telefon YA DA dokunmatik tablet (hover yok + kaba işaretçi).
+   uygulama.css aynı sorguyu kullanır; alt sekme çubuğu ve widget modu buna bağlı.
+   Değişirse üç yer birlikte: CSS, wTel, üst bölge ölçümü (upd). */
+const ALT_MQ='(max-width:640px),(hover:none) and (pointer:coarse)';
+const wTel = () => { try{ return matchMedia(ALT_MQ).matches; }catch(e){ return false; } };
 const W_TUM = W_VARSAYILAN.k.concat(W_VARSAYILAN.c);
 
 /* Öğeyi VARSAYILAN yerine koyar: varsayılan sırada kendisinden önce gelen,
@@ -7458,12 +7462,12 @@ function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); re
     const hd=document.querySelector('header'), nv=document.querySelector('nav');
     const upd=()=>{ try{
       /* Telefonda sekmeler ALTTA (fixed) — üstteki sabit bölgeye yükseklik katmaz */
-      const alt=window.matchMedia&&matchMedia('(max-width:640px)').matches;
+      const alt=window.matchMedia&&matchMedia(ALT_MQ).matches;
       const h=hd?hd.offsetHeight:0, n=(nv&&!alt)?nv.offsetHeight:0, s=document.documentElement.style;
       s.setProperty('--hdH', h+'px'); s.setProperty('--navH', n+'px'); s.setProperty('--topH', (h+n)+'px');
     }catch(e){} };
     upd(); window.addEventListener('resize',upd);
-    try{ const mq=matchMedia('(max-width:640px)'); if(mq.addEventListener) mq.addEventListener('change',upd); else if(mq.addListener) mq.addListener(upd); }catch(e){}
+    try{ const mq=matchMedia(ALT_MQ); if(mq.addEventListener) mq.addEventListener('change',upd); else if(mq.addListener) mq.addListener(upd); }catch(e){}
     if(window.ResizeObserver){ try{ const ro=new ResizeObserver(upd); if(hd) ro.observe(hd); if(nv) ro.observe(nv); }catch(e){} }
   })();
   cur=blank(); gateKilit(true); gateRender();
