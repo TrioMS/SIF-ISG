@@ -57,6 +57,13 @@ header .hbtn{background:#262626;color:#f0f0f0;border:1px solid #3a3a3a;padding:7
 header .hbtn:hover{background:#333}
 header .hbtn.acc{background:var(--jcb);color:#141414;border-color:var(--jcb)}
 header .hbtn.acc:hover{background:var(--jcb-600)}
+/* Üst bant başlığı — logonun yanında. Menü alta (dock) inince eski .navBrand
+   gizlenmişti; başlık buraya taşındı. text-transform ile büyük harf: Türkçe
+   i/İ doğru çıksın diye <html lang="tr"> şart (zaten öyle). */
+.hdMarka{font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--jcb);white-space:nowrap;padding-left:16px;margin-left:2px;border-left:1px solid rgba(255,255,255,.18);
+  line-height:22px;text-shadow:0 1px 0 rgba(0,0,0,.6),0 0 18px rgba(245,197,24,.18)}
+@media(max-width:640px){.hdMarka{display:none}}   /* telefonda üst bant dar: logo + düğmeler */
 /* Oturum düğmesi: yalnız AD-SOYAD BAŞ HARFLERİ (basHarf) taşıyan yuvarlak düğme.
    Üzerine gelince kimlik kartı (.meIpucu), tıklayınca profil penceresi (profilAc).
    "header #meBox" seçicisi uygulama.css'teki eski .me dolgu kuralını ezer. */
@@ -640,6 +647,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
   <img class="hdLogo" src="sif_jcb_logo.png" alt="SİF JCB" title="SİF JCB"
        onerror="this.style.display='none';document.getElementById('hdLogoFb').style.display='inline-flex'">
   <span class="logo" id="hdLogoFb" title="SİF JCB" style="display:none"><span class="lg-sif">SİF<sup>®</sup></span><span class="lg-jcb">JCB</span></span>
+  <span class="hdMarka">İSG Yönetim Modülü</span>
   <div class="spacer"></div>
   <button type="button" class="me" id="meBox" onclick="profilAc()" aria-label="Profil"></button>
   <button class="hbtn tgl" id="themeBtn" onclick="temaDegis()" title="Gece / Gündüz modu"></button>
