@@ -183,6 +183,9 @@ body.dark .sagKayit{color:#8ab4f8}
 /* Telefon widget düzenleme öğeleri varsayılan GİZLİ. Görünümleri uygulama.css'te
    (body.wDuzen / body.wListeAcik); o dosya yüklenmese de ekranda çıkmasınlar. */
 .wBar,.wSil,.wPanel,.wPerde{display:none}
+/* Ayarlar → Widget yalnız TELEFONDA (kullanıcı kararı, 30.09.2026): masaüstünde
+   widget düzeni kurgulanmadı, sekme orada görünmez. Masaüstüne gelince bu kural kalkar. */
+@media(min-width:641px){#setTabs [data-s="widget"],#s-widget{display:none!important}}
 /* Lokasyon radarı: çoklu seçim ipucu */
 .radIpucu{font-size:11px;color:var(--text3);margin-top:2px}
 /* Kalıcı analiz başlığı: son analiz · öğrenme motoru · veri değişti notu · geçmiş */
