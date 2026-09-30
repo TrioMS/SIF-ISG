@@ -217,6 +217,15 @@ body.dark .sagKayit{color:#8ab4f8}
   nav#nav button.on{background:var(--jcb);color:#141414;box-shadow:0 4px 14px rgba(245,197,24,.35)}
   nav#nav button.on:hover{transform:none}
   .toast{bottom:98px}
+  /* AI düğmesi de dock gibi: dinlenirken hafif saydam, üzerine gelince koyulaşır.
+     Yalnız fareli masaüstünde — telefonda "üzerine gelme" yok, düğme hep soluk kalırdı. */
+  .aiFab{background:rgba(245,197,24,.55);color:#141414;
+    -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);
+    border:1px solid rgba(245,197,24,.6);box-shadow:0 6px 18px rgba(245,197,24,.22),0 2px 6px rgba(0,0,0,.14);
+    transition:transform .2s,box-shadow .25s,background .25s}
+  .aiFab:hover,.aiFab:focus-visible{background:var(--jcb-600);box-shadow:0 10px 26px rgba(245,197,24,.5),0 3px 10px rgba(0,0,0,.3)}
+  .aiFab.on{background:rgba(20,20,20,.55);color:var(--jcb);border-color:rgba(245,197,24,.45)}
+  .aiFab.on:hover,.aiFab.on:focus-visible{background:rgba(20,20,20,.94)}
 }
 /* Dar masaüstü penceresinde dock (≈570px) sağ alttaki AI düğmesine yetişir → düğme dock'un üstüne çıkar */
 @media (min-width:641px) and (max-width:900px) and (hover:hover),(min-width:641px) and (max-width:900px) and (pointer:fine){
