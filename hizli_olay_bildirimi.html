@@ -513,6 +513,10 @@ tbody tr:hover{background:var(--surface2)}
 .findG{margin:6px 0 0;padding-left:16px}.findG li{margin:3px 0;font-size:12.5px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:24px;font-size:13.5px;font-weight:600;z-index:200;transition:.25s;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0}
 .toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+/* Gizli bildirim (opacity 0, 80px aşağıda) görünmez ama fareyi YAKALIYORDU: masaüstünde
+   dock'un orta üç sekmesinin alt yarısını örtüyordu (ölçüldü). Gizliyken tıklanamaz ve
+   görünmez; kapanış geçişi bitince gizlenir. Telefondaki karşılığı uygulama.css'te. */
+.toast:not(.on){pointer-events:none;visibility:hidden;transition:.25s,visibility 0s .25s}
 /* ── AŞAMA ŞERİDİ ── */
 .asamaSerit{display:flex;align-items:center;gap:12px;background:var(--navy);color:#fff;border-radius:var(--radius);padding:11px 16px;margin:20px 0 14px}
 .asamaSerit .t{font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:.5px}
