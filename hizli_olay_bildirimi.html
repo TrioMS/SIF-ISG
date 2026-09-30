@@ -186,6 +186,39 @@ body.dark .sagKayit{color:#8ab4f8}
 /* Ayarlar → Widget yalnız TELEFON/TABLETTE (kullanıcı kararı, 30.09.2026): masaüstünde
    widget düzeni kurgulanmadı, sekme orada görünmez. Masaüstüne gelince bu kural kalkar. */
 @media (min-width:641px) and (hover:hover),(min-width:641px) and (pointer:fine){#setTabs [data-s="widget"],#s-widget{display:none!important}}   /* = ALT_MQ'nin tersi: yalnız fareli masaüstünde gizli */
+/* ── MASAÜSTÜ ALT DOCK (kullanıcı kararı, 30.09.2026) ──
+   Masaüstünde de menü telefondaki yapıda: 5 düz sekme (Analiz · Olay Bildirimi ·
+   Olay Envanteri · Yeni Aksiyon · Aksiyon Listesi), ekranın ALTINDA ORTADA yüzen,
+   sayfa kayarken yerinde duran bir çubuk. Açılır gruplar (Olaylar/Aksiyonlar)
+   burada da açılmaz; grup başlığı gizlenir, alt sekmeler doğrudan dizilir.
+   Sorgu ALT_MQ'nin TERSİ (fareli masaüstü) — telefon/tablet uygulama.css'te.
+   body alt boşluğu dock yüksekliği kadar: listeBoy() sayfayı ekrana sığdırırken
+   main/appFoot boşluklarını kısar ama body'ninkine dokunmaz → tablolar dock'un
+   ALTINDA kalmaz. upd() fixed nav'ı üst bölge yüksekliğine katmaz. */
+@media (min-width:641px) and (hover:hover),(min-width:641px) and (pointer:fine){
+  body{padding-bottom:92px}
+  nav#nav{position:fixed;top:auto;left:50%;bottom:16px;transform:translateX(-50%);z-index:80;
+    display:flex;flex-wrap:nowrap;gap:4px;padding:6px;border-radius:18px;
+    background:rgba(20,20,20,.9);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+    border:1px solid rgba(255,255,255,.09);box-shadow:0 18px 40px rgba(0,0,0,.32),0 2px 8px rgba(0,0,0,.22)}
+  #nav>button,.navGrp{min-width:0}
+  #nav .navGrp{display:contents}
+  #nav .navGrp .navTop,#nav .navBrand{display:none}
+  #nav .navSub{display:contents!important}
+  nav#nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    min-width:108px;width:auto;padding:9px 14px;background:transparent;border:none;border-radius:13px;
+    color:#b8b8b8;font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.1px;text-align:center;
+    white-space:nowrap;box-shadow:none;cursor:pointer;transition:background .18s,color .18s,transform .18s}
+  nav#nav button svg{margin-right:0!important;width:20px;height:20px}
+  nav#nav button:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}
+  nav#nav button.on{background:var(--jcb);color:#141414;box-shadow:0 4px 14px rgba(245,197,24,.35)}
+  nav#nav button.on:hover{transform:none}
+  .toast{bottom:98px}
+}
+/* Dar masaüstü penceresinde dock (≈570px) sağ alttaki AI düğmesine yetişir → düğme dock'un üstüne çıkar */
+@media (min-width:641px) and (max-width:900px) and (hover:hover),(min-width:641px) and (max-width:900px) and (pointer:fine){
+  .aiFab{bottom:100px}
+}
 /* Lokasyon radarı: çoklu seçim ipucu */
 .radIpucu{font-size:11px;color:var(--text3);margin-top:2px}
 /* Kalıcı analiz başlığı: son analiz · öğrenme motoru · veri değişti notu · geçmiş */
@@ -7462,7 +7495,9 @@ function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); re
     const hd=document.querySelector('header'), nv=document.querySelector('nav');
     const upd=()=>{ try{
       /* Telefonda sekmeler ALTTA (fixed) — üstteki sabit bölgeye yükseklik katmaz */
-      const alt=window.matchMedia&&matchMedia(ALT_MQ).matches;
+      /* Sekme çubuğu ALTTA (telefon/tablet çubuğu ya da masaüstü dock) ise
+         üstteki sabit bölgeye yükseklik katmaz — ikisi de position:fixed */
+      const alt=(window.matchMedia&&matchMedia(ALT_MQ).matches) || (nv&&getComputedStyle(nv).position==='fixed');
       const h=hd?hd.offsetHeight:0, n=(nv&&!alt)?nv.offsetHeight:0, s=document.documentElement.style;
       s.setProperty('--hdH', h+'px'); s.setProperty('--navH', n+'px'); s.setProperty('--topH', (h+n)+'px');
     }catch(e){} };
