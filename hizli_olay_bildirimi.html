@@ -57,10 +57,32 @@ header .hbtn{background:#262626;color:#f0f0f0;border:1px solid #3a3a3a;padding:7
 header .hbtn:hover{background:#333}
 header .hbtn.acc{background:var(--jcb);color:#141414;border-color:var(--jcb)}
 header .hbtn.acc:hover{background:var(--jcb-600)}
-.me{display:flex;align-items:center;gap:9px;background:#262626;border:1px solid #3a3a3a;border-radius:24px;padding:4px 12px 4px 5px}
-.me .av{width:28px;height:28px;border-radius:50%;background:var(--jcb);display:grid;place-items:center;font-size:12px;font-weight:700;color:#141414}
-.me .t1{font-size:12.5px;font-weight:600;line-height:1.2}
-.me .t2{font-size:11px;color:#9aa3b0;line-height:1.2}
+/* Oturum düğmesi: yalnız AD-SOYAD BAŞ HARFLERİ (basHarf) taşıyan yuvarlak düğme.
+   Üzerine gelince kimlik kartı (.meIpucu), tıklayınca profil penceresi (profilAc).
+   "header #meBox" seçicisi uygulama.css'teki eski .me dolgu kuralını ezer. */
+header #meBox.me{position:relative;display:grid;place-items:center;flex:none;width:36px;height:36px;padding:0;min-width:0;
+  border-radius:50%;background:var(--jcb);color:#141414;border:2px solid rgba(255,255,255,.2);
+  font-family:var(--font);font-size:13px;font-weight:800;letter-spacing:.4px;line-height:1;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);transition:transform .15s,box-shadow .15s}
+header #meBox.me:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(245,197,24,.42)}
+header #meBox.me:focus-visible{outline:2px solid var(--jcb);outline-offset:2px}
+.me .meIpucu{position:absolute;top:calc(100% + 10px);right:0;width:max-content;max-width:280px;text-align:left;
+  background:#141414;color:#fff;border:1px solid #333;border-radius:10px;padding:9px 12px;
+  box-shadow:0 12px 28px rgba(0,0,0,.4);opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none;z-index:70;letter-spacing:0}
+.me:hover .meIpucu,.me:focus-visible .meIpucu{opacity:1;visibility:visible;transform:none}
+.me .meIpucu b{display:block;font-size:13px;font-weight:700}
+.me .meIpucu span{display:block;font-size:11.5px;font-weight:500;color:#9aa3b0;margin-top:2px}
+.me .meIpucu .ip{color:var(--jcb);margin-top:6px}
+@media (hover:none){.me .meIpucu{display:none}}   /* dokunmatikte ipucu yok: dokunuş doğrudan profili açar */
+/* Profil penceresi */
+.prBas{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.prAv{flex:none;width:56px;height:56px;border-radius:50%;background:var(--jcb);color:#141414;display:grid;place-items:center;font-size:20px;font-weight:800;letter-spacing:.5px}
+.prAd{font-size:17px;font-weight:700}
+.prRol{font-size:12.5px;color:var(--text2);margin-top:2px}
+.prKv{display:grid;grid-template-columns:110px 1fr;gap:8px 12px;font-size:13px;margin-bottom:14px}
+.prKv>div:nth-child(odd){color:var(--text3);font-weight:600}
+.prKv>div:nth-child(even){word-break:break-word}
 /* ── SEKMELER (belirgin, saha estetiği) ── */
 nav{background:var(--ink);display:flex;gap:8px;padding:9px 22px;overflow:visible;flex-wrap:wrap;
   position:sticky;top:var(--hdH,62px);z-index:50}   /* sekmeler üst barın hemen altında SABİT */
@@ -619,7 +641,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
        onerror="this.style.display='none';document.getElementById('hdLogoFb').style.display='inline-flex'">
   <span class="logo" id="hdLogoFb" title="SİF JCB" style="display:none"><span class="lg-sif">SİF<sup>®</sup></span><span class="lg-jcb">JCB</span></span>
   <div class="spacer"></div>
-  <div class="me" id="meBox" title="Oturum"></div>
+  <button type="button" class="me" id="meBox" onclick="profilAc()" aria-label="Profil"></button>
   <button class="hbtn tgl" id="themeBtn" onclick="temaDegis()" title="Gece / Gündüz modu"></button>
   <button class="hbtn tgl" id="hdAyarBtn" onclick="go('set')" title="Ayarlar" aria-label="Ayarlar" style="display:none"></button>
   <button class="hbtn tgl" onclick="cikis()" title="Çıkış" aria-label="Çıkış"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
@@ -1301,6 +1323,17 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
   <div class="mb" id="aktBody"></div><div class="mf noprint" id="aktFoot"></div>
 </div></div>
 
+<!-- PROFİL — üst banttaki baş harf düğmesi açar (profilAc) -->
+<div class="ov" id="ovProfil" onclick="if(event.target===this)closeOv('ovProfil')"><div class="mod" style="max-width:460px">
+  <div class="mh"><h3>Profil</h3><button class="close" onclick="closeOv('ovProfil')">×</button></div>
+  <div class="mb" id="profilGovde"></div>
+  <div class="mf">
+    <button class="btn sm" id="profilTema" onclick="profilTema()">Gece moduna geç</button>
+    <button class="btn sm" id="profilYonet" onclick="profilYonet()">Kullanıcıları yönet</button>
+    <div style="flex:1"></div>
+    <button class="btn red sm" onclick="closeOv('ovProfil');cikis()">Çıkış</button>
+  </div>
+</div></div>
 <div class="ov" id="ovMail"><div class="mod" style="max-width:640px">
   <div class="mh"><h3>E-posta Önizleme</h3><button class="close" onclick="closeOv('ovMail')">×</button></div>
   <div class="mb">
@@ -1878,6 +1911,13 @@ const kb = n => n<1024?n+' B':n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).to
 const pad = (n,l)=>String(n).padStart(l,'0');
 /* Baş harf: "(dış İSG uzmanı)" gibi adlarda parantez değil ilk HARF alınsın */
 const bas = s => { const m=String(s||'').match(/\p{L}/u); return (m?m[0]:'?').toUpperCase(); };
+/* Ad-soyad baş harfleri: İLK ve SON kelimenin ilk harfi ("Cagri Dincturk" → "CD",
+   "Ali Veli Kaya" → "AK", tek kelime → tek harf). Türkçe büyük harf (i → İ). */
+const basHarf = s => {
+  const k=String(s||'').replace(/[()\[\]]/g,' ').split(/\s+/).map(w=>{ const m=w.match(/\p{L}/u); return m?m[0]:''; }).filter(Boolean);
+  if(!k.length) return '?';
+  return (k.length>1 ? k[0]+k[k.length-1] : k[0]).toLocaleUpperCase('tr');
+};
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2800); }
 function closeOv(id){ const el=$(id); if(!el) return; el.classList.remove('on'); el.classList.remove('tam'); if(typeof ovTamBtnTazele==='function') ovTamBtnTazele(id); }   /* kapanışta tam sayfa modundan çık */
 /* Modalı aç + geçmişe giriş ekle → tarayıcı GERİ tuşu modalı kapatır (sayfa değişmez).
@@ -2027,8 +2067,34 @@ function kimlikYaz(){
   const r=rol(), u=SES;
   { const mb=$('mbWho'); if(mb) mb.textContent = `${u.ad} · ${r.ad}`; }
   $('hdBrand').textContent = 'İSG YÖNETİM PORTALI';
-  const lk=(u.loklar||[]).includes('*')||r.kapsam==='all' ? 'Tüm lokasyonlar' : (u.loklar||[]).join(', ');
-  $('meBox').innerHTML = `<div class="av">${esc(bas(u.ad))}</div><div><div class="t1">${esc(u.ad)}</div><div class="t2">${esc(r.ad)} · ${esc(lk)}</div></div>`;
+  const lk=kimlikLok(u,r);
+  /* Yalnız baş harfler görünür; kim olduğu üzerine gelince (.meIpucu), ayrıntı profilde */
+  $('meBox').innerHTML = `${esc(basHarf(u.ad))}<span class="meIpucu"><b>${esc(u.ad)}</b><span>${esc(r.ad)} · ${esc(lk)}</span><span class="ip">Profil için tıklayın</span></span>`;
+  $('meBox').setAttribute('aria-label', `Profil — ${u.ad}, ${r.ad}`);
+}
+const kimlikLok = (u,r) => (u.loklar||[]).includes('*')||r.kapsam==='all' ? 'Tüm lokasyonlar'
+  : ((u.loklar||[]).map(k=>(typeof lokAd==='function'?lokAd(k):k)).join(', ') || '—');
+/* PROFİL: oturumdaki kullanıcının kimliği + kişisel tercihler. Ad, e-posta ve
+   yetkiler burada DEĞİŞTİRİLMEZ — yönetici Ayarlar → Kullanıcılar'dan yapar
+   (canlıda kimlik Entra ID'den gelecek). Pencere yalnız kişinin kendi verisini gösterir. */
+function profilAc(){
+  if(!SES) return;
+  const u=SES, r=rol();
+  $('profilGovde').innerHTML=`<div class="prBas"><div class="prAv">${esc(basHarf(u.ad))}</div>
+      <div><div class="prAd">${esc(u.ad)}</div><div class="prRol">${esc(r.ad)}</div></div></div>
+    <div class="prKv"><div>E-posta</div><div>${esc(u.mail||'—')}</div>
+      <div>Pozisyon</div><div>${esc(r.ad)}</div>
+      <div>Lokasyon</div><div>${esc(kimlikLok(u,r))}</div>
+      <div>Görünüm</div><div>${document.body.classList.contains('dark')?'Gece modu':'Gündüz modu'}</div></div>
+    <div class="hint">Ad, e-posta ve yetkiler yönetici tarafından Ayarlar → Kullanıcılar'dan değiştirilir.</div>`;
+  $('profilTema').textContent = document.body.classList.contains('dark') ? 'Gündüz moduna geç' : 'Gece moduna geç';
+  $('profilYonet').style.display = can('ayar') ? '' : 'none';
+  $('ovProfil').classList.add('on');
+}
+function profilTema(){ temaDegis(); profilAc(); }
+function profilYonet(){
+  closeOv('ovProfil'); go('set');
+  const b=document.querySelector('#setTabs [data-s="usr"]'); if(b) b.click();
 }
 function applyPerms(sifirla){
   const r=rol();
