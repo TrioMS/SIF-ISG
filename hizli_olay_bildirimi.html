@@ -716,7 +716,6 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
           </span></div>
         <div><label class="f">Olay Saati <span class="req">*</span></label><input type="time" id="f_saat"></div>
         <div><label class="f">Yer / Bölüm <span class="req">*</span></label><input type="text" id="f_yer" placeholder="Örn. servis atölyesi, kaynak bölümü, yedek parça deposu"></div>
-        <div><label class="f">Vardiya</label><select id="f_vardiya"><option>Gündüz</option><option>Akşam</option><option>Gece</option><option>Mesai dışı</option></select></div>
         <div><label class="f">Faaliyet / İş Kalemi</label><input type="text" id="f_faaliyet" placeholder="Örn. ekskavatör hidrolik hortum değişimi"></div>
         <div><label class="f">Bildiren — Sicil No</label><input type="text" id="f_bildirenSicil" list="dlSicil" placeholder="sicil yazın" oninput="kisiCoz('bildiren','sicil',this.value)"></div>
         <div><label class="f">Bildiren Kişi <span class="req">*</span></label>
@@ -1475,7 +1474,7 @@ const KAYNAKLAR = ['İş makinesi / ağır ekipman','Kaldırma ekipmanı (vinç,
    agir = "Ciddi Olay" KPI'sında sayılan türler. */
 const CIDDIYET = [
   {k:'olumlu',   ad:'Ölümlü Kaza',                  pil:'p-red', agir:true, yarali:true},
-  {k:'naddeath', ad:'Kaza Dışı Ölüm',               pil:'p-red', agir:true, yarali:true},
+  {k:'naddeath', ad:'Kaza Dışı Ölüm',               pil:'p-red', agir:true},   /* iş kazası DEĞİL: yaralanmalı sayılmaz, analizde ciddi sayılmaz (kendi istatistiği) */
   {k:'lti',      ad:'Kayıp Günlü Olay (LTI)',       pil:'p-red', agir:true, yarali:true},
   {k:'disab',    ad:'Fiziksel Engel',               pil:'p-red', agir:true, yarali:true},
   {k:'occill',   ad:'Meslek Hastalığı',             pil:'p-red', agir:true, yarali:true},
@@ -1607,7 +1606,8 @@ const ESIK={
   etkinIyi:80, etkinZayif:50,     /* aksiyon etkinliği (kapanıştan sonra tekrar etmeyen alan payı) */
   etkinOlcum:3,                   /* etkinlik hükmü için en az ölçülmüş aksiyon */
   bildirimGun:2,                  /* olaydan kaydın açılmasına izin verilen en fazla gün */
-  nmOranAlt:3                     /* yaralanmalı olay başına beklenen en az ucuz atlatma */
+  nmOranAlt:3,                    /* yaralanmalı olay başına beklenen en az ucuz atlatma */
+  saatPay:35                      /* bir 6 saatlik dilimde yoğunlaşma sayılacak en az pay (%) */
 };
 const ciddiAnaliz = k => !!cidOf(k).agir && !CIDDI_ANALIZ_HARIC.includes(k);
 const OTORITE = ['SGK iş kazası bildirimi (3 iş günü)','Kolluk / emniyet','Çalışma ve Sosyal Güvenlik Bakanlığı','İşveren / müşteri','Sigorta şirketi','Çevre otoritesi','Bildirim gerekmiyor'];
@@ -1843,7 +1843,7 @@ async function arsivCoz(sessiz){
 const dosyaAdiTemiz = s => String(s||'dosya').replace(/[\\/:*?"<>|]/g,'_').slice(0,150);
 function kunye(rec){
   return {dosyaNo:rec.no, sirket:GEN.ad, bolge:bolgeOf(rec.lokasyon), lokasyon:rec.lokasyon, lokasyonAd:lokOf(rec.lokasyon).ad,
-    sgkSicil:lokOf(rec.lokasyon).sgk||'', tarih:rec.tarih, saat:rec.saat, vardiya:rec.vardiya,
+    sgkSicil:lokOf(rec.lokasyon).sgk||'', tarih:rec.tarih, saat:rec.saat,
     yer:rec.yer, faaliyet:rec.faaliyet, olayTuru:turAd(rec), olayKaynagi:kaynakAd(rec), sonuc:sonucAd(rec),
     durum:durOf(rec.durum).ad, isDurdurma:rec.isDurdu, maddiHasar:rec.hasar,
     resmiBildirim:{gerekli:rec.otoriteGerekli,kurumlar:rec.otorite||[]},
@@ -2196,7 +2196,7 @@ function blank(){
     no: lok?nextNo(lok,bugun()):'',
     durum:'draft', olusturma:new Date().toISOString(), guncelleme:'',
     olusturanMail:SES?SES.mail:'', olusturanAd:SES?SES.ad:'',
-    lokasyon:lok, tarih:bugun(), saat:simdiSaat(), yer:'', vardiya:'Gündüz', faaliyet:'',
+    lokasyon:lok, tarih:bugun(), saat:simdiSaat(), yer:'', faaliyet:'',
     /* AŞAMA 1 — ilk bildirim */
     bildirenSicil:mePers?mePers.sicil:'', bildiren:SES?SES.ad:'',
     bildirenGorev:mePers?mePers.gorev:(SES?pozAd(SES.pozisyon):''),
@@ -3116,7 +3116,7 @@ async function rmFile(id){ if(!confirm('Bu ek kaldırılsın mı?')) return; cur
 
 /* form <-> nesne */
 /* 'tarih' burada YOK — f_tarih metin kutusu gg/aa/yyyy gösterir, ISO ayrı tutulur */
-const TXT=['saat','yer','vardiya','faaliyet','bildirenSicil','bildiren','bildirenGorev',
+const TXT=['saat','yer','faaliyet','bildirenSicil','bildiren','bildirenGorev',
   'turDiger','sonucDiger','isDurdu','hasar','aciklama','acil','taniklarNot',
   'bulgularDiger','bulguNot','kokNot','dersler'];
 function bindInputs(){ TXT.forEach(f=>{ const el=$('f_'+f); if(el) el.addEventListener('input',()=>{ cur[f]=el.value; onFormChange(); }); }); }
@@ -3296,7 +3296,7 @@ function govdeIlk(rec,gomulu){
   L.push((gomulu?'İLK BİLDİRİM — ':'OLAY BİLDİRİMİ — ')+(rec.no||''),'');
   L.push('Şirket         : '+GEN.ad);
   L.push('Lokasyon       : '+lokAd(rec.lokasyon)+(l.sgk?'  (SGK sicil '+l.sgk+')':''));
-  L.push('Tarih / saat   : '+trDate(rec.tarih)+' '+rec.saat+'  ('+rec.vardiya+' vardiyası)');
+  L.push('Tarih / saat   : '+trDate(rec.tarih)+' '+rec.saat);
   L.push('Yer / bölüm    : '+rec.yer);
   L.push('Faaliyet       : '+(rec.faaliyet||'—'));
   /* "Sonuç" satırı KALDIRILDI: tür ve ciddiyet tek alanda birleştikten sonra
@@ -3775,10 +3775,8 @@ function olayDegerlendir(r){
   if(bulguTekrar.length) dikkat.push(`"${bulguTekrar[0].b}" bulgusu ${bulguTekrar[0].s} başka olayda daha görüldü.`);
   if(bolgeTekrar.length) dikkat.push(`"${bolgeTekrar[0].b}" bölgesi yaralanması ${bolgeTekrar[0].s} başka olayda daha var.`);
   /* ── Formda toplanan ama eskiden bu değerlendirmeye hiç girmeyen alanlar ── */
-  if(r.vardiya){
-    const vAyni=diger.filter(x=>x.vardiya===r.vardiya&&x.lokasyon===r.lokasyon).length;
-    if(vAyni>=2) dikkat.push(`Bu lokasyonda "${r.vardiya}" vardiyasında ${vAyni} olay daha var — vardiya bazlı bir kalıp olabilir.`);
-  }
+  /* Vardiya değerlendirmesi KALDIRILDI (kullanıcı kararı, 30.09.2026): alan formdan çıktı,
+     zaman yoğunlaşmasına olay SAATİ üzerinden bakılır. */
   if(r.faaliyet){
     const fAyni=diger.filter(x=>esitTR(x.faaliyet||'',r.faaliyet)).length;
     if(fAyni>=2) dikkat.push(`"${r.faaliyet}" faaliyeti ${fAyni} başka olayda daha geçiyor.`);
@@ -3805,8 +3803,6 @@ function olayDegerlendir(r){
   if(bolgeTekrar.length) oneri.push(`"${bolgeTekrar[0].b}" yaralanmalarını azaltmak için ilgili KKD ve iş yöntemini gözden geçirin.`);
   if(ciddi) oneri.push('Kök neden analizini (5 Neden / balık kılçığı) derinleştirin ve dersleri diğer lokasyonlara yayın.');
   if(!(r.dersler||'').trim()) oneri.push('Öğrenilen dersi yazıp ilgili ekiplerle paylaşın.');
-  if(r.vardiya && diger.filter(x=>x.vardiya===r.vardiya&&x.lokasyon===r.lokasyon).length>=2)
-    oneri.push(`"${r.vardiya}" vardiyasındaki tekrarı kırmak için o vardiyada saha gözetimi, aydınlatma ve devir teslim uygulamasını gözden geçirin.`);
   if(/^(Evet|Kısmen)/.test(r.isDurdu||''))
     oneri.push('İşin yeniden başlatılması için kontrol listesi uygulayın ve şartların kapatıldığını yazılı olarak kayda geçirin.');
   if(!oneri.length) oneri.push('Belirgin bir yoğunlaşma yok; mevcut önleyici tedbirleri sürdürün ve ucuz atlatma bildirimini teşvik edin.');
@@ -4087,7 +4083,7 @@ function viewRec(id,saltOku){
         <div class="dFields">
           ${kv('Tür',esc(turAd(r)))}
           ${kv('Proje / saha',esc(bolgeOf(r.lokasyon)||GEN.kod||'—'))}
-          ${kv('Tarih / saat',trDate(r.tarih)+' '+esc(r.saat||'')+(r.vardiya?' ('+esc(r.vardiya)+')':''))}
+          ${kv('Tarih / saat',trDate(r.tarih)+' '+esc(r.saat||''))}
           ${kv('Lokasyon',esc(lokAd(r.lokasyon))+(r.yer?' — '+esc(r.yer):''))}
           ${kv('Bildiren',esc(r.bildiren||'—')+(r.bildirenGorev?' / '+esc(r.bildirenGorev):''))}
           ${kv('Bilgilendirilenler',alicilar||'—')}
@@ -5319,12 +5315,12 @@ function demoVeriYukle(){
       sira++;
       const lok=kis(loklar), kod=turKod(tur), c=cidOf(kod);
       const dur=kis(durumlar), gecmis=Math.floor(Math.random()*330)+5;
-      const yaralanmali=['olumlu','naddeath','lti','rwc','mti','fac','disab','occill'].indexOf(kod)>=0;
+      const yaralanmali=yaralanmaliMi(kod);   /* ortak tanım (CIDDIYET.yarali) */
       const r=Object.assign(blank(),{
         id:uid(), no:'SIF-'+lok+'-INC-'+yil+'-'+String(sira).padStart(3,'0'),
         lokasyon:lok, tur:tur, sonuc:kod, kaynak:kis(KAYNAKLAR.filter(k=>k!=='Diğer')),
         tarih:gun(gecmis), saat:String(7+Math.floor(Math.random()*11)).padStart(2,'0')+':'+kis(['00','15','30','45']),
-        vardiya:kis(['Gündüz','Akşam','Gece']), yer:kis(['Servis atölyesi','Yedek parça deposu','Saha sevkiyat alanı','Yıkama alanı','Test sahası']),
+        yer:kis(['Servis atölyesi','Yedek parça deposu','Saha sevkiyat alanı','Yıkama alanı','Test sahası']),
         faaliyet:kis(['Bakım / onarım','Yükleme-boşaltma','Test sürüşü','Temizlik','Montaj']),
         durum:dur, aciklama:tur+' — örnek kayıt, saha koşullarında meydana geldi.',
         acil:'Alan emniyete alındı, ilk müdahale yapıldı.',
@@ -5370,8 +5366,8 @@ function dl(name,text){ const b=new Blob(['﻿'+text],{type:'text/plain;charset=
 const cs=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
 const csv=(h,rows,name)=>dl(name,[h,...rows].map(r=>r.map(cs).join(';')).join('\r\n'));
 function csvReg(){
-  csv(['Olay No','Durum','Lokasyon kodu','Lokasyon','Tarih','Saat','Vardiya','Yer','Faaliyet','Olay türü','Olay kaynağı','Sonuç','Yaralı','Kayıp gün','İş durdurma','Maddi hasar','Resmî bildirim','Kurumlar','Bildiren','Bildiren sicil','Kaydı giren','Açıklama','Acil önlemler','Tanıklar','Bulgular',...KOK_KAT.map(k=>'Kök sebep: '+k.ad),'Kök sebep: diğer','Kök sebep analizi','Öğrenilen ders','Kişiler','Aksiyon','Ek','İlk bildirim alıcıları','Rapor alıcıları'],
-    gorunurKayitlar().map(r=>[r.no,durOf(r.durum).ad,r.lokasyon,lokOf(r.lokasyon).ad,r.tarih,r.saat,r.vardiya,r.yer,r.faaliyet,turAd(r),kaynakAd(r),sonucAd(r),
+  csv(['Olay No','Durum','Lokasyon kodu','Lokasyon','Tarih','Saat','Yer','Faaliyet','Olay türü','Olay kaynağı','Sonuç','Yaralı','Kayıp gün','İş durdurma','Maddi hasar','Resmî bildirim','Kurumlar','Bildiren','Bildiren sicil','Kaydı giren','Açıklama','Acil önlemler','Tanıklar','Bulgular',...KOK_KAT.map(k=>'Kök sebep: '+k.ad),'Kök sebep: diğer','Kök sebep analizi','Öğrenilen ders','Kişiler','Aksiyon','Ek','İlk bildirim alıcıları','Rapor alıcıları'],
+    gorunurKayitlar().map(r=>[r.no,durOf(r.durum).ad,r.lokasyon,lokOf(r.lokasyon).ad,r.tarih,r.saat,r.yer,r.faaliyet,turAd(r),kaynakAd(r),sonucAd(r),
       can('saglik')?r.yaraliSayi:'gizli',can('saglik')?r.kayipGun:'gizli',r.isDurdu,r.hasar,r.otoriteGerekli,(r.otorite||[]).join(' | '),
       r.bildiren,r.bildirenSicil,r.olusturanMail,r.aciklama,r.acil,
       (r.taniklar||[]).map(t=>t.ad).join(' | ')+(r.taniklarNot?' / '+r.taniklarNot:''),
@@ -5827,16 +5823,14 @@ const enSik = liste => (liste||[]).find(x=>!/^(diğer|bilinmiyor|belirsiz)$/i.te
 
 /* ══ EK ANALİZ BOYUTLARI ══════════════════════════════════════════════════
    Formda TOPLANAN ama analize hiç girmeyen alanlar burada değerlendirilir:
-   vardiya, olay saati, faaliyet, kayıp gün, iş durdurma, bildirim gecikmesi,
+   olay saati, faaliyet, kayıp gün, iş durdurma, bildirim gecikmesi,
    yoğunlaşma (Pareto), çalışan sayısına göre normalizasyon ve veri bütünlüğü.
    Kural: veri yoksa null döner ve o bulgu hiç yazılmaz — boş alandan çıkarım
    yapılmaz. Eşikler, tek bir kaydın "eğilim" gibi sunulmasını engeller. */
 function anEkBoyut(V){
   const n=V.length||1, o={};
 
-  /* Vardiya — gece/akşam yoğunlaşması ayrı bir denetim sorusudur */
-  const vd=sayimla(V.map(r=>r.vardiya));
-  if(vd.length>1){ o.vardiya=vd[0]; o.vardiyaPay=Math.round(vd[0].n/n*100); }
+  /* Vardiya boyutu KALDIRILDI (30.09.2026): zaman yoğunlaşması olay saatinden (aşağıda). */
 
   /* Olay saati — 6 saatlik dilimler (saat girilmemiş kayıtlar sayılmaz) */
   const dilimAd=['00:00–06:00','06:00–12:00','12:00–18:00','18:00–24:00'], dilim=[0,0,0,0];
@@ -6872,7 +6866,6 @@ function anSaglikCalistir(){
   const alanlar=[
     {ad:'Olay kaynağı',        dolu:V.filter(r=>kaynakAd(r)&&kaynakAd(r)!=='—').length, top:n, kul:'Kaynak dağılımı, Pareto, benzer olay eşleşmesi'},
     {ad:'Saat',                dolu:V.filter(r=>/^\d{1,2}:/.test(r.saat||'')).length,   top:n, kul:'Saat dilimi yoğunlaşması'},
-    {ad:'Vardiya',             dolu:V.filter(r=>(r.vardiya||'').trim()).length,          top:n, kul:'Vardiya yoğunlaşması'},
     {ad:'Faaliyet',            dolu:V.filter(r=>(r.faaliyet||'').trim()).length,         top:n, kul:'Faaliyet tekrarı'},
     {ad:'Yer / bölüm',         dolu:V.filter(r=>(r.yer||'').trim()).length,              top:n, kul:'Olay kartı bağlamı'},
     {ad:'Açıklama',            dolu:V.filter(r=>(r.aciklama||'').trim()).length,         top:n, kul:'Rapor gövdesi, ders çıkarma'},
@@ -6899,7 +6892,7 @@ function anSaglikCalistir(){
   const E=anEkBoyut(V), engel=[];
   const saatli=V.filter(r=>/^\d{1,2}:/.test(r.saat||'')).length;
   if(saatli<5) engel.push(['Saat dilimi yoğunlaşması','saati girilmiş en az 5 kayıt gerekiyor; şu an '+saatli+' var']);
-  else if(!E.saat||E.saat.pay<35) engel.push(['Saat dilimi yoğunlaşması','veri yeterli ama belirgin bir yoğunlaşma yok (eşik %35)']);
+  else if(!E.saat||E.saat.pay<ESIK.saatPay) engel.push(['Saat dilimi yoğunlaşması','veri yeterli ama belirgin bir yoğunlaşma yok (eşik %'+ESIK.saatPay+')']);
   const gkSay=V.filter(r=>r.tarih&&r.olusturma).length;
   if(gkSay<5) engel.push(['Bildirim gecikmesi','olay tarihi + kayıt açılışı olan en az 5 kayıt gerekiyor; şu an '+gkSay+' var']);
   else if(!E.gecikme) engel.push(['Bildirim gecikmesi','tarih verisi tutarsız — hesaplanamadı']);
@@ -6909,8 +6902,6 @@ function anSaglikCalistir(){
   const lokVeriliSay=[...new Set(V.map(r=>r.lokasyon))].length;
   if(lokCalisanli<2) engel.push(['Çalışan başına olay yoğunluğu',
       'karşılaştırma için en az 2 lokasyonda çalışan sayısı girilmiş olmalı; kayıtlı '+lokVeriliSay+' lokasyondan yalnız '+lokCalisanli+' tanesinde var — Ayarlar → Lokasyonlar → Çalışan (Sayı)']);
-  if(!E.vardiya) engel.push(['Vardiya yoğunlaşması','tüm kayıtlar aynı vardiyada ya da vardiya girilmemiş']);
-  else if(E.vardiyaPay<40) engel.push(['Vardiya yoğunlaşması','dağılım dengeli — yoğunlaşma eşiği (%40) aşılmadı']);
   if(!saglik) engel.push(['Kayıp gün, yaralanma türü, vücut bölgesi','sağlık verisi yetkiniz yok — bu bulgular sizin raporunuzda hiç görünmez']);
   else if(!E.kayip) engel.push(['Kayıp gün','hiçbir kayıtta kayıp gün girilmemiş']);
   { const tarihli=V.filter(r=>r.tarih).length;   /* hseMetrikler ile aynı ölçü: TARİHLİ kayıt */
@@ -7007,8 +6998,7 @@ function aiRapor(){
   /* ── Ek boyutlar: formda toplanan ama eskiden hiç değerlendirilmeyen veriler ── */
   const E=anEkBoyut(V);
   if(E.kayip && saglik) B.push(`Kayıp gün toplamı <b>${E.kayip.toplam} gün</b> (${E.kayip.olay} olayda); en ağırı <b>${esc(E.kayip.enAgir.r.no||'—')}</b> ile ${E.kayip.enAgir.g} gün.`);
-  if(E.vardiya && E.vardiyaPay>=40) B.push(`Olaylar en çok <b>${esc(E.vardiya.ad)}</b> vardiyasında — ${E.vardiya.n} olay (%${E.vardiyaPay}).`);
-  if(E.saat && E.saat.pay>=35) B.push(`Saat dağılımında yoğunlaşma: <b>${E.saat.ad}</b> aralığında ${E.saat.n} olay (%${E.saat.pay}); saati girilmiş ${E.saat.kapsam} kayıt üzerinden.`);
+  if(E.saat && E.saat.pay>=ESIK.saatPay) B.push(`Saat dağılımında yoğunlaşma: <b>${E.saat.ad}</b> aralığında ${E.saat.n} olay (%${E.saat.pay}); saati girilmiş ${E.saat.kapsam} kayıt üzerinden.`);
   if(E.faaliyet && E.faaliyet.n>=2) B.push(`En sık faaliyet <b>${esc(E.faaliyet.ad)}</b> — ${E.faaliyet.n} olay.`);
   if(E.isDurdu>0) B.push(`<b>${E.isDurdu}</b> olayda iş durduruldu (tesis genelinde veya ilgili faaliyette).`);
   if(E.lokNorm && E.lokNormAdet>=2) B.push(`Çalışan sayısına göre en yüksek olay yoğunluğu <b>${esc(E.lokNorm.ad)}</b>: 100 çalışan başına <b>${E.lokNorm.oran.toFixed(1)}</b> olay (${E.lokNorm.say} olay / ${E.lokNorm.calisan} çalışan, ${E.lokNormAdet} lokasyon kıyaslandı).`);
@@ -7084,8 +7074,7 @@ function aiRapor(){
   }
   if(E.ciddiAksiyonsuz>0) O.push(`<b>${E.ciddiAksiyonsuz}</b> ciddi olayda aksiyon yok — her biri için sorumlu ve terminli en az bir düzeltici aksiyon açın; ciddi olayın aksiyonsuz kapanması denetimde bulgu konusudur.`);
   if(E.kokYok>0) O.push(`Kök sebebi girilmemiş <b>${E.kokYok}</b> raporu tamamlayın; eksik kök sebep, sebep analizini ve bu raporun isabetini doğrudan zayıflatıyor.`);
-  if(E.vardiya && E.vardiyaPay>=40 && !/gündüz/i.test(E.vardiya.ad)) O.push(`Olaylar <b>${esc(E.vardiya.ad)}</b> vardiyasında yoğunlaşıyor — bu vardiyada saha gözetimi, aydınlatma, yorgunluk yönetimi ve vardiya devir teslimini gözden geçirin.`);
-  if(E.saat && E.saat.pay>=35) O.push(`<b>${E.saat.ad}</b> aralığındaki yoğunlaşmanın sebebini araştırın (vardiya başlangıcı, mola dönüşü, yorgunluk, aydınlatma) ve o saatlerde denetim sıklığını artırın.`);
+  if(E.saat && E.saat.pay>=ESIK.saatPay) O.push(`<b>${E.saat.ad}</b> aralığındaki yoğunlaşmanın sebebini araştırın (mesai başlangıcı, mola dönüşü, yorgunluk, aydınlatma) ve o saatlerde denetim sıklığını artırın.`);
   if(E.gecikme && E.gecikme.ort>ESIK.bildirimGun) O.push(`Bildirim ortalama <b>${E.gecikme.ort.toFixed(1)} gün</b> sonra açılıyor — geç bildirim delil ve tanık kaybına yol açar; olaydan sonra en geç <b>${ESIK.bildirimGun} gün</b> içinde kayıt açılmasını hatırlatın.`);
   if(E.pareto && E.pareto.kac<=Math.ceil(E.pareto.cesit*0.4)) O.push(`Olayların büyük kısmı yalnız <b>${E.pareto.kac}</b> kaynaktan geliyor — kaynakları tek tek ele almak yerine bu ${E.pareto.kac} mekanizmaya odaklı bir kontrol programı en yüksek getiriyi verir.`);
   if(E.lokNorm && E.lokNormAdet>=2) O.push(`<b>${esc(E.lokNorm.ad)}</b> çalışan başına en yüksek olay yoğunluğuna sahip — ham sayı yerine bu normalize oranı hedef belirlemede kullanın.`);
@@ -7101,7 +7090,8 @@ function aiRapor(){
   if(ciddi>0) O.push(`Ciddi ${ciddi} olay için kök neden analizlerinin (5 Neden / balık kılçığı) tamamlandığını ve derslerin diğer lokasyonlara yayıldığını doğrulayın.`);
   if(!O.length) O.push('Belirgin bir yoğunlaşma yok; mevcut önleyici tedbirleri sürdürün ve ucuz atlatma bildirimini teşvik edin.');
   /* Sistem iyileştirme önerisi (içsel/uydurma puanlama yerine standart, kıyaslanabilir gösterge) */
-  O.push('<b>Sistem iyileştirme:</b> ciddiyeti kıyaslanabilir izlemek için çalışma-saati verisi ekleyip standart <b>TRIR / LTIFR / kaza ağırlık oranı (severity rate)</b> göstergelerini kullanın — bunların sektör/ulusal ortalamaları vardır; içsel bir puanlama yerine bu standartları tercih edin.');
+  /* TRIR / LTIFR önerisi KALDIRILDI (30.09.2026): böyle bir KPI yok, veri koşulu olmadan her
+     raporda çıkıyordu. Çalışma saati verisi ve KPI eklendiğinde veriye bağlı olarak geri gelir. */
 
   /* ── ANALİZ BELLEĞİ: bu çalışmanın bulgularını geçmişle karşılaştır ──
      Üst-bulgular listenin BAŞINA konur: "bunu kaçıncı kez söylüyoruz" bilgisi,
@@ -7903,7 +7893,6 @@ function airOlayAlan(r){
   o['Lokasyon']=r.lokasyon?[r.lokasyon]:[];
   o['Olay Tarihi']=airBos(r.tarih);
   o['Saat']=r.saat||'';
-  o['Vardiya']=airBos(r.vardiya);
   o['Olay Türü']=airBos(turAd(r));
   o['Ciddiyet Kodu']=airBos(r.sonuc);
   o['Ciddi Olay']=!!cidOf(r.sonuc).agir;
@@ -8093,7 +8082,7 @@ async function airCek(){
       const tur=f['Olay Türü']||'';
       Object.assign(r,{
         no:f['Olay No']||r.no||'', lokasyon:linkKod(f['Lokasyon'])||r.lokasyon||'',
-        tarih:f['Olay Tarihi']||'', saat:f['Saat']||'', vardiya:f['Vardiya']||'Gündüz',
+        tarih:f['Olay Tarihi']||'', saat:f['Saat']||'',
         tur:tur, sonuc:f['Ciddiyet Kodu']||turKod(tur),
         kaynak:f['Olay Kaynağı']||'', yer:f['Yer / Bölüm']||'', faaliyet:f['Faaliyet']||'',
         durum:airDurumKod(f['Kayıt Durumu']), isDurdu:f['İş Durduruldu']||'Hayır',
