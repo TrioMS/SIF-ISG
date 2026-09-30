@@ -3195,7 +3195,13 @@ function validate(asama){
 
 /* ══════════ DAĞITIM MOTORU ══════════ */
 function recipients(rec,phase){
-  const agir=cidOf(rec.ciddiyet).agir, fatal=['olumlu','agir'].includes(rec.ciddiyet);
+  /* Ciddiyet KODU kayıtta 'sonuc' alanındadır (eski 'ciddiyet' yüklemede buraya taşınır,
+     bkz. göç). Eskiden rec.ciddiyet okunuyordu → gerçek kayıtlarda hep boş, 'yalnız ciddi
+     olaylar' / 'ölümlü-ağır' alıcıları (üst yönetim, hekim) HİÇ eklenmiyordu (ölçüldü).
+     Bildirim akışı agir işaretini kullanır — analizdeki ciddiAnaliz'i DEĞİL (Kaza Dışı
+     Ölüm de acil bildirilir). */
+  const kod=(rec.sonuc!==undefined && rec.sonuc!=='') ? rec.sonuc : rec.ciddiyet;
+  const agir=cidOf(kod).agir, fatal=['olumlu','agir'].includes(kod);
   const ok=d=>d.aktif
     && (d.tetik==='both'||d.tetik===phase)
     && (d.kapsam==='all'||(d.kapsam==='agir'&&agir)||(d.kapsam==='fatal'&&fatal))
@@ -5113,7 +5119,7 @@ function delDist(id){ const d=DIST.find(x=>x.id===id); if(!confirm(`"${d.ad||'(a
 function testDist(){
   const loklar=LOK.filter(l=>l.aktif);
   const rows=loklar.map(l=>CIDDIYET.map(c=>{
-    const fake={ciddiyet:c.k,lokasyon:l.kod};
+    const fake={sonuc:c.k,lokasyon:l.kod};   /* gerçek kayıtla AYNI alan — eskiden 'ciddiyet' kullanıldığı için test hatayı gizliyordu */
     const s=recipients(fake,'save'), g=recipients(fake,'send');
     return `<tr><td>${esc(l.kod)}</td><td><span class="pill ${c.pil}">${esc(c.ad)}</span></td>
       <td>${s.to.length+s.cc.length}<div style="font-size:11px;color:var(--text3)">${esc(s.to.concat(s.cc).map(d=>d.ad).join(', '))||'—'}</div></td>
