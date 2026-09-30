@@ -2048,7 +2048,8 @@ function giris(uid_){
   if(typeof ogrBaslat==='function') ogrBaslat();   /* öğrenme motoru oturumla başlar */
   go('analiz');      // portal açılışında ilk ekran ANALİZ (newRec formu hazırlar, ekran analize döner)
   if(GOC.length && can('ayar')){ toast('Eski sürüm verisi taşındı: '+GOC.join(' · ')); GOC=[]; }
-  else toast(`${u.ad} olarak açıldı — ${pozAd(u.pozisyon)}`);
+  /* "… olarak açıldı" giriş bildirimi KALDIRILDI (kullanıcı kararı, 30.09.2026):
+     kimlik zaten üst banttaki baş harf düğmesinde görünüyor. Diğer bildirimler duruyor. */
   hashKayitAc();     // e-posta bağlantısıyla gelindiyse kaydı salt okunur aç
 }
 /* Giriş ekranı açıkken sayfa kaydırmasını kilitle: arkada kalan uygulama içeriği
