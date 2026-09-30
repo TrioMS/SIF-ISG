@@ -199,8 +199,11 @@ body.dark .sagKayit{color:#8ab4f8}
   body{padding-bottom:92px}
   nav#nav{position:fixed;top:auto;left:50%;bottom:16px;transform:translateX(-50%);z-index:80;
     display:flex;flex-wrap:nowrap;gap:4px;padding:6px;border-radius:18px;
-    background:rgba(20,20,20,.9);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
-    border:1px solid rgba(255,255,255,.09);box-shadow:0 18px 40px rgba(0,0,0,.32),0 2px 8px rgba(0,0,0,.22)}
+    /* Dinlenirken hafif saydam (arkadaki içerik bulanık seçilir); üzerine gelince koyulaşır */
+    background:rgba(20,20,20,.55);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+    border:1px solid rgba(255,255,255,.09);box-shadow:0 18px 40px rgba(0,0,0,.22),0 2px 8px rgba(0,0,0,.16);
+    transition:background .25s ease,box-shadow .25s ease}
+  nav#nav:hover,nav#nav:focus-within{background:rgba(20,20,20,.94);box-shadow:0 18px 40px rgba(0,0,0,.34),0 2px 8px rgba(0,0,0,.24)}
   #nav>button,.navGrp{min-width:0}
   #nav .navGrp{display:contents}
   #nav .navGrp .navTop,#nav .navBrand{display:none}
