@@ -5532,15 +5532,8 @@ function anAIYaz(elle){
   }
   meta.innerHTML=anAIMetaHTML(k, onceki);
 }
-/* Kutunun başı: son analiz + öğrenme motoru durumu + analiz geçmişi */
+/* Kutunun başı: son analiz + veri değişti notu + analiz geçmişi */
 function anAIMetaHTML(k, onceki){
-  const m=(typeof MODEL!=='undefined'&&MODEL)||store.get(K_MODEL,null);
-  const et=m&&m.etkinlik;
-  const ogr = m
-    ? `Öğrenme motoru: model ${esc(anZaman(m.damga))} · ${m.kapsam?m.kapsam.olay:0} olay, ${m.kapsam?m.kapsam.aksiyon:0} aksiyon`
-      +(et&&et.toplamOlculen?` · ${et.toplamOlculen} kapanan aksiyonun etkinliği ölçüldü`:'')
-      +` · sürüm ${esc(m.surum||'—')}`
-    : 'Öğrenme motoru: model henüz kurulmadı — ilk analizde kurulur';
   const g=(k.gecmis||[]);
   /* Not GEÇMİŞTEN türetilir: son çalışma veri değişince kendiliğinden yapıldıysa
      görünür ve sonraki çizimlerde (filtre tıklaması vb.) kaybolmaz; kullanıcı
@@ -5552,8 +5545,10 @@ function anAIMetaHTML(k, onceki){
     + g.map(x=>`<li><span class="t">${esc(anZaman(x.at))}</span> ${x.oto?'veri değişince yenilendi':'elle çalıştırıldı'}`
         +` · ${esc(x.kapsam||'—')} · ${x.olay||0} olay · ${x.bulgu||0} bulgu · ${x.oneri||0} öneri</li>`).join('')
     + '</ol></details>' : '';
+  /* Öğrenme motorunun durumu burada GÖSTERİLMEZ — Ayarlar → Analiz Sağlığı'nda
+     kalır (kullanıcı kararı, 30.09.2026). Motor analizi beslemeye devam eder. */
   return `<div class="aiSon">Son analiz: <b>${esc(anZaman(k.at))}</b> · ${k.kez||1}. analiz</div>`
-    + `<div class="aiOgr">${ogr}</div>` + not + gecmis;
+    + not + gecmis;
 }
 /* Açılışta: kayıt "açık" diyorsa kutuyu örtüsüz, beklemeden aç */
 function anAIGeriYukle(){
