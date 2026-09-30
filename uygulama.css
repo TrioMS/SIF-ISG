@@ -134,6 +134,97 @@
   #regBody tr:has(td.empty),#actBody tr:has(td.empty){display:block;text-align:center}
   #regBody td.empty,#actBody td.empty{text-align:center;color:var(--text2)}
 }
+/* ── AI ANALİZ KUTUSU: telefonda başlık bölümü + aksiyon geçmişi ──
+   Masaüstü için yazılmış 11-12px metinler ve 1px dolgulu düğmeler telefonda
+   okunmuyor, parmakla basılamıyordu. Başlık bölümü (.aiMeta: son analiz,
+   "veri değişti" notu, analiz geçmişi) ve AI önerisinden açılan aksiyonların
+   "Geçmiş" listesi (.aiAksGecmis) zaman çizelgesi olarak dizilir. */
+@media(max-width:640px){
+  .anAI .body{padding:12px 14px}
+  .anAI li{font-size:13.5px}
+  .anAI .aiMeta{padding:12px 14px 2px;font-size:13px}
+  .anAI .aiMeta .aiEski{font-size:12.5px;line-height:1.45}
+  /* açılır başlık: dokunulabilir satır + ok işareti */
+  .anAI details.aiGecmis{margin-top:8px}
+  .anAI details.aiGecmis summary{list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:38px;
+      padding:7px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:13px;color:var(--jcb-600)}
+  .anAI details.aiGecmis summary::-webkit-details-marker{display:none}
+  .anAI details.aiGecmis summary::after{content:'›';font-size:20px;line-height:1;transition:transform .2s}
+  .anAI details.aiGecmis[open] summary::after{transform:rotate(90deg)}
+  .anAI details.aiGecmis[open] summary{border-radius:10px 10px 0 0}
+  /* geçmiş listesi: numarasız zaman çizelgesi, saat üstte */
+  .anAI details.aiGecmis ol{list-style:none;margin:0;padding:8px 12px 10px;border:1px solid var(--border);border-top:none;
+      border-radius:0 0 10px 10px;background:var(--surface)}
+  .anAI details.aiGecmis ol li{position:relative;padding:4px 0 8px 14px!important;border-left:2px solid var(--jcb)!important;font-size:13px}
+  .anAI details.aiGecmis ol li:last-child{padding-bottom:2px!important}
+  .anAI details.aiGecmis ol li::before{content:'';position:absolute;left:-6px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--jcb)}
+  .anAI details.aiGecmis .t{display:block;font-size:11.5px;margin-bottom:1px}
+  .anAI details.aiGecmis .m{font-size:12.5px;margin-top:2px}
+  /* AI önerisinden açılan aksiyon satırı */
+  .anAI .grp .grpSay{display:block;margin:3px 0 0;font-size:11.5px}
+  .anAI li .aiDurum{display:inline-block;margin:4px 6px 0 0}
+  .anAI li .aiKaynakNo{display:block;margin:4px 0 0;font-size:12px;overflow-wrap:anywhere}
+  .anAI li details.aiAksGecmis{margin-top:8px}
+  /* düğmeler: parmakla basılabilir boy */
+  .anAI li .oneriAks,.anAI li .oneriAlindi{display:flex;width:fit-content;align-items:center;min-height:30px;margin:7px 0 0;padding:4px 12px;font-size:12.5px}   /* metnin altında kendi satırı */
+  .anAI li details.aiAksGecmis .oneriAks{display:flex;justify-content:center;width:100%;min-height:40px;margin:8px 0 0;border-radius:10px;font-size:13.5px}
+}
+/* ── ANALİZ DÜZENİ (yalnız telefon): uzun bas → taşı / kaldır, Widget listesi ──
+   Sözleşme (JS portal oturumunda):
+   • Her KPI balonu (#anKpi .kpi) ve grafik kartı (#anCharts .anCard) data-w="<kimlik>"
+     ve style="--wo:<sıra>" taşır; kaldırılanlar .wGizli alır. Sıra ve gizleme
+     YALNIZ burada, telefon ölçüsünde uygulanır → masaüstü düzeni değişmez.
+   • Uzun basınca body.wDuzen; üstte .wBar (başlık + "+ Widget" + "Bitti"),
+     her öğede .wSil (−) düğmesi; sürüklenen öğe .wTasi.
+   • Widget listesi: .wPanel (alttan açılan pencere, body.wListeAcik) + .wPerde;
+     satırlar label.wSatir > input[type=checkbox] + span; grup başlığı .wGrup.
+     Aynı liste Ayarlar → Widget'ta (#s-widget) sayfa içinde durur. */
+.wBar,.wSil,.wPanel,.wPerde{display:none}
+@media(max-width:640px){
+  #anKpi [data-w],#anCharts [data-w]{order:var(--wo,0)}
+  #anKpi .wGizli,#anCharts .wGizli{display:none!important}
+  /* düzenleme modu */
+  body.wDuzen .wBar{display:flex;align-items:center;gap:8px;position:sticky;top:calc(var(--topH,54px));z-index:60;margin:-4px -10px 12px;
+      padding:10px 12px;background:var(--ink);color:#fff;border-bottom:2px solid var(--jcb);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+  .wBar .wBaslik{flex:1;min-width:0;font-size:13px;font-weight:700;line-height:1.3}
+  .wBar .wBaslik small{display:block;font-weight:500;font-size:11px;color:#bdbdbd}
+  .wBar button{border:none;border-radius:999px;padding:8px 14px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+  .wBar .wEkle{background:transparent;color:var(--jcb);border:1px solid var(--jcb)}
+  .wBar .wBitti{background:var(--jcb);color:#111}
+  body.wDuzen #anKpi [data-w],body.wDuzen #anCharts [data-w]{position:relative;animation:wSalla .28s ease-in-out infinite alternate;
+      outline:2px dashed var(--jcb);outline-offset:-2px;touch-action:none;-webkit-user-select:none;user-select:none}
+  body.wDuzen #anKpi [data-w]:nth-child(even),body.wDuzen #anCharts [data-w]:nth-child(even){animation-delay:-.14s}
+  body.wDuzen #anKpi [data-w] *,body.wDuzen #anCharts [data-w] *{pointer-events:none}   /* düzenlerken grafik süzgeci tetiklenmesin */
+  body.wDuzen .wSil{pointer-events:auto!important;display:flex;align-items:center;justify-content:center;position:absolute;top:-8px;left:-8px;z-index:3;
+      width:28px;height:28px;border-radius:50%;border:2px solid var(--surface);background:var(--red,#d32f2f);color:#fff;font-size:18px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  body.wDuzen #anKpi,body.wDuzen #anCharts{overflow:visible}
+  body.wDuzen .aiFab{display:none!important}   /* düzenlerken kartların üstünü kapatmasın */
+  body.wDuzen #anCharts .anCard{overflow:visible}
+  body.wDuzen .wTasi{animation:none!important;z-index:5;transform:scale(1.04);box-shadow:0 14px 30px rgba(0,0,0,.35)!important;opacity:.92}
+  /* uzun basma sırasında metin seçimi / iOS büyüteci çıkmasın */
+  #anKpi [data-w],#anCharts [data-w]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  /* Widget listesi (alttan pencere) */
+  body.wListeAcik .wPerde{display:block;position:fixed;inset:0;z-index:94;background:rgba(0,0,0,.55)}
+  body.wListeAcik .wPanel{display:block;position:fixed;left:0;right:0;bottom:0;z-index:95;max-height:86vh;overflow-y:auto;
+      background:var(--surface);border-radius:18px 18px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.5)}
+  body.wListeAcik{overflow:hidden}
+  .wPanel h4{display:flex;align-items:center;justify-content:space-between;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);
+      padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:6px}
+  .wPanel .wKapat{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:transparent;
+      border:1px solid var(--border);color:var(--text);font-size:20px;line-height:1;cursor:pointer}
+  .wPanel .wSifirla{display:block;width:100%;margin-top:14px;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;
+      color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer}
+  .wPanel .wSatir,#s-widget .wSatir{min-height:46px}
+  .wPanel .wGrup,#s-widget .wGrup{font-size:11px}
+}
+/* Liste satırları: pencerede ve Ayarlar → Widget'ta aynı */
+.wGrup{margin:14px 0 4px;font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--jcb-600)}
+.wSatir{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer}
+.wSatir:last-child{border-bottom:none}
+.wSatir input[type=checkbox]{flex:none;width:22px;height:22px;margin:0;accent-color:var(--jcb);cursor:pointer}
+.wSatir span{flex:1;min-width:0}
+@keyframes wSalla{from{transform:rotate(-.6deg)}to{transform:rotate(.6deg)}}
+@media(prefers-reduced-motion:reduce){body.wDuzen #anKpi [data-w],body.wDuzen #anCharts [data-w]{animation:none}}
 /* Kurulum düğmesi / iPhone yönergesi (giriş ekranı) */
 #kurBox:empty{display:none}
 #kurBox{margin-top:14px}
