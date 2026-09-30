@@ -7366,7 +7366,7 @@ let wSurukleBitir=null;
     if(bas) clearTimeout(bas.t);
     bas={x:e.clientX, y:e.clientY, t:setTimeout(()=>{
       bas=null; tikYut=Date.now()+700;                     /* bırakınca gelen tık grafik süzgecini açmasın */
-      wDuzenAc(); }, 500)};
+      wDuzenAc(); }, 1000)};                                /* 1 sn basılı tutma (kullanıcı isteği) */
   }, {passive:true});
   document.addEventListener('pointermove', e=>{
     /* 10px'ten fazla kayan parmak sayfayı kaydırıyordur — uzun basma sayılmaz */
