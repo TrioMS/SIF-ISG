@@ -151,6 +151,12 @@ main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
   filter:url(#netlestir) grayscale(1) brightness(.22) contrast(1.25)}   /* GÜNDÜZ: üst bar rengi (#141414) */
 .vBadge{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:opacity .2s;z-index:1}
 .vBadge.on{z-index:2}
+/* Veri değişince rozetler sırayla küçükten büyüyerek belirir (anVucutRozet ani=true).
+   transform'da translate korunur — rozetin konumu buna bağlı. */
+.vBadge.vAni{animation:vPop .5s cubic-bezier(.22,1,.36,1) backwards;   /* backwards: bitince satır içi opacity (seçim soluklaştırması) geri gelir */
+  animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes vPop{from{opacity:0;transform:translate(-50%,-50%) scale(.35)}70%{opacity:1}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(prefers-reduced-motion:reduce){.vBadge.vAni{animation:none}}
 .vCirc{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11.5px;font-family:var(--font-display);box-shadow:0 2px 7px rgba(0,0,0,.25)}
 .vBadge.on .vCirc{box-shadow:0 0 0 3px #141414,0 2px 7px rgba(0,0,0,.3)}
 .vNam{margin-top:3px;font-size:10px;font-weight:700;color:var(--ink);text-align:center;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff}
@@ -7201,29 +7207,44 @@ const BOLGE_PCT={
 };
 /* Isı rampası: en fazla → en az = KOYU → AÇIK SARI (SİF gold) */
 const GOLD_RAMP=['#6b5200','#8a6a00','#b0851a','#d0a020','#efbe1a','#f5cf50','#f9df86','#fcecbb'];
-function anVucut(rows,sec){
+/* ani=true: veri değişti → rozetler sırayla küçükten büyüyerek belirir (.vAni,
+   --i gecikme) ve yüzdeler akarak sayar (sayiAkit). Seçim vurgusu değişince
+   (veri aynı) animasyon yapılmaz. */
+function anVucutRozet(rows,sec,ani){
   /* Yaralanma verisi olmayan kümede (örn. yalnız Ucuz Atlatma seçiliyken)
      SİLÜET DURUR, yalnız yüzde rozetleri kalkar; kart boşalıp yer değiştirmez. */
   const tot=rows.reduce((s,r)=>s+r.n,0)||1;
   /* rows zaten çoktan aza sıralı → i=0 en koyu, artan i açığa gider */
   const bolgeBul=(tab,ad)=>{ const k=Object.keys(tab).find(x=>esitTR(x,ad)); return k?tab[k]:null; };   /* etiketler Başlık Biçimi, tablo anahtarları özgün → harf duyarsız eşleştir */
-  const badges=rows.map((r,i)=>{ const pc=bolgeBul(BOLGE_PCT,r.ad); if(!pc) return '';
+  let sira=0;
+  return rows.map((r,i)=>{ const pc=bolgeBul(BOLGE_PCT,r.ad); if(!pc) return '';
     const p=Math.round(r.n/tot*100), on=sec===r.ad;
     const col=GOLD_RAMP[Math.min(i,GOLD_RAMP.length-1)], txt=i<=2?'#fff':'#3a2c00';
     const dim=sec&&!on?'opacity:.35;':'';
     const lx=50+(pc[0]-50)*VUCUT_K;   /* silüet büyütüldü → rozetler de aynı oranda dışa açılır */
-    return `<div class="vBadge${on?' on':''}" data-anclick style="left:${lx.toFixed(1)}%;top:${pc[1]}%;${dim}" onclick="anSec('bolge',${qA(r.ad)})" title="${esc(r.ad)}: ${r.n} (%${p})">
+    return `<div class="vBadge${on?' on':''}${ani?' vAni':''}" data-anclick data-bolge="${esc(r.ad)}" style="left:${lx.toFixed(1)}%;top:${pc[1]}%;${dim}--i:${sira++}" onclick="anSec('bolge',${qA(r.ad)})" title="${esc(r.ad)}: ${r.n} (%${p})">
       <div class="vCirc" style="background:${col};color:${txt}">%${p}</div>
       <div class="vNam">${esc(r.ad.replace(' / ','/'))}</div></div>`;
   }).join('');
+}
+function anVucut(rows,sec,ani){
   /* Silüetin konumu her kümede AYNI kalır: altına açıklama eklenmez,
-     yalnız rozetler eksilir (aksi hâlde yazı yüksekliği silüeti kaydırıyor). */
-  /* Silüet gömülü veriden gelir: yüklenememe durumu YOK, bu yüzden onerror/
-     yedek-silüet yolu da kaldırıldı (bozuk görünen adamın kaynağı oydu). */
-  return `<div class="vWrap"><img class="vImg" src="human_silhouette_clean.png?v=2" alt="Vücut silüeti" onerror="vImgHata(this)">${badges}</div>`;
+     yalnız rozetler eksilir (aksi hâlde yazı yüksekliği silüeti kaydırıyor).
+     Silüet DIŞ dosyadır (bkz. vImgHata). */
+  return `<div class="vWrap"><img class="vImg" src="human_silhouette_clean.png?v=2" alt="Vücut silüeti" onerror="vImgHata(this)">${anVucutRozet(rows,sec,ani)}</div>`;
+}
+/* Güncelleme: silüet görseli YERİNDE kalır (her süzgeçte yeniden yüklenip
+   yanıp sönmesin), yalnız rozetler değişir; ardından yüzdeler akar. */
+function anVucutYaz(wrapEl, rows, sec, ani){
+  if(!wrapEl) return;
+  const vw=wrapEl.querySelector('.vWrap');
+  if(!vw){ wrapEl.innerHTML=anVucut(rows,sec,ani); }
+  else { vw.querySelectorAll('.vBadge').forEach(b=>b.remove()); vw.insertAdjacentHTML('beforeend', anVucutRozet(rows,sec,ani)); }
+  wrapEl.querySelectorAll('.vBadge').forEach(b=>{ const c=b.querySelector('.vCirc'); if(c) sayiAkit(c, 'vucut|'+b.dataset.bolge); });
 }
 /* ── ÇUBUK: sabit kategori iskeleti (bir kez), değerler yerinde güncellenir ── */
 let anDom=null;
+const _anImza={};   /* grafik başına son veri imzası: yalnız değişen grafik yeniden canlanır (anGuncelle) */
 function anBarSkeleton(dim,boyut){
   return `<div data-barchart="${dim}">`+anDom[dim].map((k,i)=>
     `<div class="barRow${boyut?' clk':''}" data-key="${esc(k)}" ${boyut?`data-anclick onclick="anSec('${boyut}',${qA(k)})"`:''}>
@@ -7331,7 +7352,12 @@ function anGuncelle(animate){
   wUygula();   /* #anKpi her çizimde baştan yazılıyor → sıra/gizleme/− düğmesi yeniden işlenir */
   kpiSay('anKpi');
   const setW=(chart,html)=>{ const w=document.querySelector(`#anCharts [data-chart="${chart}"]`); if(w) w.innerHTML=html; };
-  setW('tur', anPie(pieTop(sayimla(setFor('tur').map(turAd)),6),'tur',secOf('tur'),animate));   /* top 6 + Diğer */
+  /* Açılış efektleri süzgeçte de sürer: VERİSİ DEĞİŞEN simit dönerek yeniden
+     açılır, silüet rozetleri belirir. Tıklanan grafiğin kendi verisi değişmez
+     (tüm kategoriler görünür, seçili vurgulanır) → o yeniden dönmez. */
+  const degisti=(k,rows)=>{ const s=JSON.stringify(rows); const d=_anImza[k]!==s; _anImza[k]=s; return d; };
+  { const rows=pieTop(sayimla(setFor('tur').map(turAd)),6);   /* top 6 + Diğer */
+    setW('tur', anPie(rows,'tur',secOf('tur'),degisti('tur',rows)||animate)); }
 
   const lokCnt=saymap(setFor('lok'),r=>lokAd(r.lokasyon));
   updRadar(anDom.lok.map(k=>lokCnt[k]||0), secOf('lok'));
@@ -7340,8 +7366,10 @@ function anGuncelle(animate){
   updBars('kokTek', setFor('kokTek'), r=>(r.kokSebep||[]).map(kokTekAd), 'kokTek');
   updBars('bulgu', setFor('bulgu'), r=>listeAd(r.bulgular,r.bulgularDiger), 'bulgu');
   if(can('saglik')){
-    setW('yara', anPie(pieTop(kisiSayim(setFor('yara'),'yara',['Yaralanma Yok']),6),'yara',secOf('yara'),animate));   /* top 6 — yığılmayı önler */
-    setW('vucut', anVucut(kisiSayim(setFor('bolge'),'bolge'),secOf('bolge')));
+    { const rows=pieTop(kisiSayim(setFor('yara'),'yara',['Yaralanma Yok']),6);   /* top 6 — yığılmayı önler */
+      setW('yara', anPie(rows,'yara',secOf('yara'),degisti('yara',rows)||animate)); }
+    { const rows=kisiSayim(setFor('bolge'),'bolge');
+      anVucutYaz(document.querySelector('#anCharts [data-chart="vucut"]'), rows, secOf('bolge'), degisti('vucut',rows)||animate); }
   }
   /* AI kutusu: açıksa güncel veriyle yeniden yaz; kapalıysa ve kayıt "açık" diyorsa geri getir */
   { const bx=$('anAI');
@@ -7362,7 +7390,12 @@ function kpiSay(kapId){
   kap.querySelectorAll('.kpi').forEach((k,i)=>{
     const v=k.querySelector('.v'); if(!v) return;
     const l=k.querySelector('.l');
-    const anahtar=kapId+'|'+(k.dataset.w||(l&&l.textContent)||i);
+    sayiAkit(v, kapId+'|'+(k.dataset.w||(l&&l.textContent)||i));
+  });
+}
+/* Tek bir rakam düğümünü önceki değerinden (anahtara göre hatırlanır) akıtır.
+   KPI balonları ve silüet rozetleri ortak kullanır. */
+function sayiAkit(v, anahtar){
     const metin=v.textContent.trim(), m=metin.match(/^(%?)(\d+(?:[.,]\d+)?)$/);
     if(!m){ delete _kpiOnceki[anahtar]; return; }
     const hedef=parseFloat(m[2].replace(',','.')), ond=(m[2].split(/[.,]/)[1]||'').length, on=m[1];
@@ -7382,7 +7415,6 @@ function kpiSay(kapId){
       if(kk<1){ v.textContent=yaz(bas+(hedef-bas)*e); requestAnimationFrame(kare); }
       else v.textContent=metin;                    /* son kare: hedefin kendisi */
     });
-  });
 }
 
 /* ══════════ TELEFON: ANALİZ DÜZENİ (WİDGET) ══════════
