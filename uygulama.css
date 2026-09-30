@@ -23,6 +23,14 @@
   .me .t2{display:none}
   .me .t1{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   header .hbtn{padding:6px 9px}
+}
+/* ALT SEKME ÇUBUĞU: telefon + DOKUNMATİK TABLET.
+   Tablet genişlikle ayırt edilemez (dikey 768-834, yatay 1024-1366px =
+   dizüstü boyu); fare/üzerine-gelme olmayan dokunmatik ekran ile ayırt edilir
+   → dokunmatik ekranlı dizüstü ve masaüstü etkilenmez. Aynı sorgu JS'te de var
+   (portal: üst yükseklik hesabı upd() ve widget modu wTel()) — değişirse ikisi
+   birlikte değişmeli: (max-width:640px),(hover:none) and (pointer:coarse) */
+@media(max-width:640px),(hover:none) and (pointer:coarse){
   nav{position:fixed;top:auto;bottom:0;left:0;right:0;flex-wrap:nowrap;gap:2px;
       padding:5px 4px calc(5px + env(safe-area-inset-bottom));border-top:1px solid #2a2a2a;box-shadow:0 -6px 18px rgba(0,0,0,.35);z-index:80}
   #nav>button,.navGrp{min-width:0}
@@ -42,6 +50,14 @@
   /* Gizli toast (opacity 0, 80px aşağıda) tam orta sekmenin (Olay Envanteri)
      üstüne düşüp dokunuşu yutuyordu → görünmezken tıklanamaz ve görünmez olsun. */
   .toast:not(.on){pointer-events:none;visibility:hidden;transition:.25s,visibility 0s .25s}
+  /* listeBoy() alt boşluğu satır içi kısıyor → içerik çubuğun altında kalmasın */
+  main{padding-bottom:calc(86px + env(safe-area-inset-bottom))!important}
+}
+/* Tablette çubuk geniş: düğmeler ortada, makul genişlikte, yazı biraz büyük */
+@media(min-width:641px) and (hover:none) and (pointer:coarse){
+  nav{justify-content:center;gap:6px}
+  nav button,.navSub button{flex:0 1 150px;font-size:12.5px;padding:7px 4px}
+  nav button svg{width:23px;height:23px}
 }
 /* ── ENVANTER ARAMASI: telefonda açılır pencere ──
    Masaüstünde arama paneli listenin solunda durur. Telefonda panel listenin
@@ -177,18 +193,18 @@
 @media(max-width:640px){
   .anGrid .anTall .anCb{height:auto;display:block;padding-top:10px;padding-bottom:18px}
 }
-/* ── ANALİZ DÜZENİ (yalnız telefon): uzun bas → taşı / kaldır, Widget listesi ──
+/* ── ANALİZ DÜZENİ (telefon + dokunmatik tablet): uzun bas → taşı / kaldır, Widget listesi ──
    Sözleşme (JS portal oturumunda):
    • Her KPI balonu (#anKpi .kpi) ve grafik kartı (#anCharts .anCard) data-w="<kimlik>"
      ve style="--wo:<sıra>" taşır; kaldırılanlar .wGizli alır. Sıra ve gizleme
-     YALNIZ burada, telefon ölçüsünde uygulanır → masaüstü düzeni değişmez.
+     YALNIZ burada, telefon/tablet sorgusunda uygulanır → masaüstü düzeni değişmez.
    • Uzun basınca body.wDuzen; üstte .wBar (başlık + "+ Widget" + "Bitti"),
      her öğede .wSil (−) düğmesi; sürüklenen öğe .wTasi.
    • Widget listesi: .wPanel (alttan açılan pencere, body.wListeAcik) + .wPerde;
      satırlar label.wSatir > input[type=checkbox] + span; grup başlığı .wGrup.
      Aynı liste Ayarlar → Widget'ta (#s-widget) sayfa içinde durur. */
 .wBar,.wSil,.wPanel,.wPerde{display:none}
-@media(max-width:640px){
+@media(max-width:640px),(hover:none) and (pointer:coarse){   /* telefon + dokunmatik tablet (bkz. alt sekme çubuğu) */
   #anKpi [data-w],#anCharts [data-w]{order:var(--wo,0)}
   #anKpi .wGizli,#anCharts .wGizli{display:none!important}
   /* düzenleme modu */
@@ -232,6 +248,10 @@
 .wSatir input[type=checkbox]{flex:none;width:22px;height:22px;margin:0;accent-color:var(--jcb);cursor:pointer}
 .wSatir span{flex:1;min-width:0}
 @keyframes wSalla{from{transform:rotate(-.6deg)}to{transform:rotate(.6deg)}}
+/* Tablette widget listesi ekrana yayılmasın: ortada, dar (yukarıdaki left:0 kuralından SONRA gelmeli) */
+@media(min-width:641px) and (hover:none) and (pointer:coarse){
+  body.wListeAcik .wPanel{left:50%;right:auto;width:min(560px,100%);transform:translateX(-50%)}
+}
 @media(prefers-reduced-motion:reduce){body.wDuzen #anKpi [data-w],body.wDuzen #anCharts [data-w]{animation:none}}
 /* Kurulum düğmesi / iPhone yönergesi (giriş ekranı) */
 #kurBox:empty{display:none}
