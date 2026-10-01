@@ -1728,7 +1728,9 @@ let GOC = [];
   let u1=false;
   USR.forEach(u=>{
     if(u.pozisyon===undefined){ u.pozisyon=u.rol||'kullanici'; delete u.rol; u1=true; }
-    if(!POZ.some(p=>p.kod===u.pozisyon)){ u.pozisyon='kullanici'; u1=true; }
+    /* Yalnız GERÇEKTEN değişince işaretle: 'kullanici' pozisyonu tanımlı değilse eskiden
+       her açılışta yeniden atanıp "taşındı" sayılıyor, bildirim her girişte geliyordu. */
+    if(!POZ.some(p=>p.kod===u.pozisyon) && u.pozisyon!=='kullanici'){ u.pozisyon='kullanici'; u1=true; }
     if(u.durum===undefined){ u.durum='aktif'; u1=true; }
   });
   if(u1){ store.set(K.usr,USR); GOC.push('kullanıcı rolleri pozisyon tanımına taşındı'); }
@@ -2096,9 +2098,11 @@ function giris(uid_){
   applyPerms(true); newRec(); renderAll();
   if(typeof ogrBaslat==='function') ogrBaslat();   /* öğrenme motoru oturumla başlar */
   go('analiz');      // portal açılışında ilk ekran ANALİZ (newRec formu hazırlar, ekran analize döner)
-  if(GOC.length && can('ayar')){ toast('Eski sürüm verisi taşındı: '+GOC.join(' · ')); GOC=[]; }
-  /* "… olarak açıldı" giriş bildirimi KALDIRILDI (kullanıcı kararı, 30.09.2026):
-     kimlik zaten üst banttaki baş harf düğmesinde görünüyor. Diğer bildirimler duruyor. */
+  /* GİRİŞTE BİLDİRİM YOK (kullanıcı kararı, 30.09.2026 ve 01.10.2026): ne "… olarak
+     açıldı" ne de "Eski sürüm verisi taşındı" gösterilir. Veri taşıma bilgisi yalnız
+     konsola yazılır (sorun ayıklama için). İşlem sonrası bildirimler (kaydedildi, hata,
+     bulunamadı…) duruyor. */
+  if(GOC.length){ try{ console.info('[İSG Portalı] eski sürüm verisi taşındı:', GOC.join(' · ')); }catch(e){} GOC=[]; }
   hashKayitAc();     // e-posta bağlantısıyla gelindiyse kaydı salt okunur aç
 }
 /* Giriş ekranı açıkken sayfa kaydırmasını kilitle: arkada kalan uygulama içeriği
