@@ -8209,11 +8209,46 @@ function kurBaslat(){
 window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); _kurIstem=e; kurYaz(); });
 window.addEventListener('appinstalled', ()=>{ _kurIstem=null; kurYaz(); });
 kurYaz();
+/* Masaüstünde yerel sunucudan (localhost) açılınca çevrimdışı katman KURULMAZ, eskisi
+   sökülür: sabah rutini üç portalı birlikte açarken sunucu 5 sn'de yetişemeyince katman
+   önbellekteki ESKİ kopyayı veriyor, "yenile" gerekiyordu. Telefonda (Pages) aynen çalışır. */
+const YEREL_SUNUCU = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 if('serviceWorker' in navigator && window.isSecureContext){
-  window.addEventListener('load', ()=>{
+  if(YEREL_SUNUCU){
+    try{ navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())); }catch(e){}
+    try{ caches.keys().then(ks=>ks.filter(k=>k.startsWith('sif-isg-')).forEach(k=>caches.delete(k))); }catch(e){}
+  } else window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').catch(e=>{ try{ console.warn('[Uygulama] çevrimdışı katman kaydolmadı:', e); }catch(_){} });
   });
 }
+/* KENDİNİ GÜNCELLE (yerel sunucu, 02.10.2026): sayfa açıldıktan sonra diske daha yeni
+   sürüm inerse (OneDrive eşitlemesi rutin sayfaları açtıktan SONRA bitebiliyor) sayfa
+   kendiliğinden yenilenir — elle "yenile" gerekmez. Kullanıcı bir alana bir şey
+   yazdıysa/seçtiyse DOKUNULMAZ (giriş ekranı ve arama kutuları hariç); sekme arka
+   planda da denetlenir, öne gelince hemen bir kez daha. Sunucu HEAD'e 500 dönse de
+   Last-Modified başlığını veriyor; durum koduna bakılmaz. */
+(function(){
+  if(!YEREL_SUNUCU) return;
+  const yuklenen = Date.parse(document.lastModified)||0, acilis = Date.now();
+  let yazdi = false;
+  ['input','change'].forEach(ev=>document.addEventListener(ev, e=>{
+    const t=e.target; if(t && t.closest && (t.closest('#gate') || t.type==='search')) return;
+    yazdi = true;
+  }, true));
+  let bekliyor = false;
+  async function denetle(){
+    if(yazdi || bekliyor || !yuklenen) return;
+    bekliyor = true;
+    try{
+      const r = await fetch(location.pathname, {method:'HEAD', cache:'no-store'});
+      const lm = Date.parse(r.headers.get('Last-Modified')||'');
+      if(lm && lm > yuklenen + 1000 && !yazdi){ try{ console.info('[İSG Portalı] yeni sürüm bulundu, yenileniyor'); }catch(e){} location.reload(); }
+    }catch(e){} finally{ bekliyor = false; }
+  }
+  setTimeout(denetle, 3000);
+  const z = setInterval(()=>{ if(Date.now()-acilis > 20*60000) clearInterval(z); else denetle(); }, 20000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) denetle(); });
+})();
 </script>
 </body>
 </html>
