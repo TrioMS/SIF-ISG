@@ -1987,7 +1987,16 @@ const basHarf = s => {
   if(!k.length) return '?';
   return (k.length>1 ? k[0]+k[k.length-1] : k[0]).toLocaleUpperCase('tr');
 };
-function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2800); }
+/* AÇILIŞ SESSİZ (kullanıcı kararı, 02.10.2026: "açılışta bildirim tam olarak kalksın"):
+   sayfa açılışından / girişten sonra kullanıcı ilk kez dokunana ya da tuşa basana
+   kadar HİÇBİR bildirim ekrana çıkmaz. Açılışta kendiliğinden çalışan işlerin
+   (veri taşıma, öğrenme modeli, depo yazımı, bağlantıdan kayıt açma…) uyarıları
+   yalnız konsola yazılır; kullanıcının kendi işlemlerinin bildirimleri aynen sürer. */
+let TOAST_SUS=true;
+['pointerdown','keydown'].forEach(ev=>window.addEventListener(ev,()=>{ TOAST_SUS=false; },true));
+function toast(m){
+  if(TOAST_SUS){ try{ console.info('[İSG Portalı] (açılışta gösterilmedi)', m); }catch(e){} return; }
+  const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2800); }
 function closeOv(id){ const el=$(id); if(!el) return; el.classList.remove('on'); el.classList.remove('tam'); if(typeof ovTamBtnTazele==='function') ovTamBtnTazele(id); }   /* kapanışta tam sayfa modundan çık */
 /* Modalı aç + geçmişe giriş ekle → tarayıcı GERİ tuşu modalı kapatır (sayfa değişmez).
    State'te bulunduğun görünüm (v) taşınır; modal elle kapatılsa bile geri tuşu doğru sayfaya götürür. */
@@ -2094,6 +2103,7 @@ function girisDene(mail){
 function giris(uid_){
   const u=USR.find(x=>x.id===uid_); if(!u) return;
   SES=u; try{ sessionStorage.setItem('hse::HOB::ses',u.id); }catch(e){}
+  TOAST_SUS=true;   /* giriş = açılış: ilk dokunuşa kadar bildirim yok (bkz. toast) */
   $('gate').style.display='none'; gateKilit(false);
   applyPerms(true); newRec(); renderAll();
   if(typeof ogrBaslat==='function') ogrBaslat();   /* öğrenme motoru oturumla başlar */
