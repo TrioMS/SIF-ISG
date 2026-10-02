@@ -539,6 +539,7 @@ body.dark .anzCip .anzKapat{background:transparent;color:#eee}
 .sub{display:none}.sub.on{display:block}
 /* AYARLAR — sade düzen (02.10.2026): başlıklar solda dikey liste, seçilen başlığın ayarı
    sağda açılır. Telefon/dar ekranda (≤760px) eski yatay çip dizisi kalır. */
+.setAlt{display:none}   /* alt başlıklar yalnız geniş ekranda (sol sütun) */
 @media (min-width:761px){
   .setDuzen{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px;align-items:start}
   .setDuzen #setTabs{flex-direction:column;flex-wrap:nowrap;gap:2px;margin:0;position:sticky;top:84px;
@@ -554,6 +555,12 @@ body.dark .anzCip .anzKapat{background:transparent;color:#eee}
   body.dark .setDuzen #setTabs button.on::before{background:#FCB813}
   .setDuzen .setIcerik .card{max-width:none!important}
   .setDuzen #setKaydetBar{margin-top:16px!important}
+  .setDuzen .setAlt{display:flex;flex-direction:column;margin:2px 0 6px 14px;padding-left:10px;border-left:1px solid var(--border)}
+  .setDuzen .setAlt a{display:block;padding:6px 8px;border-radius:6px;font-size:12px;font-weight:500;color:var(--text2);text-decoration:none;line-height:1.3}
+  .setDuzen .setAlt a:hover{background:var(--surface2);color:var(--text)}
+  .setDuzen .setAlt a.on{color:var(--navy);font-weight:700}
+  body.dark .setDuzen .setAlt a.on{color:#FCB813}
+  body.dark .setDuzen .setAlt a:hover{background:rgba(255,255,255,.07)}
 }
 /* ── ARAMA PANELİ + REGISTER (solda filtre, sağda tablo) ── */
 .regLayout{display:grid;grid-template-columns:268px 1fr;gap:16px;align-items:start}
@@ -4827,7 +4834,37 @@ document.querySelectorAll('#setTabs button').forEach(b=>b.onclick=()=>{
      (Widget düzeni anında kaydedilir; Ayarlar'ın beklet/kaydet akışına girmez) */
   const kb=document.getElementById('setKaydetBar');
   if(kb) kb.style.display = (b.dataset.s==='air'||b.dataset.s==='ansag'||b.dataset.s==='widget') ? 'none' : '';
+  setAltYaz(b);
 });
+/* ALT BAŞLIKLAR (sol liste): seçili ana başlığın altında, o sekmedeki kart başlıkları
+   (h3) sıralanır; tıklayınca sağda o bölüme kayar. Liste SABİT YAZILMAZ — sekmedeki
+   kartlardan okunur, kart eklenince/kaldırılınca kendiliğinden güncellenir. Tek kartlı
+   sekmelerde gösterilmez (alt başlık = ana başlık olurdu). <a> kullanılır ki
+   '#setTabs button' seçicileri alt başlıkları sekme sanmasın. */
+function setAltYaz(b){
+  document.querySelectorAll('#setTabs .setAlt').forEach(x=>x.remove());
+  const sub=document.getElementById('s-'+b.dataset.s); if(!sub) return;
+  const hs=[...sub.querySelectorAll('.card > h3')].filter(h=>h.offsetParent!==null || sub.classList.contains('on'));
+  if(hs.length<2) return;
+  const k=document.createElement('div'); k.className='setAlt';
+  hs.forEach((h,i)=>{
+    const ad=([...h.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').trim()) || h.textContent.trim();
+    const a=document.createElement('a'); a.href='javascript:void 0'; a.textContent=ad; if(i===0) a.classList.add('on');
+    a.onclick=()=>{ const c=h.closest('.card')||h;
+      const y=c.getBoundingClientRect().top+window.scrollY-90; window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+      k.querySelectorAll('a').forEach(x=>x.classList.toggle('on',x===a)); };
+    a._kart=h.closest('.card')||h;
+    k.appendChild(a);
+  });
+  b.after(k);
+}
+/* Kaydırdıkça hangi bölümdeyse o alt başlık işaretlenir */
+window.addEventListener('scroll',()=>{
+  const k=document.querySelector('#setTabs .setAlt'); if(!k || !k.offsetParent) return;
+  let son=null; k.querySelectorAll('a').forEach(a=>{ if(a._kart.getBoundingClientRect().top<140) son=a; });
+  if(!son) son=k.querySelector('a');
+  k.querySelectorAll('a').forEach(x=>x.classList.toggle('on',x===son));
+},{passive:true});
 /* ── ORGANİZASYON — LOKASYON BAZLI HİYERARŞİ ──
    l.org = { tesisMuduru:{ad,mail}, kilit:[{rol,ad,mail}],
              departmanlar:[{ad, amir:{ad,mail}, calisanlar:[{ad,mail,pozisyon}]}] }
