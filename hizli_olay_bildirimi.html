@@ -537,6 +537,24 @@ body.dark .anzCip .anzKapat{background:transparent;color:#eee}
 .subtabs button{border:1px solid var(--border);background:#fff;padding:6px 13px;border-radius:20px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)}
 .subtabs button.on{background:var(--navy);border-color:var(--navy);color:#fff}
 .sub{display:none}.sub.on{display:block}
+/* AYARLAR — sade düzen (02.10.2026): başlıklar solda dikey liste, seçilen başlığın ayarı
+   sağda açılır. Telefon/dar ekranda (≤760px) eski yatay çip dizisi kalır. */
+@media (min-width:761px){
+  .setDuzen{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px;align-items:start}
+  .setDuzen #setTabs{flex-direction:column;flex-wrap:nowrap;gap:2px;margin:0;position:sticky;top:84px;
+    padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--surface,#fff)}
+  .setDuzen #setTabs button{border:0;border-radius:8px;background:transparent;text-align:left;
+    padding:9px 12px;font-size:13px;font-weight:600;color:var(--text2);position:relative;transition:background .15s,color .15s}
+  .setDuzen #setTabs button:hover{background:var(--surface2);color:var(--text)}
+  .setDuzen #setTabs button.on{background:var(--surface2);color:var(--navy)}
+  .setDuzen #setTabs button.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--navy)}
+  body.dark .setDuzen #setTabs{background:transparent}
+  body.dark .setDuzen #setTabs button{background:transparent;color:var(--text2)}
+  body.dark .setDuzen #setTabs button.on,body.dark .setDuzen #setTabs button:hover{background:rgba(255,255,255,.07);color:var(--text)}
+  body.dark .setDuzen #setTabs button.on::before{background:#FCB813}
+  .setDuzen .setIcerik .card{max-width:none!important}
+  .setDuzen #setKaydetBar{margin-top:16px!important}
+}
 /* ── ARAMA PANELİ + REGISTER (solda filtre, sağda tablo) ── */
 .regLayout{display:grid;grid-template-columns:268px 1fr;gap:16px;align-items:start}
 @media(max-width:960px){.regLayout{grid-template-columns:1fr}}
@@ -997,6 +1015,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 <section class="view" id="v-set">
   <h2 style="font-size:19px;margin-bottom:4px">Ayarlar</h2>
   <p style="color:var(--text2);font-size:12.5px;margin-bottom:14px">Lokasyonlar, kullanıcı yetkileri, e-posta dağıtımı ve SAP verisi. Bu ekranı yalnızca <b>uygulama yöneticisi</b> (IT veya İSG koordinatörü) görür.</p>
+  <div class="setDuzen">
   <div class="subtabs" id="setTabs">
     <button data-s="lok" class="on">Lokasyonlar</button>
     <button data-s="poz">Pozisyonlar &amp; Yetkiler</button>
@@ -1013,6 +1032,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     <button data-s="widget">Widget</button>
     <button data-s="gen">Genel</button>
   </div>
+  <div class="setIcerik">
 
   <!-- lokasyonlar -->
   <div class="sub on" id="s-lok">
@@ -1335,6 +1355,8 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
   <div class="bar" id="setKaydetBar" style="margin:20px 0 4px;padding-top:14px;border-top:1px solid var(--border);align-items:center;gap:12px">
     <button class="btn red" onclick="setKaydet()">Kaydet</button>
   </div>
+  </div><!-- /setIcerik -->
+  </div><!-- /setDuzen -->
 </section>
 
 </main>
