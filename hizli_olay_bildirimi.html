@@ -555,6 +555,7 @@ body.dark .anzCip .anzKapat{background:transparent;color:#eee}
   body.dark .setDuzen #setTabs button.on::before{background:#FCB813}
   .setDuzen .setIcerik .card{max-width:none!important}
   .setDuzen #setKaydetBar{margin-top:16px!important}
+  .setDuzen .card.altGizli{display:none!important}
   .setDuzen .setAlt{display:flex;flex-direction:column;margin:2px 0 6px 14px;padding-left:10px;border-left:1px solid var(--border)}
   .setDuzen .setAlt a{display:block;padding:6px 8px;border-radius:6px;font-size:12px;font-weight:500;color:var(--text2);text-decoration:none;line-height:1.3}
   .setDuzen .setAlt a:hover{background:var(--surface2);color:var(--text)}
@@ -4837,34 +4838,34 @@ document.querySelectorAll('#setTabs button').forEach(b=>b.onclick=()=>{
   setAltYaz(b);
 });
 /* ALT BAŞLIKLAR (sol liste): seçili ana başlığın altında, o sekmedeki kart başlıkları
-   (h3) sıralanır; tıklayınca sağda o bölüme kayar. Liste SABİT YAZILMAZ — sekmedeki
-   kartlardan okunur, kart eklenince/kaldırılınca kendiliğinden güncellenir. Tek kartlı
-   sekmelerde gösterilmez (alt başlık = ana başlık olurdu). <a> kullanılır ki
-   '#setTabs button' seçicileri alt başlıkları sekme sanmasın. */
+   (h3) sıralanır; tıklanan alt başlığın YALNIZ o bölümü sağda görünür, diğer kartlar
+   gizlenir (kullanıcı kararı, 02.10.2026). Ana başlığa girince ilk bölüm açılır.
+   Liste SABİT YAZILMAZ — sekmedeki kartlardan okunur, kart eklenince/kaldırılınca
+   kendiliğinden güncellenir. Tek kartlı sekmelerde gösterilmez. Gizleme yalnız geniş
+   ekranda (CSS .altGizli medya sorgusunda); telefonda tüm kartlar alt alta kalır.
+   <a> kullanılır ki '#setTabs button' seçicileri alt başlıkları sekme sanmasın. */
 function setAltYaz(b){
   document.querySelectorAll('#setTabs .setAlt').forEach(x=>x.remove());
+  document.querySelectorAll('#v-set .altGizli').forEach(x=>x.classList.remove('altGizli'));
   const sub=document.getElementById('s-'+b.dataset.s); if(!sub) return;
-  const hs=[...sub.querySelectorAll('.card > h3')].filter(h=>h.offsetParent!==null || sub.classList.contains('on'));
-  if(hs.length<2) return;
+  const kartlar=[...new Set([...sub.querySelectorAll('.card > h3')].map(h=>h.closest('.card')))];
+  if(kartlar.length<2) return;
   const k=document.createElement('div'); k.className='setAlt';
-  hs.forEach((h,i)=>{
+  const sec=i=>{
+    kartlar.forEach((c,j)=>c.classList.toggle('altGizli', j!==i));
+    k.querySelectorAll('a').forEach((x,j)=>x.classList.toggle('on', j===i));
+    const v=document.getElementById('v-set'); if(v && v.getBoundingClientRect().top<0) window.scrollTo(0, v.getBoundingClientRect().top+window.scrollY-80);
+  };
+  kartlar.forEach((c,i)=>{
+    const h=c.querySelector(':scope > h3');
     const ad=([...h.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').trim()) || h.textContent.trim();
-    const a=document.createElement('a'); a.href='javascript:void 0'; a.textContent=ad; if(i===0) a.classList.add('on');
-    a.onclick=()=>{ const c=h.closest('.card')||h;
-      const y=c.getBoundingClientRect().top+window.scrollY-90; window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
-      k.querySelectorAll('a').forEach(x=>x.classList.toggle('on',x===a)); };
-    a._kart=h.closest('.card')||h;
+    const a=document.createElement('a'); a.href='javascript:void 0'; a.textContent=ad;
+    a.onclick=()=>sec(i);
     k.appendChild(a);
   });
   b.after(k);
+  sec(0);
 }
-/* Kaydırdıkça hangi bölümdeyse o alt başlık işaretlenir */
-window.addEventListener('scroll',()=>{
-  const k=document.querySelector('#setTabs .setAlt'); if(!k || !k.offsetParent) return;
-  let son=null; k.querySelectorAll('a').forEach(a=>{ if(a._kart.getBoundingClientRect().top<140) son=a; });
-  if(!son) son=k.querySelector('a');
-  k.querySelectorAll('a').forEach(x=>x.classList.toggle('on',x===son));
-},{passive:true});
 /* ── ORGANİZASYON — LOKASYON BAZLI HİYERARŞİ ──
    l.org = { tesisMuduru:{ad,mail}, kilit:[{rol,ad,mail}],
              departmanlar:[{ad, amir:{ad,mail}, calisanlar:[{ad,mail,pozisyon}]}] }
