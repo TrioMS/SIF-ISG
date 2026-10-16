@@ -1078,6 +1078,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
       <button class="btn sm" onclick="addUsr()">+ Elle Ekle</button>
       <button class="btn sm" onclick="csvUsr()">CSV İndir</button>
     </div>
+    <div class="hint" id="usrKural" style="margin:-4px 0 10px">Kullanıcı adı <b>şirket e-postasıdır</b>; başka adresler kabul edilmez. Dış hizmet kişilerine de şirket adresi tanımlanır (“Dış” işareti yalnız dış hizmet olduğunu gösterir). Alan adı: Ayarlar → Genel.</div>
     <div class="tw"><table>
       <thead><tr><th style="width:20%">Ad Soyad / E-posta (Kullanıcı Adı)</th><th style="width:15%">Pozisyon</th><th style="width:15%">Lokasyonlar</th><th style="width:26%">Yetkiler <span style="font-weight:400;text-transform:none">(Pozisyondan Gelir)</span></th><th style="width:13%">Durum</th><th style="width:5%">Dış</th><th style="width:5%">Aktif</th><th style="width:5%"></th></tr></thead>
       <tbody id="usrBody"></tbody>
@@ -1145,6 +1146,8 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
           <div><label class="f">Şirket Adı</label><input type="text" id="g_ad" oninput="setGen('ad',this.value)" onchange="genYaziBitti()"></div>
           <div><label class="f">Genel Merkez Kodu</label><input type="text" id="g_merkez" onchange="setGenMerkez(this.value)" placeholder="MRK">
             <div class="hint">Genel Merkez lokasyonunun kodu — hem kazada hem aksiyonda kullanılır.</div></div>
+          <div class="g2"><label class="f">Şirket E-posta Alan Adı (Kullanıcı Şartı)</label><input type="text" id="g_mailAlan" onchange="setMailAlan(this.value)" placeholder="sirket.com.tr">
+            <div class="hint">Yalnız bu alan adındaki adresler kullanıcı olarak eklenir ve giriş yapabilir. <b>Dış hizmet</b> kişilerine (OSGB uzmanı, işyeri hekimi…) de şirket adresi tanımlanır. Birden fazlaysa virgülle ayırın. Olay bildirimi <b>alıcıları</b> bu şarta tabi değildir.</div></div>
           <div><label class="f">Grup Kodu (Aksiyon Kapsamı)</label><input type="text" id="g_grup" onchange="setGen('grupKod',(this.value||'GRUP').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8))" placeholder="GRUP">
             <div class="hint">Yalnız aksiyonlarda “Tüm SİF Grubu” kapsamı için.</div></div>
           <div class="g2"><label class="f">Kaza (Olay) Numara Şablonu</label>
@@ -1673,12 +1676,12 @@ const LOK_SEED = [
 const USR_SEED = [
   {ad:'(uygulama yöneticisi)', mail:'admin@sif.com.tr',     pozisyon:'admin',    loklar:['*'],       dis:false, aktif:true, durum:'aktif', ornek:true},
   {ad:'(İSG koordinatörü)',    mail:'isg@sif.com.tr',       pozisyon:'isgkoor',  loklar:['*'],       dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(dış İSG uzmanı — Ege)',mail:'uzman.ege@osgb.com.tr',pozisyon:'isguzman', loklar:['IZM'],     dis:true,  aktif:true, durum:'aktif', ornek:true},
-  {ad:'(dış İSG uzmanı — İç Anadolu)',mail:'uzman.ic@osgb.com.tr',pozisyon:'isguzman',loklar:['ANK-HQ','ANK-OPR'],dis:true, aktif:true, durum:'aktif', ornek:true},
+  {ad:'(dış İSG uzmanı — Ege)',mail:'uzman.ege@sif.com.tr',pozisyon:'isguzman', loklar:['IZM'],     dis:true,  aktif:true, durum:'aktif', ornek:true},
+  {ad:'(dış İSG uzmanı — İç Anadolu)',mail:'uzman.ic@sif.com.tr',pozisyon:'isguzman',loklar:['ANK-HQ','ANK-OPR'],dis:true, aktif:true, durum:'aktif', ornek:true},
   {ad:'(İzmir şube müdürü)',   mail:'izmir.mudur@sif.com.tr',pozisyon:'tesis',   loklar:['IZM'],     dis:false, aktif:true, durum:'aktif', ornek:true},
   {ad:'(servis lead — İzmir)', mail:'lead.izmir@sif.com.tr',pozisyon:'lead',     loklar:['IZM'],     dis:false, aktif:true, durum:'aktif', ornek:true},
   {ad:'(operatör — İzmir)',    mail:'operator.izmir@sif.com.tr',pozisyon:'operator',loklar:['IZM'],  dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(işyeri hekimi)',       mail:'hekim@osgb.com.tr',    pozisyon:'hekim',    loklar:['IZM','ANK-HQ'],dis:true, aktif:true, durum:'aktif', ornek:true},
+  {ad:'(işyeri hekimi)',       mail:'hekim@sif.com.tr',     pozisyon:'hekim',    loklar:['IZM','ANK-HQ'],dis:true, aktif:true, durum:'aktif', ornek:true},
   {ad:'(genel müdür)',         mail:'gm@sif.com.tr',        pozisyon:'yonetim',  loklar:['*'],       dis:false, aktif:true, durum:'aktif', ornek:true}
 ];
 const DIST_SEED = [
@@ -1688,9 +1691,9 @@ const DIST_SEED = [
   {ad:'(İK)',               unvan:'İnsan Kaynakları',        mail:'ik@sif.com.tr',    lok:'*',   tip:'cc', tetik:'send', kapsam:'all',   aktif:true, ornek:true},
   {ad:'(İzmir şube müdürü)',unvan:'Şube Müdürü',             mail:'izmir.mudur@sif.com.tr', lok:'IZM', tip:'to', tetik:'both', kapsam:'all', aktif:true, ornek:true},
   {ad:'(Ankara ofis müdürü)',unvan:'Ofis Müdürü',            mail:'ankara.mudur@sif.com.tr',lok:'ANK-HQ', tip:'to', tetik:'both', kapsam:'all', aktif:true, ornek:true},
-  {ad:'(işyeri hekimi)',    unvan:'İşyeri Hekimi',           mail:'hekim@osgb.com.tr',lok:'*',   tip:'cc', tetik:'send', kapsam:'agir',  aktif:true, ornek:true}
+  {ad:'(işyeri hekimi)',    unvan:'İşyeri Hekimi',           mail:'hekim@sif.com.tr',lok:'*',   tip:'cc', tetik:'send', kapsam:'agir',  aktif:true, ornek:true}
 ];
-const GEN_SEED = {kod:'SIF', ad:'SİF İş Makineleri', yaklasanGun:7, merkezKod:'MRK', grupKod:'GRUP'};
+const GEN_SEED = {kod:'SIF', ad:'SİF İş Makineleri', yaklasanGun:7, merkezKod:'MRK', grupKod:'GRUP', mailAlan:['sif.com.tr']};
 
 /* ── VERİ ─────────────────────────────────────────────────────── */
 let RECS = store.get(K.rec, []);
@@ -1710,6 +1713,31 @@ if(POZ.some(p=>!('inceleme' in p))){
 }
 let GEN  = store.get(K.gen, null);  if(!GEN)  { GEN = {...GEN_SEED}; store.set(K.gen,GEN); }
 if(GEN.yaklasanGun==null){ GEN.yaklasanGun=7; store.set(K.gen,GEN); }
+/* ── ŞİRKET E-POSTASI ŞARTI (kullanıcı kararı, 16.10.2026) ─────────────────
+   Kullanıcı adı = e-posta ve YALNIZ şirket alan adındaki (GEN.mailAlan) adresler
+   kabul edilir. Dış hizmet kişilerine (OSGB uzmanı, işyeri hekimi…) de şirket adresi
+   tanımlanır; "Dış" işareti yalnız kişinin dış hizmet olduğunu gösterir, ayrı adres
+   anlamına gelmez. Şart üç kapıda uygulanır: giriş (giris), kullanıcı ekleme/düzenleme
+   (usrMailBitti, kisiEkle) ve giriş ekranı listesi. Dağıtım ALICILARI (e-posta gidecek
+   kişiler) kullanıcı değildir — onlara dış adres yazılabilir.
+   Liste hiç boş kalmaz: boşsa (eski depo, yedekten dönüş) mevcut iç kullanıcıların —
+   önce yöneticilerin — alan adından türetilir; yoksa tohum değeri. */
+const mailAlanOf = m => { const s=String(m||'').trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) ? s.slice(s.lastIndexOf('@')+1) : ''; };
+function mailAlanTuret(){
+  const say={};
+  (USR||[]).filter(u=>!u.dis).forEach(u=>{ const a=mailAlanOf(u.mail); if(a) say[a]=(say[a]||0)+(u.pozisyon==='admin'?100:1); });
+  const en=Object.keys(say).sort((a,b)=>say[b]-say[a])[0];
+  return [en || GEN_SEED.mailAlan[0]];
+}
+function sirketAlanlari(){
+  let l=(Array.isArray(GEN.mailAlan)?GEN.mailAlan:[]).map(x=>String(x).trim().toLowerCase().replace(/^@/,'')).filter(Boolean);
+  if(!l.length){ l=mailAlanTuret(); GEN.mailAlan=l; store.set(K.gen,GEN); }
+  return l;
+}
+const sirketMailMi = m => { const a=mailAlanOf(m); return !!a && sirketAlanlari().includes(a); };
+const sirketAlanMetni = () => sirketAlanlari().map(a=>'@'+a).join(', ');
+sirketAlanlari();   /* ilk açılışta listeyi garanti et */
 /* Kodlama göçü: merkez/grup kodu varsayılanları + Genel Merkez lokasyonu garanti */
 if(!GEN.merkezKod){ GEN.merkezKod='MRK'; store.set(K.gen,GEN); }
 if(!GEN.grupKod){ GEN.grupKod='GRUP'; store.set(K.gen,GEN); }
@@ -1767,6 +1795,19 @@ let GOC = [];
     if(u.durum===undefined){ u.durum='aktif'; u1=true; }
   });
   if(u1){ store.set(K.usr,USR); GOC.push('kullanıcı rolleri pozisyon tanımına taşındı'); }
+  /* Şirket e-postası şartı: yalnız ÖRNEK (deneme) kullanıcıların dış adresleri şirket
+     alan adına çevrilir (uzman.ege@osgb… → uzman.ege@<şirket>); aynı adresli örnek
+     dağıtım satırı da birlikte. Gerçek kullanıcıya DOKUNULMAZ — onlar Ayarlar →
+     Kullanıcılar'da "şirket adresi değil" diye işaretlenir, yönetici düzeltir. */
+  { let u2=0; const ana=sirketAlanlari()[0];
+    USR.forEach(u=>{
+      if(!u.ornek || !u.mail || sirketMailMi(u.mail)) return;
+      const eski=u.mail, yeni=eski.slice(0,eski.lastIndexOf('@')+1)+ana;
+      if(USR.some(x=>x!==u && (x.mail||'').toLowerCase()===yeni.toLowerCase())) return;
+      u.mail=yeni; u2++;
+      DIST.forEach(d=>{ if(d.ornek && (d.mail||'').toLowerCase()===eski.toLowerCase()) d.mail=yeni; });
+    });
+    if(u2){ store.set(K.usr,USR); store.set(K.dist,DIST); GOC.push(u2+' örnek kullanıcının dış adresi şirket adresine çevrildi'); } }
   /* surum 4: iki aşamalı akış + aksiyon durumu otomatik */
   let r4=0;
   RECS.forEach(r=>{
@@ -2106,35 +2147,45 @@ function gateRender(){
       <b>Aktif uygulama yöneticisi kalmadı.</b> Ayarlar ekranını kimse açamaz.
       Aşağıdan bir kullanıcıya yönetici yetkisi geri verin:
       <div class="bar" style="margin-top:8px">
-        <select id="recPick" style="max-width:230px">${USR.map(u=>`<option value="${u.id}">${esc(u.ad||u.mail)}</option>`).join('')}</select>
+        <select id="recPick" style="max-width:230px">${USR.filter(u=>sirketMailMi(u.mail)).map(u=>`<option value="${u.id}">${esc(u.ad||u.mail)}</option>`).join('')}</select>
         <button class="btn sm pri" onclick="kurtar()">Yönetici Yap</button>
       </div>
     </div>` : '';
   $('gateUsers').innerHTML = USR.filter(u=>u.aktif).map(u=>{
     const lk=(u.loklar||[]).includes('*')?'Tüm lokasyonlar':(u.loklar||[]).join(', ')||'—';
-    return `<div class="u" onclick="girisDene('${esc(u.mail)}')">
+    const ok=sirketMailMi(u.mail);
+    return `<div class="u" ${ok?`onclick="girisDene('${esc(u.mail)}')"`:'style="opacity:.5;cursor:not-allowed" title="Şirket e-posta adresi değil — giriş yapamaz"'}>
       <div class="av">${esc(bas(u.ad))}</div>
-      <div class="n"><div>${esc(u.ad)} ${u.dis?'<span class="pill p-amb" style="margin-left:4px">dış hizmet</span>':''}</div>
+      <div class="n"><div>${esc(u.ad)} ${u.dis?'<span class="pill p-amb" style="margin-left:4px">dış hizmet</span>':''}${ok?'':'<span class="pill p-red" style="margin-left:4px">şirket adresi değil</span>'}</div>
         <div>${esc(pozAd(u.pozisyon))} · ${esc(lk)} · ${esc(u.mail)}</div></div></div>`;
   }).join('') || '<div class="empty">Kullanıcı yok.</div>';
   { const gsb=$('gateSub'); if(gsb) gsb.textContent = `${GEN.ad} · İSG / Olay Bildirim Sistemi`; }
   $('gateErr').textContent='';
+  $('gateMail').placeholder='ad.soyad@'+sirketAlanlari()[0];
   try{ const son=localStorage.getItem('hse::HOB::sonMail'); if(son&&!$('gateMail').value) $('gateMail').value=son; }catch(e){}
 }
 /* Adresten kimlik çözümleme. Canlıda bu adım Entra ID'den gelen kimlikle
    değişecek — kullanıcıya hiçbir şey sorulmayacak, oturum hazır gelecek. */
+const sirketDisiMetin = () => `Yalnız <b>şirket e-posta adresiyle</b> (${esc(sirketAlanMetni())}) giriş yapılır.
+  Dış hizmet kullanıcılarına da şirket adresi tanımlanır — yöneticinize başvurun.`;
 function girisDene(mail){
   const m=String(mail||$('gateMail').value||'').trim().toLowerCase();
   if(!m){ $('gateErr').textContent='E-posta adresinizi yazın.'; return; }
   const u=USR.find(x=>(x.mail||'').trim().toLowerCase()===m);
   if(!u){ $('gateErr').innerHTML='Bu adres sistemde tanımlı değil. Yöneticinizin sizi <b>Ayarlar → Kullanıcılar</b>\'dan eklemesi gerekir.'; return; }
   if(!u.aktif){ $('gateErr').textContent='Bu kullanıcı pasif durumda. Yöneticinize başvurun.'; return; }
+  if(!sirketMailMi(u.mail)){ $('gateErr').innerHTML=sirketDisiMetin(); return; }
   $('gateMail').value=u.mail;
   try{ localStorage.setItem('hse::HOB::sonMail',u.mail); }catch(e){}
   giris(u.id);
 }
 function giris(uid_){
   const u=USR.find(x=>x.id===uid_); if(!u) return;
+  /* Şirket e-postası şartı — sekmede kalmış oturum (sessionStorage) da buradan geçer */
+  if(!sirketMailMi(u.mail)){
+    try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){}
+    $('gateErr').innerHTML=sirketDisiMetin(); return;
+  }
   SES=u; try{ sessionStorage.setItem('hse::HOB::ses',u.id); }catch(e){}
   TOAST_SUS=true;   /* giriş = açılış: ilk dokunuşa kadar bildirim yok (bkz. toast) */
   $('gate').style.display='none'; gateKilit(false);
@@ -4993,8 +5044,8 @@ function renderUsr(){
     const lokChips=LOK.map(l=>`<span class="chip ${sel.includes(l.kod)?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok('${u.id}','${esc(l.kod)}')">${esc(l.kod)}</span>`).join('');
     return `<tr>
     <td><input type="text" value="${esc(u.ad)}" oninput="setU('${u.id}','ad',this.value)" onchange="usrYaziBitti('${u.id}')">
-        <input type="email" value="${esc(u.mail)}" oninput="setU('${u.id}','mail',this.value)" onchange="usrYaziBitti('${u.id}')" style="margin-top:3px" placeholder="e-posta = kullanıcı adı">
-        ${u.ornek?'<div class="alt"><span class="pill p-amb">örnek</span></div>':''}</td>
+        <input type="email" value="${esc(u.mail)}" class="${u.mail&&!sirketMailMi(u.mail)?'bad':''}" onfocus="this.dataset.eski=this.value" oninput="setU('${u.id}','mail',this.value)" onchange="usrMailBitti('${u.id}',this)" style="margin-top:3px" placeholder="ad.soyad@${esc(sirketAlanlari()[0])}">
+        ${u.ornek||(u.mail&&!sirketMailMi(u.mail))||!u.mail?`<div class="alt">${u.ornek?'<span class="pill p-amb">örnek</span> ':''}${u.mail&&!sirketMailMi(u.mail)?'<span class="pill p-red" title="Giriş yapamaz — şirket adresi tanımlayın">şirket adresi değil</span>':''}${!u.mail?'<span class="pill p-gry">e-posta yok — giriş yapamaz</span>':''}</div>`:''}</td>
     <td><select onchange="setU('${u.id}','pozisyon',this.value)">${POZ.map(p=>`<option value="${esc(p.kod)}"${u.pozisyon===p.kod?' selected':''}>${esc(p.ad)}</option>`).join('')}</select></td>
     <td><div class="chips"><span class="chip ${sel.includes('*')?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok('${u.id}','*')">TÜMÜ</span>${lokChips}</div></td>
     <td>${yetkiHucre(u)}</td>
@@ -5079,6 +5130,16 @@ function setU(id,f,v){
   if(f==='pozisyon'||f==='aktif'||f==='durum') renderUsr();
   if(SES&&SES.id===id){ SES=u; applyPerms(); fillForm(); renderAll(); }
 }
+/* E-posta kutusundan çıkınca: şirket adresi değilse ya da başka kullanıcıda varsa
+   KABUL EDİLMEZ, kutu odaklanmadan önceki değere döner (bkz. ŞİRKET E-POSTASI ŞARTI). */
+function usrMailBitti(id,el){
+  const u=USR.find(x=>x.id===id); if(!u) return;
+  const v=(el.value||'').trim(), eski=el.dataset.eski||'';
+  const geri=m=>{ toast(m); u.mail=eski; el.value=eski; saveUsr(); renderUsr(); if(SES&&SES.id===id) SES=u; };
+  if(v && !sirketMailMi(v)) return geri(`Kabul edilmedi — yalnız şirket adresi (${sirketAlanMetni()}). Dış hizmet kişisine de şirket adresi tanımlayın.`);
+  if(v && USR.some(x=>x.id!==id && (x.mail||'').trim().toLowerCase()===v.toLowerCase())) return geri('Bu adres başka bir kullanıcıda tanımlı.');
+  u.mail=v; saveUsr(); renderUsr(); usrYaziBitti(id);
+}
 /* Kutudan çıkınca (onchange) bir kez tazele. Kullanıcı tablosu bilerek
    yeniden çizilmez: Tab ile sonraki kutuya geçerken odak kaybolurdu. */
 function usrYaziBitti(id){
@@ -5116,16 +5177,17 @@ function kisiFiltre(){
   const q=($('ksAra').value||'').toLowerCase(), t=window._ksTanimli||new Set();
   const rows=PERS.filter(p=>!q||[p.ad,p.sicil,p.gorev,p.lok,p.mail].join(' ').toLowerCase().includes(q)).slice(0,200);
   $('ksList').innerHTML=rows.map(p=>{
-    const var_=p.mail&&t.has(p.mail.toLowerCase());
-    return `<div class="u" ${var_?'style="opacity:.5;cursor:default"':`onclick="kisiEkle('${esc(p.sicil)}')"`}>
+    const var_=p.mail&&t.has(p.mail.toLowerCase()), disAdr=p.mail&&!sirketMailMi(p.mail);
+    return `<div class="u" ${var_||disAdr?'style="opacity:.5;cursor:default"':`onclick="kisiEkle('${esc(p.sicil)}')"`}>
       <div class="av">${esc(bas(p.ad))}</div>
-      <div class="n"><div>${esc(p.ad)} ${var_?'<span class="pill p-gry">zaten tanımlı</span>':''}</div>
+      <div class="n"><div>${esc(p.ad)} ${var_?'<span class="pill p-gry">zaten tanımlı</span>':''}${disAdr?'<span class="pill p-red">şirket adresi değil</span>':''}</div>
         <div>${esc(p.sicil)} · ${esc(p.gorev||'—')} · ${esc(p.lok||'—')} · ${esc(p.mail||'e-posta yok')}</div></div></div>`;
   }).join('')||'<div class="empty">Eşleşen kişi yok.</div>';
 }
 function kisiEkle(sicil){
   const p=PERS.find(x=>x.sicil===sicil); if(!p) return;
   if(!p.mail){ toast('Bu kişinin e-posta adresi yok — kullanıcı adı e-posta olduğu için önce SAP dökümünde adresi doldurun.'); return; }
+  if(!sirketMailMi(p.mail)){ toast(`Kabul edilmedi — ${p.mail} şirket adresi değil (${sirketAlanMetni()}).`); return; }
   const u=addUsr(p); window._ksTanimli.add(p.mail.toLowerCase()); kisiFiltre();
   toast(`${p.ad} eklendi — pozisyonunu seçin (varsayılan: Kullanıcı)`);
 }
@@ -5290,6 +5352,19 @@ function setGen(f,v){
   if(!['ad','kod','mailWebhook','arsivYol','portalUrl','testMail','yaklasanGun','insHedef'].includes(f)) applyPerms();
 }
 function genYaziBitti(){ renderGen(); applyPerms(); renderUyari(); }
+/* Şirket alan adı listesi. Boş bırakılamaz; oturumdaki yöneticinin kendi adresini
+   dışarıda bırakan değişiklik reddedilir (kendini kilitlemesin). Şarta uymayacak
+   kullanıcılar varsa sayısı söylenip onay istenir — onlar giriş yapamaz. */
+function setMailAlan(v){
+  const l=[...new Set(String(v||'').split(/[,;\s]+/).map(x=>x.trim().toLowerCase().replace(/^@/,'')).filter(Boolean))];
+  const bozuk=l.filter(a=>!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(a));
+  if(!l.length){ toast('En az bir şirket alan adı gerekli.'); renderGen(); return; }
+  if(bozuk.length){ toast('Geçersiz alan adı: '+bozuk.join(', ')); renderGen(); return; }
+  if(SES && !l.includes(mailAlanOf(SES.mail))){ toast('Kendi adresiniz ('+SES.mail+') bu listede yok — kaydedilmedi.'); renderGen(); return; }
+  const disarida=USR.filter(u=>u.aktif && u.mail && !l.includes(mailAlanOf(u.mail)));
+  if(disarida.length && !confirm(`${disarida.length} aktif kullanıcının adresi bu listeye uymuyor ve giriş yapamayacak:\n\n${disarida.slice(0,8).map(u=>'• '+(u.ad||'')+' — '+u.mail).join('\n')}${disarida.length>8?'\n…':''}\n\nDevam edilsin mi?`)){ renderGen(); return; }
+  GEN.mailAlan=l; saveGen(); renderGen(); renderUsr();
+}
 async function arsivTest(){
   if(!fsVar()){ toast('Bu tarayıcı klasöre yazmayı desteklemiyor — Chrome/Edge gerekir.'); return; }
   const h=await arsivCoz(false);
@@ -5323,6 +5398,7 @@ function renderGen(){
   yaz('g_kod',GEN.kod); yaz('g_ad',GEN.ad);
   yaz('g_merkez',(LOK.find(l=>l.tip==='Genel Merkez')||{}).kod||GEN.merkezKod||'MRK');
   yaz('g_grup',GEN.grupKod||'GRUP');
+  yaz('g_mailAlan',sirketAlanlari().join(', '));
   yaz('g_webhook',GEN.mailWebhook||'');
   yaz('g_kanal',mailKanal());
   yaz('g_portalUrl',GEN.portalUrl||'');
