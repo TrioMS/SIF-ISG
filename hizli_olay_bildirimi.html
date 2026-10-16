@@ -540,6 +540,9 @@ body.dark .anzCip .anzKapat{background:transparent;color:#eee}
 /* AYARLAR — sade düzen (02.10.2026): başlıklar solda dikey liste, seçilen başlığın ayarı
    sağda açılır. Telefon/dar ekranda (≤760px) eski yatay çip dizisi kalır. */
 .setAlt{display:none}   /* alt başlıklar yalnız geniş ekranda (sol sütun) */
+/* KAYMA YOK (16.10.2026): kısa bir bölüm/ekran açılınca dikey kaydırma çubuğu kaybolup
+   tüm sayfa (ortalı alt çubuk dahil) yana kayıyordu. Çubuğun yeri her zaman ayrılır. */
+html{scrollbar-gutter:stable}
 @media (min-width:761px){
   .setDuzen{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px;align-items:start}
   .setDuzen #setTabs{flex-direction:column;flex-wrap:nowrap;gap:2px;margin:0;position:sticky;top:84px;
