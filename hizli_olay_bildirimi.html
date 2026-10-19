@@ -2204,9 +2204,15 @@ const MS_DOGRULAMA_KEY = 'hse::HOB::msDogrulama';
 const MS_HATIRLA_KEY = 'hse::HOB::msHatirla';
 const msHatirla = () => { try{ return localStorage.getItem(MS_HATIRLA_KEY)!=='0'; }catch(e){ return true; } };
 const MS_GIRIS = {
-  tenantId: '',            /* BT'den: Dizin (kiracı) kimliği — sif.com.tr */
-  clientId: '',            /* BT'den: Uygulama (istemci) kimliği */
-  alanlar: ['sif.com.tr']  /* yalnız bu alan adlarındaki hesaplar kabul edilir */
+  /* DENEME AŞAMASI (kullanıcı kararı 19.10.2026): Çağrı Dinçtürk STFA iş hesabıyla dener.
+     CANLI (SİF): tenantId → 'bb36813e-b392-4860-accd-244c90239c02' (sif.com.tr),
+     clientId → SİF BT'nin vereceği kimlik, alanlar → ['sif.com.tr'], ilkYoneticiler → SİF yöneticisi. */
+  tenantId: 'a458df75-29c5-4625-8b7d-9baf6fdc1f6d',   /* STFA dizini (stfa.com) */
+  clientId: '178c0814-8126-46fb-9f0a-7d915a5313a8',   /* STFA'da açılan uygulama kaydı "SIF ISG Deneme" (19.10.2026) */
+  alanlar: ['stfa.com'],                              /* yalnız bu alan adlarındaki hesaplar kabul edilir */
+  /* Microsoft'un DOĞRULADIĞI bu hesaplar, cihazın kullanıcı listesinde yoksa ilk girişte
+     YÖNETİCİ olarak eklenir (yeni telefonda ilk açılış için). Liste yalnız kodla değişir. */
+  ilkYoneticiler: ['cagri.dincturk@stfa.com']
 };
 const msAktif = () => !!(MS_GIRIS.tenantId && MS_GIRIS.clientId);
 const MSAL_CDN = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js';
@@ -2286,7 +2292,13 @@ function msHesapGiris(hesap){
   const mail=String(c.preferred_username||c.email||hesap.username||'').trim().toLowerCase();
   const alan=mail.slice(mail.lastIndexOf('@')+1);
   if(!mail || !MS_GIRIS.alanlar.includes(alan)){ msHata('Yalnız şirket hesabıyla ('+MS_GIRIS.alanlar.map(a=>'@'+a).join(', ')+') giriş yapılır.'); return; }
-  const u=USR.find(x=>(x.mail||'').trim().toLowerCase()===mail);
+  /* Doğrulanan alan adı cihazın şirket adresi listesine eklenir (giris() bu listeyi şart koşar) */
+  { const l=sirketAlanlari(); if(!l.includes(alan)){ GEN.mailAlan=l.concat([alan]); store.set(K.gen,GEN); } }
+  let u=USR.find(x=>(x.mail||'').trim().toLowerCase()===mail);
+  if(!u && (MS_GIRIS.ilkYoneticiler||[]).map(x=>String(x).trim().toLowerCase()).includes(mail)){
+    u={id:uid(), ad:String(c.name||mail), mail:mail, pozisyon:'admin', loklar:['*'], aktif:true, ornek:false, dis:false};
+    USR.push(u); store.set(K.usr,USR);
+  }
   if(!u){ msHata(mail+' portalda tanımlı değil. Yöneticinizin sizi Ayarlar → Kullanıcılar\'dan eklemesi gerekir.'); return; }
   if(!u.aktif){ msHata('Kullanıcınız pasif durumda. Yöneticinize başvurun.'); return; }
   MS_HESAP=mail; giris(u.id);
