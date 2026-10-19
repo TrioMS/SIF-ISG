@@ -675,6 +675,13 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     </div>
     <div class="login">
       <div id="gateRecover"></div>
+      <!-- MICROSOFT ŞİRKET HESABI GİRİŞİ (MS_GIRIS doluysa görünür; e-posta kutusu ve liste gizlenir) -->
+      <div id="gateMs" style="display:none">
+        <div class="f" style="text-align:center;margin-bottom:10px">Şirket hesabınızla giriş yapın</div>
+        <button class="giris" id="gateMsBtn" onclick="msGirisBaslat()">Microsoft hesabıyla giriş</button>
+        <div id="gateMsErr" style="color:#ff8a80;font-size:12.5px;margin-top:10px;text-align:center"></div>
+      </div>
+      <div id="gateKlasik">
       <label class="f">E-posta Adresiniz</label>
       <input type="email" id="gateMail" placeholder="ad.soyad@sif.com.tr" autocomplete="username"
              onkeydown="if(event.key==='Enter')girisDene()">
@@ -684,6 +691,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
         <summary>Tanımlı adresler (deneme amaçlı)</summary>
         <div class="ulist" id="gateUsers"></div>
       </details>
+      </div>
       <div id="kurBox"></div>
     </div>
   </div>
@@ -1695,6 +1703,53 @@ const DIST_SEED = [
 ];
 const GEN_SEED = {kod:'SIF', ad:'SİF İş Makineleri', yaklasanGun:7, merkezKod:'MRK', grupKod:'GRUP', mailAlan:['sif.com.tr']};
 
+/* ══════════ GÜVENLİK — VERİ KİMLİK DENETİMİ (SAST B4, 19.10.2026) ══════════
+   Kimlikler (id, …Id) ve lokasyon/pozisyon kodları ekranda onclick="f('${id}')" biçiminde
+   KAÇIŞSIZ kullanılıyor. Uygulama içinde üretilenler (uid(), [A-Z0-9-] kodlar) güvenli; ama
+   yedekten geri yükleme ve Airtable'dan çekme dışarıdan serbest metin getirebilir. Kural:
+     kimlik  : [A-Za-z0-9_-]{1,64}      kod : [A-Za-z0-9_-]{1,24}  (kullanıcı lokasyon listesinde ayrıca '*')
+   veriDenetle(...) ihlal SAYAR (geri yüklemede: ihlal varsa dosya REDDEDİLİR).
+   veriTemizle(...) izin dışı karakterleri SİLER (aynı dönüşüm her yerde → bağlantılar korunur);
+   açılışta ve Airtable çekmesinden sonra çalışır. */
+const VK_ID = /^[A-Za-z0-9_-]{1,64}$/, VK_KOD = /^[A-Za-z0-9_-]{1,24}$/;
+const vkIdTemiz  = v => String(v).replace(/[^A-Za-z0-9_-]/g,'').slice(0,64) || ('x'+Math.random().toString(36).slice(2,12));
+const vkKodTemiz = v => String(v).replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
+function vkGez(o, duzelt, say){
+  if(Array.isArray(o)){ o.forEach(x=>vkGez(x,duzelt,say)); return; }
+  if(!o || typeof o!=='object') return;
+  Object.keys(o).forEach(k=>{
+    const v=o[k];
+    if(typeof v==='string' && v!=='' && (k==='id' || /Id$/.test(k)) && !VK_ID.test(v)){
+      say.n++; if(duzelt) o[k]=vkIdTemiz(v);
+    } else if(v && typeof v==='object') vkGez(v,duzelt,say);
+  });
+}
+function vkKod(o, alan, duzelt, say, yildizOlur){
+  (o||[]).forEach(x=>{ if(!x || typeof x!=='object') return;
+    const v=x[alan];
+    if(Array.isArray(v)){ x[alan]=v.filter(y=>{ const ok=typeof y==='string' && (VK_KOD.test(y) || (yildizOlur&&y==='*'));
+      if(!ok){ say.n++; } return ok || !duzelt; }); return; }
+    if(typeof v==='string' && v!=='' && !VK_KOD.test(v) && !(yildizOlur&&v==='*')){ say.n++; if(duzelt) x[alan]=vkKodTemiz(v); }
+  });
+}
+function vkHepsi(d, duzelt){
+  const say={n:0};
+  vkGez([d.kayitlar,d.bagimsizAksiyonlar,d.kullanicilar,d.lokasyonlar,d.dagitim], duzelt, say);
+  vkKod(d.kayitlar,'lokasyon',duzelt,say); vkKod(d.bagimsizAksiyonlar,'lokasyon',duzelt,say);
+  vkKod(d.lokasyonlar,'kod',duzelt,say); vkKod(d.pozisyonlar,'kod',duzelt,say);
+  vkKod(d.kullanicilar,'pozisyon',duzelt,say); vkKod(d.kullanicilar,'loklar',duzelt,say,true);
+  vkKod(d.dagitim,'lok',duzelt,say,true);
+  return say.n;
+}
+const veriDenetle = d => vkHepsi(d,false);
+function veriTemizle(){
+  const n=vkHepsi({kayitlar:RECS,bagimsizAksiyonlar:SACT,kullanicilar:USR,lokasyonlar:LOK,dagitim:DIST,pozisyonlar:POZ}, true);
+  if(n){ try{ store.set(K.rec,RECS); store.set(K.sact,SACT); store.set(K.usr,USR); store.set(K.lok,LOK);
+               store.set(K.dist,DIST); store.set(K.poz,POZ);
+               console.warn('[İSG Portalı] güvenlik: '+n+' geçersiz kimlik/kod temizlendi (kurcalanmış veri olabilir).'); }catch(e){} }
+  return n;
+}
+
 /* ── VERİ ─────────────────────────────────────────────────────── */
 let RECS = store.get(K.rec, []);
 let SACT = store.get(K.sact, []);   // BAĞIMSIZ (olaya bağlı olmayan) aksiyonlar
@@ -1745,6 +1800,7 @@ if(!LOK.some(l=>l.tip==='Genel Merkez')){
   LOK.unshift({id:'lMRK',kod:GEN.merkezKod,bolge:GEN.merkezKod,ad:'Genel Merkez',tip:'Genel Merkez',sehir:'',sgk:'',yonetici:'',yoneticiMail:'',aktif:true,ornek:true});
   store.set(K.lok,LOK);
 }
+veriTemizle();   /* GÜVENLİK (SAST B4): depoda kurcalanmış kimlik/kod kalmasın */
 /* Öğrenme motoru tetikleri: veri her yazıldığında motora haber verilir. Motor
    hemen kurulmaz (12 sn sessizlik bekler) ve imza değişmediyse hiç kurulmaz —
    yani "kayıt açıldı/silindi, belge eklendi/çıkarıldı" anında yakalanır ama
@@ -2006,6 +2062,11 @@ async function aksiyonArsivle(r){
 /* ── YARDIMCILAR ─────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* GÜVENLİK (SAST B3, 19.10.2026): satır içi olay işleyicisine (onclick="f(…)") METİN koymanın TEK
+   güvenli yolu. esc() tek başına YETMEZ: tarayıcı &#39; dizisini JS'e vermeden önce yeniden ' yapar ve
+   dizgiden çıkılır. jsA değeri önce JSON dizgisine (JS kaçışı), sonra HTML kaçışına sokar; TIRNAKSIZ
+   yazılır:  onclick="kokSil(${jsA(s)})"  — asla  onclick="kokSil('${esc(s)}')"  değil. */
+const jsA = s => esc(JSON.stringify(String(s==null?'':s)));
 const uid = () => 'x'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
 const bugun = () => new Date().toISOString().slice(0,10);
 const simdiSaat = () => new Date().toTimeString().slice(0,5);
@@ -2110,6 +2171,72 @@ const bolgeOf = kod => { const l=LOK.find(x=>x.kod===kod); if(l&&l.bolge) return
      Power Apps  -> User().Email ile eşleşen USR kaydı
      MSAL/Graph  -> account.username ile eşleşen USR kaydı
    Şifre hiçbir koşulda bu uygulamada tutulmaz/sorulmaz.        */
+/* ══════════ MİCROSOFT ŞİRKET HESABIYLA GİRİŞ (Entra ID) — SAST B5, 19.10.2026 ══════════
+   NEDEN: Uygulama herkese açık bir adresten (GitHub Pages) yayınlanacak. Uygulamanın içine
+   konan bir şifre kontrolü açık kodda durur ve atlatılır; doğrulamayı Microsoft yapmalı.
+   NASIL: tenantId + clientId DOLUYSA giriş ZORUNLU olur: e-posta kutusu ve "tanımlı
+   adresler" listesi gizlenir, yalnız "Microsoft hesabıyla giriş" düğmesi kalır. Kullanıcı
+   Microsoft'un sayfasında şirket e-postası + şifresi (+ MFA) ile girer; uygulama şifreyi
+   görmez. Dönen hesabın e-postası Ayarlar → Kullanıcılar'daki kayıtla eşleşmelidir
+   (yetki/pozisyon yine oradan gelir). İkisi BOŞSA bugünkü deneme girişi aynen çalışır.
+   KURULUM: BT, Entra ID'de "Tek sayfa uygulaması (SPA)" kaydı açar; yönlendirme adresi
+   olarak uygulamanın tam adresi (ör. https://trioms.github.io/SIF-ISG/hizli_olay_bildirimi.html)
+   yazılır. Verilen "Dizin (kiracı) kimliği" ve "Uygulama (istemci) kimliği" aşağıya girilir.
+   Bu değerler GİZLİ DEĞİLDİR; kodda durmaları güvenlik açığı değildir. Ayarlar ekranından
+   ve yedekten DEĞİŞTİRİLEMEZ (yalnız kod yayınıyla) — girişi kimse ekrandan kapatamaz.
+   NOT: Veri her cihazın kendi tarayıcısında durduğu için bu giriş, cihazı ele geçiren
+   birine karşı tam koruma değildir; ortak cihaz ve adres paylaşımı senaryosunu kapatır. */
+const MS_GIRIS = {
+  tenantId: '',            /* BT'den: Dizin (kiracı) kimliği — sif.com.tr */
+  clientId: '',            /* BT'den: Uygulama (istemci) kimliği */
+  alanlar: ['sif.com.tr']  /* yalnız bu alan adlarındaki hesaplar kabul edilir */
+};
+const msAktif = () => !!(MS_GIRIS.tenantId && MS_GIRIS.clientId);
+const MSAL_CDN = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js';
+let MS_PCA = null, MS_HESAP = null;   /* MS_HESAP: Microsoft'tan dönen, doğrulanmış e-posta */
+function msHata(m){ const e=$('gateMsErr'); if(e) e.textContent=m||''; }
+async function msHazirla(){
+  if(MS_PCA) return MS_PCA;
+  /* Önce uygulamanın yanındaki kopya, yoksa CDN (bütünlük karmasıyla — CDN_SRI) */
+  await betikYukle('msal-browser.min.js', MSAL_CDN);
+  if(!window.msal || !window.msal.PublicClientApplication) throw new Error('Microsoft giriş kitaplığı yüklenemedi');
+  MS_PCA = new window.msal.PublicClientApplication({
+    auth:{ clientId:MS_GIRIS.clientId, authority:'https://login.microsoftonline.com/'+MS_GIRIS.tenantId,
+           redirectUri: location.origin+location.pathname, postLogoutRedirectUri: location.origin+location.pathname,
+           navigateToLoginRequestUrl:false },
+    cache:{ cacheLocation:'sessionStorage', storeAuthStateInCookie:false }
+  });
+  if(typeof MS_PCA.initialize==='function') await MS_PCA.initialize();
+  return MS_PCA;
+}
+/* Açılışta: Microsoft'tan dönülüyorsa sonucu işle, oturum varsa sürdür */
+async function msBaslat(){
+  gateRender();
+  try{
+    const pca=await msHazirla();
+    const sonuc=await pca.handleRedirectPromise();
+    const hesap=(sonuc&&sonuc.account) || pca.getAllAccounts()[0] || null;
+    if(hesap) msHesapGiris(hesap);
+  }catch(e){ msHata('Microsoft girişi başlatılamadı: '+(e&&e.message||e)); }
+}
+async function msGirisBaslat(){
+  msHata('');
+  try{ const pca=await msHazirla();
+    await pca.loginRedirect({ scopes:['openid','profile','email'], prompt:'select_account' });
+  }catch(e){ msHata('Microsoft girişine yönlendirilemedi: '+(e&&e.message||e)); }
+}
+function msHesapGiris(hesap){
+  const c=hesap.idTokenClaims||{};
+  if(String(c.tid||hesap.tenantId||'').toLowerCase()!==MS_GIRIS.tenantId.toLowerCase()){ msHata('Bu hesap şirket dizinine ait değil.'); return; }
+  const mail=String(c.preferred_username||c.email||hesap.username||'').trim().toLowerCase();
+  const alan=mail.slice(mail.lastIndexOf('@')+1);
+  if(!mail || !MS_GIRIS.alanlar.includes(alan)){ msHata('Yalnız şirket hesabıyla ('+MS_GIRIS.alanlar.map(a=>'@'+a).join(', ')+') giriş yapılır.'); return; }
+  const u=USR.find(x=>(x.mail||'').trim().toLowerCase()===mail);
+  if(!u){ msHata(mail+' portalda tanımlı değil. Yöneticinizin sizi Ayarlar → Kullanıcılar\'dan eklemesi gerekir.'); return; }
+  if(!u.aktif){ msHata('Kullanıcınız pasif durumda. Yöneticinize başvurun.'); return; }
+  MS_HESAP=mail; giris(u.id);
+}
+
 let SES = null;
 function oturum(){ return SES; }
 const pozOf = kod => POZ.find(p=>p.kod===kod) || {kod:kod,ad:kod||'—',kapsam:'own',kayit:false,aksiyon:false,ayar:false,saglik:false};
@@ -2141,20 +2268,22 @@ function gateRender(){
   /* KURTARMA YOLU: hiç aktif yönetici kalmadıysa Ayarlar'a girecek kimse
      olmadığı için uygulama kilitlenir. Giriş ekranı bu durumda yetkiyi
      geri vermeyi teklif eder — aksi halde tek çıkış depoyu silmek olurdu. */
-  const yok = aktifAdmin().length===0;
+  { const ms=msAktif(); const k=$('gateKlasik'), m=$('gateMs');
+    if(k) k.style.display = ms?'none':''; if(m) m.style.display = ms?'':'none'; }
+  const yok = aktifAdmin().length===0 && (!msAktif() || !!MS_HESAP);
   $('gateRecover').innerHTML = yok ? `
     <div class="warn" style="background:var(--red-light);border-color:var(--red);color:var(--red-700)">
       <b>Aktif uygulama yöneticisi kalmadı.</b> Ayarlar ekranını kimse açamaz.
       Aşağıdan bir kullanıcıya yönetici yetkisi geri verin:
       <div class="bar" style="margin-top:8px">
-        <select id="recPick" style="max-width:230px">${USR.filter(u=>sirketMailMi(u.mail)).map(u=>`<option value="${u.id}">${esc(u.ad||u.mail)}</option>`).join('')}</select>
+        <select id="recPick" style="max-width:230px">${USR.filter(u=>sirketMailMi(u.mail) && (!msAktif() || (u.mail||'').trim().toLowerCase()===MS_HESAP)).map(u=>`<option value="${u.id}">${esc(u.ad||u.mail)}</option>`).join('')}</select>
         <button class="btn sm pri" onclick="kurtar()">Yönetici Yap</button>
       </div>
     </div>` : '';
   $('gateUsers').innerHTML = USR.filter(u=>u.aktif).map(u=>{
     const lk=(u.loklar||[]).includes('*')?'Tüm lokasyonlar':(u.loklar||[]).join(', ')||'—';
     const ok=sirketMailMi(u.mail);
-    return `<div class="u" ${ok?`onclick="girisDene('${esc(u.mail)}')"`:'style="opacity:.5;cursor:not-allowed" title="Şirket e-posta adresi değil — giriş yapamaz"'}>
+    return `<div class="u" ${ok?`onclick="girisDene(${jsA(u.mail)})"`:'style="opacity:.5;cursor:not-allowed" title="Şirket e-posta adresi değil — giriş yapamaz"'}>
       <div class="av">${esc(bas(u.ad))}</div>
       <div class="n"><div>${esc(u.ad)} ${u.dis?'<span class="pill p-amb" style="margin-left:4px">dış hizmet</span>':''}${ok?'':'<span class="pill p-red" style="margin-left:4px">şirket adresi değil</span>'}</div>
         <div>${esc(pozAd(u.pozisyon))} · ${esc(lk)} · ${esc(u.mail)}</div></div></div>`;
@@ -2169,6 +2298,7 @@ function gateRender(){
 const sirketDisiMetin = () => `Yalnız <b>şirket e-posta adresiyle</b> (${esc(sirketAlanMetni())}) giriş yapılır.
   Dış hizmet kullanıcılarına da şirket adresi tanımlanır — yöneticinize başvurun.`;
 function girisDene(mail){
+  if(msAktif()){ msHata('Giriş yalnız Microsoft şirket hesabıyla yapılır.'); return; }   /* SAST B5 */
   const m=String(mail||$('gateMail').value||'').trim().toLowerCase();
   if(!m){ $('gateErr').textContent='E-posta adresinizi yazın.'; return; }
   const u=USR.find(x=>(x.mail||'').trim().toLowerCase()===m);
@@ -2181,6 +2311,9 @@ function girisDene(mail){
 }
 function giris(uid_){
   const u=USR.find(x=>x.id===uid_); if(!u) return;
+  /* SAST B5: Microsoft girişi zorunluysa yalnız Microsoft'un doğruladığı hesap açılır */
+  if(msAktif() && (!MS_HESAP || (u.mail||'').trim().toLowerCase()!==MS_HESAP)){
+    try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){} msHata('Önce Microsoft hesabıyla giriş yapın.'); return; }
   /* Şirket e-postası şartı — sekmede kalmış oturum (sessionStorage) da buradan geçer */
   if(!sirketMailMi(u.mail)){
     try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){}
@@ -2209,6 +2342,9 @@ function gateKilit(acik){
   }catch(e){}
 }
 function cikis(){ SES=null; try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){}
+  /* SAST B5: Microsoft oturumu da kapatılır (ortak cihazda bir sonraki kişi açık oturum bulmasın) */
+  if(msAktif() && MS_PCA && MS_HESAP){ const h=MS_PCA.getAllAccounts()[0]; MS_HESAP=null;
+    try{ MS_PCA.logoutRedirect({account:h, postLogoutRedirectUri:location.origin+location.pathname}); }catch(e){} return; }
   if(typeof ogrDurdur==='function') ogrDurdur();   /* oturum yokken arka planda model kurulmasın */
   $('gate').style.display='';            /* CSS'teki flex düzeni (grid içerik sola kaydırıyordu) */
   gateKilit(true); gateRender(); }
@@ -2223,6 +2359,7 @@ function temaUygula(dark){
 function temaDegis(){ temaUygula(!document.body.classList.contains('dark')); }
 function kurtar(){
   const u=USR.find(x=>x.id===$('recPick').value); if(!u) return;
+  if(msAktif() && (!MS_HESAP || (u.mail||'').trim().toLowerCase()!==MS_HESAP)) return;   /* SAST B5 */
   u.pozisyon='admin'; if(u.yetki) delete u.yetki.ayar; u.loklar=['*']; u.aktif=true; u.ornek=false;
   saveUsr(); gateRender(); toast('Yönetici yetkisi verildi: '+(u.ad||u.mail));
 }
@@ -2404,7 +2541,7 @@ function renderKalip(){
   const secili=cur.kokSebep||[];
   const chip=o=> secili.includes(o.ad)
     ? '<span class="chip on" style="font-size:11.5px">'+esc(o.ad)+' · %'+o.yuzde+'</span>'
-    : '<span class="chip" style="font-size:11.5px;cursor:pointer" onclick="kalipSec('+JSON.stringify(o.ad).replace(/"/g,'&quot;')+')">'
+    : '<span class="chip" style="font-size:11.5px;cursor:pointer" onclick="kalipSec('+jsA(o.ad)+')">'
       +esc(o.ad)+' <b>%'+o.yuzde+'</b></span>';
   w.innerHTML='<div class="note" style="margin-bottom:10px">'
     +'<b>Geçmişe göre:</b> '+k.kapsam+' olan <b>'+k.n+'</b> kayıtta en sık girilen kök sebepler. '
@@ -2439,7 +2576,7 @@ function renderKok(){
         </div>
       </div>
       ${secili.length?`<div class="chips" style="margin-top:8px">${secili.map(s=>`<span class="chip on" style="padding-right:6px">${esc(s.split(' — ').slice(1).join(' — '))}
-        <button onclick="kokSil('${esc(s).replace(/'/g,"\\'")}')" style="border:none;background:none;color:#fff;cursor:pointer;font-size:15px;line-height:1;margin-left:5px">×</button></span>`).join('')}</div>`:''}
+        <button onclick="kokSil(${jsA(s)})" style="border:none;background:none;color:#fff;cursor:pointer;font-size:15px;line-height:1;margin-left:5px">×</button></span>`).join('')}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -2523,7 +2660,7 @@ function kisiSecFor(hedef,etiket){
 function ksFiltre2(){
   const q=($('ksAra2').value||'').toLowerCase();
   const rows=kisiHavuzu().filter(p=>!q||[p.ad,p.sicil,p.gorev,p.lok,p.sirket].join(' ').toLowerCase().includes(q)).slice(0,300);
-  $('ksList2').innerHTML=rows.map(p=>`<div class="u" onclick="kisiUygula('${esc(p.ad).replace(/'/g,"\\'")}')">
+  $('ksList2').innerHTML=rows.map(p=>`<div class="u" onclick="kisiUygula(${jsA(p.ad)})">
       <div class="av">${esc(bas(p.ad))}</div>
       <div class="n"><div>${esc(p.ad)}</div>
         <div>${esc([p.sicil&&('sicil '+p.sicil),p.gorev,p.lok,p.sirket].filter(Boolean).join(' · '))||'—'}
@@ -2964,7 +3101,13 @@ async function mailGonder(p0){
   if(mailKanal()==='webhook' && wh){
     try{
       const res=await fetch(wh,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:toStr,cc:ccStr,subject:subject||'',body:body||''})});
-      if(res.ok){ toast('E-posta gönderildi (akış).'); return true; }
+      if(res.ok){
+        /* GÜVENLİK/KVKK (SAST B7): yerel uç şirket Outlook'u yerine GEÇİCİ SMTP (kişisel hesap) ile
+           gönderdiyse kullanıcı bunu bilmeli. */
+        let y=''; try{ y=((await res.clone().json())||{}).yontem||''; }catch(e){}
+        toast(y==='smtp-gecici' ? 'E-posta GEÇİCİ kanaldan (şirket dışı SMTP) gönderildi — Outlook açık değil ya da kullanılamıyor.'
+            : y==='outlook' ? 'E-posta şirket Outlook hesabınızdan gönderildi.' : 'E-posta gönderildi (akış).');
+        return true; }
       toast('Akış hatası ('+res.status+') — Outlook taslağına düşülüyor.');
     }catch(e){ toast('Akışa ulaşılamadı (CORS/ağ) — Outlook taslağına düşülüyor.'); }
   }
@@ -3205,10 +3348,23 @@ function renderFiles(){
     const img=document.createElement('img'); img.className='thumb'; img.src=URL.createObjectURL(b); el.replaceWith(img);
   });
 }
+/* GÜVENLİK (SAST B2, 19.10.2026): blob: adresi portalın kökenini devralır. HTML/SVG/XML gibi bir ek
+   tarayıcıda AÇILIRSA içindeki betik portal yetkisiyle çalışır (tüm kayıtlar, sağlık verisi).
+   Yalnız betik çalıştıramayan türler sekmede açılır; gerisi İNDİRİLİR (octet-stream). */
+const EK_ACILABILIR = /^(image\/(png|jpe?g|gif|webp|bmp)|application\/pdf|text\/plain|video\/(mp4|webm)|audio\/(mpeg|mp4|ogg|wav|webm|x-m4a))$/;
 async function openFile(id){
   const b=await getFile(id);
   if(!b){ toast('Dosya içeriği bulunamadı (yedekten geri yüklenen kayıtta ek içerikleri taşınmaz).'); return; }
-  const u=URL.createObjectURL(b); window.open(u,'_blank'); setTimeout(()=>URL.revokeObjectURL(u),60000);
+  const tip=String(b.type||'').toLowerCase().split(';')[0].trim();
+  if(EK_ACILABILIR.test(tip)){
+    const u=URL.createObjectURL(b); window.open(u,'_blank','noopener'); setTimeout(()=>URL.revokeObjectURL(u),60000);
+    return;
+  }
+  const ad=String(b.name||('ek_'+id)).replace(/[\\/:*?"<>|]/g,'_');
+  const g=new Blob([b],{type:'application/octet-stream'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(g); a.download=ad; a.rel='noopener';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast('Bu dosya türü güvenlik nedeniyle tarayıcıda açılmaz — indirildi: '+ad);
 }
 async function rmFile(id){ if(!confirm('Bu ek kaldırılsın mı?')) return; cur.ekler=cur.ekler.filter(f=>f.id!==id); await delFile(id); renderFiles(); onFormChange(); }
 
@@ -3499,7 +3655,7 @@ function aliciOnay(tip,mod){
      mailKanal()==='webhook'?'Yeniden Gönder':'E-posta Taslağı Aç'}</button>`;
   $('sendFoot').innerHTML=`
    <button class="btn" onclick="closeOv('ovSend')">${mod==='onay'?'Vazgeç':'Kapat'}</button>
-   <button class="btn" onclick="copyMails('${esc(d.map(x=>x.mail).join('; '))}')">Adresleri Kopyala (${d.length})</button>
+   <button class="btn" onclick="copyMails(${jsA(d.map(x=>x.mail).join('; '))})">Adresleri Kopyala (${d.length})</button>
    <button class="btn" onclick="copyBody()">Metni Kopyala</button>
    ${mod==='onay' ? (d.length?`<button class="btn red" onclick="gonderOnayla('${tip}')">${tip==='rapor'?'Raporu Gönder':'Bildirimi Gönder'} (${d.length} kişi)</button>`:'')
     : (mod==='onizleme'||!d.length ? '' : mailAc)}`;
@@ -4571,7 +4727,7 @@ function hatirlatma(){
           ${liste.map(x=>`<div class="rrow"><div style="flex:1;min-width:0">
              <div><b>${esc(x.no)}</b> — ${esc(x.a.tanim)}</div>
              <div class="em">${esc(x.sact?'Bağımsız aksiyon':x.r.no)} · termin ${trDate(x.a.termin)} · ${x.gun<0?`<b style="color:var(--red)">${-x.gun} gün gecikti</b>`:x.gun===0?'<b>bugün</b>':x.gun+' gün kaldı'}</div>
-           </div><button class="btn sm" onclick="openActByNo('${esc(x.no)}')">Aç</button></div>`).join('')}
+           </div><button class="btn sm" onclick="openActByNo(${jsA(x.no)})">Aç</button></div>`).join('')}
         </div>
         <div class="bar" style="padding:9px 13px;border-top:1px solid var(--border)">
           <button class="btn sm blue" ${m?'':'disabled'} onclick="hatirlatmaGonder(${i})">Taslak Aç</button>
@@ -4960,41 +5116,41 @@ function renderOrg(){
   const box=$('orgBody'); if(!box) return;
   const aktif=LOK.filter(l=>l.aktif!==false);
   const inp=(val,oc,ph,type)=>`<input type="${type||'text'}"${type?'':' list="dlAlici"'} value="${esc(val||'')}" onchange="${oc}" placeholder="${esc(ph||'')}">`;
-  box.innerHTML = aktif.map(l=>{ const o=orgOf(l.kod), K=esc(l.kod);
+  box.innerHTML = aktif.map(l=>{ const o=orgOf(l.kod), K=esc(l.kod), KJ=jsA(l.kod);
     return `<div class="card" style="margin-bottom:12px"><div class="cb">
      <h3 style="font-size:15px;margin-bottom:2px">${K} — ${esc(l.ad)}</h3>
      <div class="hint" style="margin-bottom:10px">${esc(l.tip||'')}${l.sehir?' · '+esc(l.sehir):''} · <b>Onay hiyerarşisi:</b> çalışan → departman amiri → Tesis Müdürü</div>
      <label class="f">Tesis Müdürü <span class="hint" style="font-weight:400">— tüm bölümler buna bağlı</span></label>
      <div class="grid">
-       <div>${inp(o.tesisMuduru&&o.tesisMuduru.ad, `orgTMset('${K}','ad',this.value)`, 'isim (listeden seçin)')}</div>
-       <div>${inp(o.tesisMuduru&&o.tesisMuduru.mail, `orgTMset('${K}','mail',this.value)`, 'e-posta','email')}</div>
+       <div>${inp(o.tesisMuduru&&o.tesisMuduru.ad, `orgTMset(${KJ},'ad',this.value)`, 'isim (listeden seçin)')}</div>
+       <div>${inp(o.tesisMuduru&&o.tesisMuduru.mail, `orgTMset(${KJ},'mail',this.value)`, 'e-posta','email')}</div>
      </div>
      <div style="margin-top:12px"><label class="f">Kilit Personel <span class="hint" style="font-weight:400">— İSG / Kalite vb., doğrudan Tesis Müdürü'ne bağlı</span></label>
        ${(o.kilit||[]).map((k,i)=>`<div class="grid" style="margin-top:6px">
-         <div>${inp(k.rol,`orgKilitSet('${K}',${i},'rol',this.value)`,'rol (ör. İSG Müdürü)','text2')}</div>
-         <div>${inp(k.ad,`orgKilitSet('${K}',${i},'ad',this.value)`,'isim')}</div>
-         <div style="display:flex;gap:6px">${inp(k.mail,`orgKilitSet('${K}',${i},'mail',this.value)`,'e-posta','email')}<button class="btn sm" title="Sil" onclick="orgKilitSil('${K}',${i})">×</button></div>
+         <div>${inp(k.rol,`orgKilitSet(${KJ},${i},'rol',this.value)`,'rol (ör. İSG Müdürü)','text2')}</div>
+         <div>${inp(k.ad,`orgKilitSet(${KJ},${i},'ad',this.value)`,'isim')}</div>
+         <div style="display:flex;gap:6px">${inp(k.mail,`orgKilitSet(${KJ},${i},'mail',this.value)`,'e-posta','email')}<button class="btn sm" title="Sil" onclick="orgKilitSil(${KJ},${i})">×</button></div>
        </div>`).join('')}
-       <button class="btn sm" style="margin-top:6px" onclick="orgKilitEkle('${K}')">+ Kilit Personel</button>
+       <button class="btn sm" style="margin-top:6px" onclick="orgKilitEkle(${KJ})">+ Kilit Personel</button>
      </div>
      <div class="sep"></div>
      <label class="f">Departmanlar / Süreçler</label>
      ${(o.departmanlar||[]).map((d,i)=>`<div class="yaAksKart" style="margin-top:8px">
-       <div class="ah"><input type="text" value="${esc(d.ad||'')}" onchange="orgDepAd('${K}',${i},this.value)" style="font-weight:700;max-width:240px" placeholder="Departman / süreç adı"><div style="flex:1"></div><button class="btn sm" onclick="orgDepSil('${K}',${i})">Departmanı Sil</button></div>
+       <div class="ah"><input type="text" value="${esc(d.ad||'')}" onchange="orgDepAd(${KJ},${i},this.value)" style="font-weight:700;max-width:240px" placeholder="Departman / süreç adı"><div style="flex:1"></div><button class="btn sm" onclick="orgDepSil(${KJ},${i})">Departmanı Sil</button></div>
        <div class="grid">
-         <div><label class="f">Departman Amiri</label>${inp(d.amir&&d.amir.ad,`orgDepAmir('${K}',${i},'ad',this.value)`,'isim')}</div>
-         <div><label class="f">Amir E-postası</label>${inp(d.amir&&d.amir.mail,`orgDepAmir('${K}',${i},'mail',this.value)`,'e-posta','email')}</div>
+         <div><label class="f">Departman Amiri</label>${inp(d.amir&&d.amir.ad,`orgDepAmir(${KJ},${i},'ad',this.value)`,'isim')}</div>
+         <div><label class="f">Amir E-postası</label>${inp(d.amir&&d.amir.mail,`orgDepAmir(${KJ},${i},'mail',this.value)`,'e-posta','email')}</div>
        </div>
        <div style="margin-top:8px"><label class="f">Çalışanlar <span class="hint" style="font-weight:400">— bu amire bağlı; onayları departman amirine gider</span></label>
          ${(d.calisanlar||[]).map((c,j)=>`<div class="grid" style="margin-top:6px">
-           <div>${inp(c.ad,`orgCalSet('${K}',${i},${j},'ad',this.value)`,'isim')}</div>
-           <div>${inp(c.pozisyon,`orgCalSet('${K}',${i},${j},'pozisyon',this.value)`,'pozisyon','text2')}</div>
-           <div style="display:flex;gap:6px">${inp(c.mail,`orgCalSet('${K}',${i},${j},'mail',this.value)`,'e-posta','email')}<button class="btn sm" title="Sil" onclick="orgCalSil('${K}',${i},${j})">×</button></div>
+           <div>${inp(c.ad,`orgCalSet(${KJ},${i},${j},'ad',this.value)`,'isim')}</div>
+           <div>${inp(c.pozisyon,`orgCalSet(${KJ},${i},${j},'pozisyon',this.value)`,'pozisyon','text2')}</div>
+           <div style="display:flex;gap:6px">${inp(c.mail,`orgCalSet(${KJ},${i},${j},'mail',this.value)`,'e-posta','email')}<button class="btn sm" title="Sil" onclick="orgCalSil(${KJ},${i},${j})">×</button></div>
          </div>`).join('')}
-         <button class="btn sm" style="margin-top:6px" onclick="orgCalEkle('${K}',${i})">+ Çalışan</button>
+         <button class="btn sm" style="margin-top:6px" onclick="orgCalEkle(${KJ},${i})">+ Çalışan</button>
        </div>
      </div>`).join('')}
-     <button class="btn sm pri" style="margin-top:8px" onclick="orgDepEkle('${K}')">+ Departman Ekle</button>
+     <button class="btn sm pri" style="margin-top:8px" onclick="orgDepEkle(${KJ})">+ Departman Ekle</button>
    </div></div>`; }).join('') || '<div class="anEmpty">Aktif lokasyon yok.</div>';
 }
 /* lokasyonlar */
@@ -5041,7 +5197,7 @@ function delLok(id){
 function renderUsr(){
   $('usrBody').innerHTML=USR.map(u=>{
     const sel=(u.loklar||[]);
-    const lokChips=LOK.map(l=>`<span class="chip ${sel.includes(l.kod)?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok('${u.id}','${esc(l.kod)}')">${esc(l.kod)}</span>`).join('');
+    const lokChips=LOK.map(l=>`<span class="chip ${sel.includes(l.kod)?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok('${u.id}',${jsA(l.kod)})">${esc(l.kod)}</span>`).join('');
     return `<tr>
     <td><input type="text" value="${esc(u.ad)}" oninput="setU('${u.id}','ad',this.value)" onchange="usrYaziBitti('${u.id}')">
         <input type="email" value="${esc(u.mail)}" class="${u.mail&&!sirketMailMi(u.mail)?'bad':''}" onfocus="this.dataset.eski=this.value" oninput="setU('${u.id}','mail',this.value)" onchange="usrMailBitti('${u.id}',this)" style="margin-top:3px" placeholder="ad.soyad@${esc(sirketAlanlari()[0])}">
@@ -5178,7 +5334,7 @@ function kisiFiltre(){
   const rows=PERS.filter(p=>!q||[p.ad,p.sicil,p.gorev,p.lok,p.mail].join(' ').toLowerCase().includes(q)).slice(0,200);
   $('ksList').innerHTML=rows.map(p=>{
     const var_=p.mail&&t.has(p.mail.toLowerCase()), disAdr=p.mail&&!sirketMailMi(p.mail);
-    return `<div class="u" ${var_||disAdr?'style="opacity:.5;cursor:default"':`onclick="kisiEkle('${esc(p.sicil)}')"`}>
+    return `<div class="u" ${var_||disAdr?'style="opacity:.5;cursor:default"':`onclick="kisiEkle(${jsA(p.sicil)})"`}>
       <div class="av">${esc(bas(p.ad))}</div>
       <div class="n"><div>${esc(p.ad)} ${var_?'<span class="pill p-gry">zaten tanımlı</span>':''}${disAdr?'<span class="pill p-red">şirket adresi değil</span>':''}</div>
         <div>${esc(p.sicil)} · ${esc(p.gorev||'—')} · ${esc(p.lok||'—')} · ${esc(p.mail||'e-posta yok')}</div></div></div>`;
@@ -5202,17 +5358,17 @@ function delUsr(id){
 function renderPoz(){
   $('pozBody').innerHTML=POZ.map(p=>{
     const kisi=USR.filter(u=>u.pozisyon===p.kod).length;
-    const cb=f=>`<td style="text-align:center"><input type="checkbox" ${p[f]?'checked':''} onchange="setPoz('${esc(p.kod)}','${f}',this.checked)" style="width:auto"></td>`;
+    const cb=f=>`<td style="text-align:center"><input type="checkbox" ${p[f]?'checked':''} onchange="setPoz(${jsA(p.kod)},'${f}',this.checked)" style="width:auto"></td>`;
     return `<tr>
-      <td><input type="text" value="${esc(p.ad)}" oninput="setPoz('${esc(p.kod)}','ad',this.value)" onchange="pozYaziBitti()" style="font-weight:600">
+      <td><input type="text" value="${esc(p.ad)}" oninput="setPoz(${jsA(p.kod)},'ad',this.value)" onchange="pozYaziBitti()" style="font-weight:600">
           <div class="alt">kod: ${esc(p.kod)}</div></td>
-      <td><input type="text" value="${esc(p.aciklama||'')}" oninput="setPoz('${esc(p.kod)}','aciklama',this.value)" onchange="pozYaziBitti()"></td>
-      <td><select onchange="setPoz('${esc(p.kod)}','kapsam',this.value)">
+      <td><input type="text" value="${esc(p.aciklama||'')}" oninput="setPoz(${jsA(p.kod)},'aciklama',this.value)" onchange="pozYaziBitti()"></td>
+      <td><select onchange="setPoz(${jsA(p.kod)},'kapsam',this.value)">
         <option value="own"${p.kapsam==='own'?' selected':''}>Atandığı lokasyonlar</option>
         <option value="all"${p.kapsam==='all'?' selected':''}>Tüm lokasyonlar</option></select></td>
       ${cb('kayit')}${cb('aksiyon')}${cb('ayar')}${cb('saglik')}
       <td>${kisi?`<span class="pill p-blu">${kisi}</span>`:'—'}</td>
-      <td><button class="btn sm" onclick="delPoz('${esc(p.kod)}')">Sil</button></td></tr>`;
+      <td><button class="btn sm" onclick="delPoz(${jsA(p.kod)})">Sil</button></td></tr>`;
   }).join('')||'<tr><td colspan="9" class="empty">Pozisyon yok.</td></tr>';
 }
 function setPoz(kod,f,v){
@@ -5518,7 +5674,11 @@ function wipe(){
 /* ══════════ CSV / YEDEK ══════════ */
 function dl(name,text){ const b=new Blob(['﻿'+text],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
-const cs=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+/* GÜVENLİK (SAST B9): = + @ sekme/CR ile (ya da - ardından rakam olmayan) başlayan hücre Excel'de
+   formül olarak çalışır → başına ' eklenir. Eksiyle başlayan değer YALNIZ saf sayıysa ("-5", "-2,5")
+   olduğu gibi kalır — "-2+3+…" gibi bir ifade formül sayılır ve kaçışlanır (yama sonrası sınamada bulundu). */
+const cs=v=>{ let s=String(v==null?'':v); if(/^[=+@\t\r]/.test(s) || (/^-/.test(s) && !/^-\d+([.,]\d+)?$/.test(s))) s="'"+s;
+  return '"'+s.replace(/"/g,'""')+'"'; };
 const csv=(h,rows,name)=>dl(name,[h,...rows].map(r=>r.map(cs).join(';')).join('\r\n'));
 function csvReg(){
   csv(['Olay No','Durum','Lokasyon kodu','Lokasyon','Tarih','Saat','Yer','Faaliyet','Olay türü','Olay kaynağı','Sonuç','Yaralı','Kayıp gün','İş durdurma','Maddi hasar','Resmî bildirim','Kurumlar','Bildiren','Bildiren sicil','Kaydı giren','Açıklama','Acil önlemler','Tanıklar','Bulgular',...KOK_KAT.map(k=>'Kök sebep: '+k.ad),'Kök sebep: diğer','Kök sebep analizi','Öğrenilen ders','Kişiler','Aksiyon','Ek','İlk bildirim alıcıları','Rapor alıcıları'],
@@ -5606,11 +5766,26 @@ function restore(inp){
   rd.onload=()=>{
     let d; try{ d=JSON.parse(rd.result); }catch(e){ toast('Dosya okunamadı'); return; }
     if(!d||!Array.isArray(d.kayitlar)){ toast('Bu bir yedek dosyası değil'); return; }
+    /* GÜVENLİK (SAST B4): kimlik/kod biçimi bozuk yedek yüklenmez — kurcalanmış dosya olabilir */
+    { const n=veriDenetle(d);
+      if(n){ alert('Bu yedek dosyası YÜKLENMEDİ.\n\n'+n+' alanda geçersiz kimlik/kod var (izin verilen: harf, rakam, - ve _).\nDosya portaldan alınmış bir yedek değil ya da sonradan değiştirilmiş olabilir.'); return; } }
     if(!confirm(`Yedekte ${d.kayitlar.length} kayıt var.\n\nDİKKAT: mevcut ${RECS.length} kayıt ile lokasyon/kullanıcı/dağıtım ayarları bu yedekle DEĞİŞTİRİLECEK. Devam edilsin mi?`)) return;
     SET_HOLD=false; SET_DIRTY=false;   // geri yükleme anında yazılır (beklet modunu atla)
     RECS=d.kayitlar;
     if(Array.isArray(d.bagimsizAksiyonlar)){ SACT=d.bagimsizAksiyonlar; saveSact(); }
-    if(d.genel) GEN=d.genel;
+    if(d.genel){
+      /* GÜVENLİK (SAST B4): yedek, posta gönderim ucunu / test adresini / portal adresini SESSİZCE
+         değiştiremez — değişiklik varsa ayrıca ve açıkça sorulur; onaylanmazsa mevcut değerler kalır. */
+      const hassas=['mailWebhook','mailKanal','testModu','testMail','portalUrl'];
+      const fark=hassas.filter(k=>String(d.genel[k]==null?'':d.genel[k])!==String(GEN[k]==null?'':GEN[k]));
+      const ng=Object.assign({},d.genel);
+      if(fark.length && !confirm('DİKKAT — YEDEK E-POSTA AYARLARINI DEĞİŞTİRİYOR\n\n'
+          +fark.map(k=>'· '+k+'\n    şu an : '+(GEN[k]==null||GEN[k]===''?'(boş)':GEN[k])+'\n    yedek : '+(d.genel[k]==null||d.genel[k]===''?'(boş)':d.genel[k])).join('\n')
+          +'\n\nBu ayarlar olay bildirimlerinin (sağlık verisi dahil) NEREYE gönderileceğini belirler.\n'
+          +'Yedekteki değerler uygulansın mı?\n\n(İptal = mevcut e-posta ayarları korunur, geri kalan yedek yüklenir)'))
+        fark.forEach(k=>{ if(GEN[k]===undefined) delete ng[k]; else ng[k]=GEN[k]; });
+      GEN=ng;
+    }
     if(Array.isArray(d.lokasyonlar)&&d.lokasyonlar.length) LOK=d.lokasyonlar;
     if(Array.isArray(d.pozisyonlar)&&d.pozisyonlar.length) POZ=d.pozisyonlar;
     if(Array.isArray(d.kullanicilar)&&d.kullanicilar.length) USR=d.kullanicilar;
@@ -5806,7 +5981,7 @@ const ICO_AYAR='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stro
 const AN_AD={tur:'Olay türü',sonuc:'Olay sonucu',kaynak:'Olay kaynağı',kok:'Kök sebep',kokTek:'Kök sebep (özel)',lok:'Lokasyon',yara:'Yaralanma türü',bolge:'Vücut bölgesi',bulgu:'Bulgular'};
 const kokTekAd = s => s.split(' — ').slice(1).join(' — ')||s;
 let anFiltre=null;
-const qA = s => "'"+String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";
+const qA = s => jsA(s);   /* GÜVENLİK (SAST B3): yalnız onclick özniteliğinde kullanılıyor — JS + HTML kaçışı */
 /* Kök sebep öneki eşleştirme — kategori adları Başlık Biçimi'ne çevrildi; ESKİ kayıtlar küçük harfli önek taşıdığı için eşleşme harf duyarsız yapılır. */
 const kokOnek = (s,ad) => String(s||'').toLocaleLowerCase('tr').startsWith(String(ad||'').toLocaleLowerCase('tr')+' — ');
 const katOf = s => { const k=KOK_KAT.find(c=>kokOnek(s,c.ad)); return k?k.ad:'Diğer'; };
@@ -6305,6 +6480,9 @@ function kvkkOzet(say){
        çıkar → kvkkAyikla (geri dönüşsüz) → sınıflandır/terim say →
        yalnız TÜRETİLMİŞ sonucu sakla (tür, terim kodları, sayılar). */
 const BELGE_SURUM = '2026.09.18';
+/* GÜVENLİK (SAST B1, 19.10.2026): pdf.js 3.11.174 CVE-2024-4367'den etkilenir — hazırlanmış yazı tipli
+   bir PDF, isEvalSupported açıkken portal kökeninde kod çalıştırır. Her getDocument çağrısı
+   isEvalSupported:false ile yapılır (resmî azaltım). Kalıcı çözüm: lib/ → pdf.js ≥ 4.2.67. */
 let LIB_KOK = null;
 const PDF_CDN      = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDF_ISCI_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -6312,6 +6490,11 @@ const OCR_CDN      = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/
 const OCR_EN_FAZLA_SAYFA = 20;
 const BELGE_EN_BUYUK = 25*1024*1024;
 
+const CDN_SRI = {
+  'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js':'sha384-HtsDY8wVihpnviltxuJhKpX0ahqMUgvnzrXcW39KBNui4JooW+YJb1YxvQmNoFDZ',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js':'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e',
+  'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js':'sha384-Ptw8HCYAWF6vIop6WuGxfSCiDCIzUWqjrHYfx8Vd0S4CMBaicAdBh2y+Ufle664A'
+};
 const _betikler={};
 function betikYukle(yerel, cdn){
   if(_betikler[yerel]) return _betikler[yerel];
@@ -6319,6 +6502,9 @@ function betikYukle(yerel, cdn){
     const dene=(url,sonraki)=>{
       const s=document.createElement('script');
       s.src=url;
+      /* GÜVENLİK (SAST B8): CDN'den gelen betik bütünlük karmasıyla doğrulanır — değiştirilmişse
+         tarayıcı ÇALIŞTIRMAZ. Karmalar lib/ kopyalarıyla ve npm resmî paketleriyle birebir aynı. */
+      if(CDN_SRI[url]){ s.integrity=CDN_SRI[url]; s.crossOrigin='anonymous'; }
       s.onload=()=>res(url);
       s.onerror=()=>{ s.remove(); if(sonraki) sonraki(); else rej(new Error('yüklenemedi: '+url)); };
       document.head.appendChild(s);
@@ -6374,7 +6560,7 @@ function pdfMetin(buf){
   return kitaplikYukle('pdf.min.js', PDF_CDN).then(k=>{
     const pdfjs=window.pdfjsLib; if(!pdfjs) throw new Error('pdf.js yüklenemedi');
     pdfjs.GlobalWorkerOptions.workerSrc = k.yerelMi ? (k.kok+'pdf.worker.min.js') : PDF_ISCI_CDN;
-    return pdfjs.getDocument({data:buf.slice(0)}).promise;
+    return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false}).promise;
   }).then(pdf=>{
     const n=Math.min(pdf.numPages, OCR_EN_FAZLA_SAYFA), isler=[];
     for(let i=1;i<=n;i++) isler.push(pdf.getPage(i).then(p=>p.getTextContent()));
@@ -6402,7 +6588,7 @@ function pdfKanvas(buf, ilerle){
   return kitaplikYukle('pdf.min.js', PDF_CDN).then(k=>{
     const pdfjs=window.pdfjsLib; if(!pdfjs) throw new Error('pdf.js yüklenemedi');
     pdfjs.GlobalWorkerOptions.workerSrc = k.yerelMi ? (k.kok+'pdf.worker.min.js') : PDF_ISCI_CDN;
-    return pdfjs.getDocument({data:buf.slice(0)}).promise;   /* kopya: pdf.js tamponu devralıp boşaltıyor */
+    return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false}).promise;   /* kopya: pdf.js tamponu devralıp boşaltıyor */
   }).then(pdf=>{
     const toplam=Math.min(pdf.numPages, OCR_EN_FAZLA_SAYFA), kanvaslar=[];
     let z=Promise.resolve();
@@ -7952,7 +8138,8 @@ function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); re
   cur=blank(); gateKilit(true); gateRender();
   // aynı sekmede oturum sürüyorsa geri yükle (sekme kapanınca düşer)
   let prev=null; try{ prev=sessionStorage.getItem('hse::HOB::ses'); }catch(e){}
-  if(prev && USR.find(u=>u.id===prev&&u.aktif)) giris(prev);
+  if(msAktif()) msBaslat();                                   /* SAST B5: Microsoft girişi zorunlu */
+  else if(prev && USR.find(u=>u.id===prev&&u.aktif)) giris(prev);
 })();
 window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeOv('ovMail'); closeOv('ovSend'); closeOv('ovRec'); closeOv('ovAct'); } });
 /* Analiz: grafik dilimi/çubuğu DIŞINDA bir yere (kart boşluğu, pasta dışı, sayfa boşluğu) tıklayınca kümüle sonuçlara dön */
@@ -8222,7 +8409,7 @@ async function airCek(){
   try{
     airLog('Lokasyonlar okunuyor…'); const lokR=await airListe(AIR_T.lok);
     const lokKod={}; lokR.forEach(x=>{ lokKod[x.id]=(x.fields||{})['Kod']||''; });
-    const linkKod = v => (Array.isArray(v)&&v.length) ? (lokKod[v[0]]||'') : '';
+    const linkKod = v => { const k=(Array.isArray(v)&&v.length) ? (lokKod[v[0]]||'') : ''; return VK_KOD.test(k)?k:''; };   /* GÜVENLİK (SAST B4) */
 
     airLog('Olaylar okunuyor…');     const oR=await airListe(AIR_T.olay);
     airLog('Kazazedeler okunuyor…'); const kR=await airListe(AIR_T.kisi);
@@ -8231,7 +8418,7 @@ async function airCek(){
     let oYeni=0, oGun=0, kSay=0, aSay=0, atlanan=0;
     oR.forEach(rec=>{
       const f=rec.fields||{}, pid=f[PK]||'';
-      if(!pid){ atlanan++; return; }
+      if(!pid || !VK_ID.test(pid)){ atlanan++; return; }   /* GÜVENLİK (SAST B4) */
       let r=RECS.find(x=>x.id===pid);
       if(!r){ r=Object.assign(blank(),{id:pid, kisiler:[], aksiyonlar:[]}); RECS.push(r); oYeni++; } else oGun++;
       const tur=f['Olay Türü']||'';
@@ -8254,7 +8441,7 @@ async function airCek(){
     });
     kR.forEach(rec=>{
       const f=rec.fields||{}, p=String(f[PK]||'').split('::');
-      if(p.length!==2){ atlanan++; return; }
+      if(p.length!==2 || !VK_ID.test(p[0]) || !VK_ID.test(p[1])){ atlanan++; return; }   /* GÜVENLİK (SAST B4) */
       const r=RECS.find(x=>x.id===p[0]); if(!r){ atlanan++; return; }
       r.kisiler=r.kisiler||[];
       let k=r.kisiler.find(x=>x.id===p[1]);
@@ -8268,7 +8455,7 @@ async function airCek(){
     });
     aR.forEach(rec=>{
       const f=rec.fields||{}, p=String(f[PK]||'').split('::');
-      if(p.length!==2){ atlanan++; return; }
+      if(p.length!==2 || !VK_ID.test(p[0]) || !VK_ID.test(p[1])){ atlanan++; return; }   /* GÜVENLİK (SAST B4) */
       const ortak={ tanim:f['Aksiyon Tanımı']||'', sorumlu:f['Sorumlu']||'',
         sorumluMail:f['Sorumlu E-posta']||'', birim:f['Birim']||'', termin:f['Termin']||'',
         oncelik:f['Öncelik']||'Orta', not:f['Not']||'',
@@ -8292,6 +8479,7 @@ async function airCek(){
       }
       aSay++;
     });
+    veriTemizle();   /* GÜVENLİK (SAST B4): içe alınan her şey son kez denetlenir */
     saveRecs(); saveSact();
     if(typeof renderReg==='function') renderReg();
     if(typeof renderAct==='function') renderAct();
