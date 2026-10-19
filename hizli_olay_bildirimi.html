@@ -680,6 +680,9 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
         <div class="f" style="text-align:center;margin-bottom:10px">Şirket hesabınızla giriş yapın</div>
         <button class="giris" id="gateMsBtn" onclick="msGirisBaslat()">Microsoft hesabıyla giriş</button>
         <div id="gateMsErr" style="color:#ff8a80;font-size:12.5px;margin-top:10px;text-align:center"></div>
+        <label style="display:flex;align-items:center;justify-content:center;gap:8px;color:#e6e6e6;font-size:13px;margin-top:12px;cursor:pointer">
+          <input type="checkbox" id="gateMsHatirla" checked style="width:16px;height:16px;accent-color:#F5C518"> Beni hatırla</label>
+        <div style="color:#9aa0a6;font-size:11.5px;margin-top:6px;text-align:center;line-height:1.45">İşaretliyse oturum bu cihazda açık kalır; sahada internet olmasa da açılır.<br><b style="color:#F5C518">Ortak cihazda işareti kaldırın ya da işiniz bitince Çıkış yapın.</b></div>
       </div>
       <div id="gateKlasik">
       <label class="f">E-posta Adresiniz</label>
@@ -2185,7 +2188,21 @@ const bolgeOf = kod => { const l=LOK.find(x=>x.kod===kod); if(l&&l.bolge) return
    Bu değerler GİZLİ DEĞİLDİR; kodda durmaları güvenlik açığı değildir. Ayarlar ekranından
    ve yedekten DEĞİŞTİRİLEMEZ (yalnız kod yayınıyla) — girişi kimse ekrandan kapatamaz.
    NOT: Veri her cihazın kendi tarayıcısında durduğu için bu giriş, cihazı ele geçiren
-   birine karşı tam koruma değildir; ortak cihaz ve adres paylaşımı senaryosunu kapatır. */
+   birine karşı tam koruma değildir; ortak cihaz ve adres paylaşımı senaryosunu kapatır.
+   OTURUM CİHAZDA KALIR (kullanıcı kararı 19.10.2026): sahada internet yokken de olay
+   bildirilebilsin diye Microsoft oturumu localStorage'da tutulur. Karşılığında:
+     • internet varken her açılışta oturum Microsoft'a SESSİZCE yeniden doğrulatılır;
+       hesap kapatılmış / şifre değişmiş / oturum düşmüşse yeniden giriş istenir;
+     • son başarılı doğrulamadan MS_CEVRIMDISI_GUN günden fazla geçtiyse internetsiz
+       açılış da reddedilir (işten ayrılan kişi cihazda süresiz kalamaz);
+     • "Çıkış" cihazdaki Microsoft oturum kayıtlarını internet olmasa da siler. */
+const MS_CEVRIMDISI_GUN = 14;
+const MS_DOGRULAMA_KEY = 'hse::HOB::msDogrulama';
+/* "Beni hatırla" (kullanıcı kararı 19.10.2026): varsayılan AÇIK. Kapalıysa oturum
+   sessionStorage'da tutulur ve uygulama kapanınca biter. Seçim girişten ÖNCE saklanır
+   çünkü Microsoft dönüşünde kitaplık aynı depoyla yeniden kurulmalı. */
+const MS_HATIRLA_KEY = 'hse::HOB::msHatirla';
+const msHatirla = () => { try{ return localStorage.getItem(MS_HATIRLA_KEY)!=='0'; }catch(e){ return true; } };
 const MS_GIRIS = {
   tenantId: '',            /* BT'den: Dizin (kiracı) kimliği — sif.com.tr */
   clientId: '',            /* BT'den: Uygulama (istemci) kimliği */
@@ -2204,7 +2221,7 @@ async function msHazirla(){
     auth:{ clientId:MS_GIRIS.clientId, authority:'https://login.microsoftonline.com/'+MS_GIRIS.tenantId,
            redirectUri: location.origin+location.pathname, postLogoutRedirectUri: location.origin+location.pathname,
            navigateToLoginRequestUrl:false },
-    cache:{ cacheLocation:'sessionStorage', storeAuthStateInCookie:false }
+    cache:{ cacheLocation: msHatirla()?'localStorage':'sessionStorage', storeAuthStateInCookie:false }
   });
   if(typeof MS_PCA.initialize==='function') await MS_PCA.initialize();
   return MS_PCA;
@@ -2215,12 +2232,43 @@ async function msBaslat(){
   try{
     const pca=await msHazirla();
     const sonuc=await pca.handleRedirectPromise();
-    const hesap=(sonuc&&sonuc.account) || pca.getAllAccounts()[0] || null;
-    if(hesap) msHesapGiris(hesap);
+    if(sonuc && sonuc.account){ msDogrulandi(); msHesapGiris(sonuc.account); return; }   /* yeni giriş */
+    const hesap=pca.getAllAccounts()[0] || null;
+    if(!hesap) return;
+    /* Kayıtlı oturum: internet varsa Microsoft'a sessizce yeniden doğrulat */
+    if(navigator.onLine!==false){
+      try{ await pca.acquireTokenSilent({ scopes:['openid','profile','email'], account:hesap, forceRefresh:true });
+           msDogrulandi(); }
+      catch(e){
+        if(msEtkilesimGerekli(e)){ msOturumuSil(); msHata('Oturumunuzun yenilenmesi gerekiyor — yeniden giriş yapın.'); return; }
+        /* ağ hatası vb.: çevrimdışı gibi davran (aşağıdaki süre sınırı geçerli) */
+      }
+    }
+    if(!msDogrulamaTaze()){ msOturumuSil(); msHata('Oturum '+MS_CEVRIMDISI_GUN+' günden uzun süredir doğrulanamadı. İnternete bağlanıp yeniden giriş yapın.'); return; }
+    msHesapGiris(hesap);
   }catch(e){ msHata('Microsoft girişi başlatılamadı: '+(e&&e.message||e)); }
+}
+function msEtkilesimGerekli(e){
+  const ad=String(e&&(e.errorCode||e.name)||'');
+  return (window.msal && window.msal.InteractionRequiredAuthError && e instanceof window.msal.InteractionRequiredAuthError)
+    || /interaction_required|login_required|consent_required|invalid_grant|no_tokens_found|InteractionRequired/i.test(ad);
+}
+function msDogrulandi(){ try{ (msHatirla()?localStorage:sessionStorage).setItem(MS_DOGRULAMA_KEY, String(Date.now())); }catch(e){} }
+function msDogrulamaTaze(){
+  let t=0; try{ t=parseInt((msHatirla()?localStorage:sessionStorage).getItem(MS_DOGRULAMA_KEY)||'0',10)||0; }catch(e){}
+  const simdi=Date.now();
+  return t>0 && t<=simdi+60000 && (simdi-t) < MS_CEVRIMDISI_GUN*86400000;
+}
+/* Cihazdaki Microsoft oturum kayıtlarını siler (internet gerekmez) */
+function msOturumuSil(){
+  MS_HESAP=null;
+  try{ Object.keys(localStorage).forEach(k=>{ if(k===MS_DOGRULAMA_KEY || k.indexOf(MS_GIRIS.clientId)>=0 || /^msal\./i.test(k)) localStorage.removeItem(k); }); }catch(e){}
+  try{ Object.keys(sessionStorage).forEach(k=>{ if(k===MS_DOGRULAMA_KEY || k.indexOf(MS_GIRIS.clientId)>=0 || /^msal\./i.test(k)) sessionStorage.removeItem(k); }); }catch(e){}
 }
 async function msGirisBaslat(){
   msHata('');
+  { const k=$('gateMsHatirla'); const yeni=k&&!k.checked?'0':'1';
+    try{ if(localStorage.getItem(MS_HATIRLA_KEY)!==yeni && MS_PCA) MS_PCA=null; localStorage.setItem(MS_HATIRLA_KEY,yeni); }catch(e){} }
   try{ const pca=await msHazirla();
     await pca.loginRedirect({ scopes:['openid','profile','email'], prompt:'select_account' });
   }catch(e){ msHata('Microsoft girişine yönlendirilemedi: '+(e&&e.message||e)); }
@@ -2269,7 +2317,8 @@ function gateRender(){
      olmadığı için uygulama kilitlenir. Giriş ekranı bu durumda yetkiyi
      geri vermeyi teklif eder — aksi halde tek çıkış depoyu silmek olurdu. */
   { const ms=msAktif(); const k=$('gateKlasik'), m=$('gateMs');
-    if(k) k.style.display = ms?'none':''; if(m) m.style.display = ms?'':'none'; }
+    if(k) k.style.display = ms?'none':''; if(m) m.style.display = ms?'':'none';
+    const h=$('gateMsHatirla'); if(h) h.checked = msHatirla(); }
   const yok = aktifAdmin().length===0 && (!msAktif() || !!MS_HESAP);
   $('gateRecover').innerHTML = yok ? `
     <div class="warn" style="background:var(--red-light);border-color:var(--red);color:var(--red-700)">
@@ -2343,8 +2392,9 @@ function gateKilit(acik){
 }
 function cikis(){ SES=null; try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){}
   /* SAST B5: Microsoft oturumu da kapatılır (ortak cihazda bir sonraki kişi açık oturum bulmasın) */
-  if(msAktif() && MS_PCA && MS_HESAP){ const h=MS_PCA.getAllAccounts()[0]; MS_HESAP=null;
-    try{ MS_PCA.logoutRedirect({account:h, postLogoutRedirectUri:location.origin+location.pathname}); }catch(e){} return; }
+  if(msAktif()){ const h=MS_PCA?MS_PCA.getAllAccounts()[0]:null; msOturumuSil();   /* önce cihazdaki kayıtlar (internetsiz de) */
+    if(MS_PCA && navigator.onLine!==false){ try{ MS_PCA.logoutRedirect({account:h, postLogoutRedirectUri:location.origin+location.pathname}); return; }catch(e){} }
+    $('gate').style.display=''; gateKilit(true); gateRender(); return; }
   if(typeof ogrDurdur==='function') ogrDurdur();   /* oturum yokken arka planda model kurulmasın */
   $('gate').style.display='';            /* CSS'teki flex düzeni (grid içerik sola kaydırıyordu) */
   gateKilit(true); gateRender(); }
