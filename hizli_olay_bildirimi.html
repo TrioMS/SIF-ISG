@@ -6537,19 +6537,19 @@ function kvkkOzet(say){
        çıkar → kvkkAyikla (geri dönüşsüz) → sınıflandır/terim say →
        yalnız TÜRETİLMİŞ sonucu sakla (tür, terim kodları, sayılar). */
 const BELGE_SURUM = '2026.09.18';
-/* GÜVENLİK (SAST B1, 19.10.2026): pdf.js 3.11.174 CVE-2024-4367'den etkilenir — hazırlanmış yazı tipli
-   bir PDF, isEvalSupported açıkken portal kökeninde kod çalıştırır. Her getDocument çağrısı
-   isEvalSupported:false ile yapılır (resmî azaltım). Kalıcı çözüm: lib/ → pdf.js ≥ 4.2.67. */
+/* GÜVENLİK (SAST B1, 19.10.2026): pdf.js 3.11.174 → 6.4.299 (legacy derleme) — CVE-2024-4367
+   (hazırlanmış yazı tipli PDF ile modül kökeninde kod çalıştırma). 4.x'ten beri yalnız ES modülü
+   (.mjs): klasik <script>/window.pdfjsLib yok, import() ile yüklenir. CDN yedeği YOK: cdnjs'te 6.x
+   yok ve bütünlüğü denetlenemeyen kod yüklenmesin — yalnız lib/'den (HSE/Kur/ocr_indir.ps1, npm
+   paketi SHA-512 doğrulamalı). Sunucu .mjs'i text/javascript türüyle sunmalı (.claude/serve.ps1). */
 let LIB_KOK = null;
-const PDF_CDN      = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-const PDF_ISCI_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const PDF_SURUM    = '6.4.299';
 const OCR_CDN      = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js';
 const OCR_EN_FAZLA_SAYFA = 20;
 const BELGE_EN_BUYUK = 25*1024*1024;
 
 const CDN_SRI = {
   'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js':'sha384-HtsDY8wVihpnviltxuJhKpX0ahqMUgvnzrXcW39KBNui4JooW+YJb1YxvQmNoFDZ',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js':'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e',
   'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js':'sha384-Ptw8HCYAWF6vIop6WuGxfSCiDCIzUWqjrHYfx8Vd0S4CMBaicAdBh2y+Ufle664A'
 };
 const _betikler={};
@@ -6584,6 +6584,32 @@ function libKoku(){
 function kitaplikYukle(ad, cdn){
   return libKoku().then(kok=>betikYukle((kok||'lib/')+ad, cdn).then(kaynak=>({kok, yerelMi:!!kok && kaynak.indexOf(kok)===0})));
 }
+/* pdf.js kökü AYRI aranır: telefon yayınında (GitHub Pages) lib/ altında yalnız pdf dosyaları
+   var, tesseract yok — libKoku() tesseract'a baktığı için orada boş dönüyordu. OCR'ın kökü değişmez. */
+let PDF_KOK=null;
+function pdfKoku(){
+  if(PDF_KOK!==null) return Promise.resolve(PDF_KOK);
+  const adaylar=['lib/', 'HSE/SİF Olay Bildirim Modülü/lib/'];
+  return adaylar.reduce((z,k)=>z.then(bulunan=>{
+    if(bulunan) return bulunan;
+    return fetch(k+'pdf.min.mjs',{cache:'force-cache'})
+      .then(r=>r.ok?k:null).catch(()=>null);
+  }), Promise.resolve(null)).then(k=>{ if(k) PDF_KOK=k; return k||''; });   /* bulunamazsa saklanmaz: kurulumdan sonra yeniden aranır */
+}
+let _pdfjsSoz=null;
+function pdfjsYukle(){
+  if(_pdfjsSoz) return _pdfjsSoz;
+  _pdfjsSoz=pdfKoku().then(kok=>{
+    if(!kok) throw new Error('pdf.js yerel kurulu değil — HSE/Kur/ocr_indir.ps1 bir kez çalıştırılmalı.');
+    const taban=new URL(kok, location.href).href;
+    return import(taban+'pdf.min.mjs').then(m=>{
+      m.GlobalWorkerOptions.workerSrc=taban+'pdf.worker.min.mjs';
+      return m;
+    });
+  });
+  _pdfjsSoz.catch(()=>{ _pdfjsSoz=null; });   /* kurulumdan sonra yeniden denenebilsin */
+  return _pdfjsSoz;
+}
 /* OCR gerçekten yerelden mi çalışıyor? Küçük dosyalar tam indirilir (toplam
    ~500 KB, zaten önbellekte); büyük ikisi için istek açılıp BAŞLIKLAR GELİNCE
    İPTAL edilir — 6 MB inmesin. İptal yerel sunucunun günlüğüne 500 düşürdüğü
@@ -6595,7 +6621,7 @@ function ocrYerelMi(taze){
   if(_OCR_DURUM && !taze) return Promise.resolve(_OCR_DURUM);
   return libKoku().then(kok=>{
     if(!kok) return {yerel:false, kok:'', eksik:['lib/']};
-    const kucuk=['tesseract.min.js','tesseract-worker.min.js','pdf.min.js','pdf.worker.min.js'];
+    const kucuk=['tesseract.min.js','tesseract-worker.min.js','pdf.min.mjs','pdf.worker.min.mjs'];
     const buyuk=['tesseract-core/tesseract-core-simd-lstm.wasm.js','tessdata/tur.traineddata.gz'];
     const tam=d=>fetch(kok+d,{cache:'force-cache'}).then(r=>r.ok?null:d).catch(()=>d);
     const kes=d=>{
@@ -6614,9 +6640,8 @@ function ocrYerelMi(taze){
    tek satır yapıyordu. Sonucu ölçüldü: KVKK ayıklamasındaki "Hazırlayan: …"
    kalıbı satır sonuna kadar okuyup analiz için gereken cümleyi de siliyordu. */
 function pdfMetin(buf){
-  return kitaplikYukle('pdf.min.js', PDF_CDN).then(k=>{
-    const pdfjs=window.pdfjsLib; if(!pdfjs) throw new Error('pdf.js yüklenemedi');
-    pdfjs.GlobalWorkerOptions.workerSrc = k.yerelMi ? (k.kok+'pdf.worker.min.js') : PDF_ISCI_CDN;
+  return pdfjsYukle().then(pdfjs=>{
+    /* isEvalSupported 6.x'te yok (açığın yolu kaldırıldı); eski sürüme dönülürse diye bırakıldı. */
     return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false}).promise;
   }).then(pdf=>{
     const n=Math.min(pdf.numPages, OCR_EN_FAZLA_SAYFA), isler=[];
@@ -6642,9 +6667,7 @@ function pdfMetin(buf){
    "Error attempting to read image" ile biter. Ölçek 2: taranmış belgede
    okumayı belirgin iyileştiriyor, daha yükseği belleği şişiriyor. */
 function pdfKanvas(buf, ilerle){
-  return kitaplikYukle('pdf.min.js', PDF_CDN).then(k=>{
-    const pdfjs=window.pdfjsLib; if(!pdfjs) throw new Error('pdf.js yüklenemedi');
-    pdfjs.GlobalWorkerOptions.workerSrc = k.yerelMi ? (k.kok+'pdf.worker.min.js') : PDF_ISCI_CDN;
+  return pdfjsYukle().then(pdfjs=>{
     return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false}).promise;   /* kopya: pdf.js tamponu devralıp boşaltıyor */
   }).then(pdf=>{
     const toplam=Math.min(pdf.numPages, OCR_EN_FAZLA_SAYFA), kanvaslar=[];
@@ -6657,7 +6680,8 @@ function pdfKanvas(buf, ilerle){
           const vp=p.getViewport({scale:2});
           const c=document.createElement('canvas');
           c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
-          return p.render({canvasContext:c.getContext('2d'), viewport:vp}).promise.then(()=>{ kanvaslar.push(c); });
+          /* pdf.js 5+: canvas parametresi (canvasContext eski yol) */
+          return p.render({canvas:c, viewport:vp}).promise.then(()=>{ kanvaslar.push(c); });
         });
       });
     }
@@ -7062,7 +7086,8 @@ function ocrDurumYaz(){
     e.innerHTML = d.yerel
       ? '<span style="color:var(--green);font-weight:600">OCR yerel — tamamen çevrimdışı.</span>'
       : '<span style="color:var(--amber)">OCR motoru yerel değil: belge yine makineden çıkmaz ama motor '
-        +'ilk kullanımda internetten iner. Tam çevrimdışı için <b>HSE/Kur/ocr_indir.ps1</b> bir kez çalıştırılmalı.</span>';
+        +'ilk kullanımda internetten iner. PDF okuma (pdf.js) ise internet yedeği olmadığı için yerel kurulum olmadan <b>çalışmaz</b>. '
+        +'<b>HSE/Kur/ocr_indir.ps1</b> bir kez çalıştırılmalı.</span>';
   }).catch(()=>{ e.textContent='OCR kurulumu denetlenemedi.'; });
 }
 function ogrPanelYaz(){
