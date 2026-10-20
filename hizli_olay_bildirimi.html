@@ -1715,15 +1715,24 @@ const GEN_SEED = {kod:'SIF', ad:'SİF İş Makineleri', yaklasanGun:7, merkezKod
    veriTemizle(...) izin dışı karakterleri SİLER (aynı dönüşüm her yerde → bağlantılar korunur);
    açılışta ve Airtable çekmesinden sonra çalışır. */
 const VK_ID = /^[A-Za-z0-9_-]{1,64}$/, VK_KOD = /^[A-Za-z0-9_-]{1,24}$/;
+/* Tarih alanları (G14): ISO (2026-10-20T08:30:00.000Z), gg.aa.yyyy, saatli yerel biçim */
+const VK_TARIH = /^[0-9TZ:.,\/ +-]{1,40}$/, VK_TARIH_ALAN = ['tarih','termin','gerceklesme'];
 const vkIdTemiz  = v => String(v).replace(/[^A-Za-z0-9_-]/g,'').slice(0,64) || ('x'+Math.random().toString(36).slice(2,12));
 const vkKodTemiz = v => String(v).replace(/[^A-Za-z0-9_-]/g,'').slice(0,24);
 function vkGez(o, duzelt, say){
   if(Array.isArray(o)){ o.forEach(x=>vkGez(x,duzelt,say)); return; }
   if(!o || typeof o!=='object') return;
   Object.keys(o).forEach(k=>{
-    const v=o[k];
-    if(typeof v==='string' && v!=='' && (k==='id' || /Id$/.test(k)) && !VK_ID.test(v)){
+    const v=o[k], kimlik=(k==='id' || /Id$/.test(k));
+    if(typeof v==='string' && v!=='' && kimlik && !VK_ID.test(v)){
       say.n++; if(duzelt) o[k]=vkIdTemiz(v);
+    /* G15 (20.10.2026): kimlik METİN ya da sayı olmalı — dizi/nesne kimlik denetimden kaçıp
+       '${id}' biçiminde düğmelere giriyordu. */
+    } else if(kimlik && v!=null && v!=='' && typeof v!=='string' && !(typeof v==='number' && isFinite(v))){
+      say.n++; if(duzelt) o[k]=vkIdTemiz('');
+    /* G14 (20.10.2026): tarih alanlarında yalnız tarih/saat karakterleri (ISO, gg.aa.yyyy, saat) */
+    } else if(VK_TARIH_ALAN.includes(k) && v!=null && v!=='' && (typeof v!=='string' || !VK_TARIH.test(v))){
+      say.n++; if(duzelt) o[k]='';
     } else if(v && typeof v==='object') vkGez(v,duzelt,say);
   });
 }
@@ -2073,7 +2082,10 @@ const jsA = s => esc(JSON.stringify(String(s==null?'':s)));
 const uid = () => 'x'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
 const bugun = () => new Date().toISOString().slice(0,10);
 const simdiSaat = () => new Date().toTimeString().slice(0,5);
-const trDate = s => { if(!s) return '—'; const p=String(s).split('-'); return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:s; };
+/* GÜVENLİK (XSS taraması G14, 20.10.2026): çıktı HTML-KAÇIŞLI. ~30 çağıran sonucu doğrudan HTML'e
+   yazıyor; tarih olmayan bir değer (yedek / Airtable / başka kullanıcı) olduğu gibi dönüyordu.
+   Geçerli tarihte (rakam, nokta) kaçışın etkisi yoktur; düz metin yerlerinde de görünüm değişmez. */
+const trDate = s => { if(!s) return '—'; const p=String(s).split('-'); return esc(p.length===3?`${p[2]}.${p[1]}.${p[0]}`:String(s)); };
 /* ── TARİH KUTUSU (gg/aa/yyyy) ─────────────────────────────────
    Native <input type=date> her tarayıcıda gg/aa/yyyy göstermez (görünüm
    tarayıcının diline bağlı, sayfadan zorlanamaz). Bu yüzden tarih alanları
@@ -4186,7 +4198,7 @@ function olayAIRapor(r){
       i=>`oneriAksiyonOlay('${r.id}','${k}',${i})`, r.id);
   };
   const yeniSay=a.yeni?(a.yeni.poz.length+a.yeni.dikkat.length+a.yeni.oneri.length):0;
-  const ozet=`Bu olay <b>${a.n} kayıt</b> bağlamında değerlendirildi (<b>${a.kez}. analiz</b> · ${new Date(a.tarih).toLocaleString('tr-TR')}). `
+  const ozet=`Bu olay <b>${esc(a.n)} kayıt</b> bağlamında değerlendirildi (<b>${esc(a.kez)}. analiz</b> · ${new Date(a.tarih).toLocaleString('tr-TR')}). `
     +(a.trend?`Zaman eğilimi: <b>${esc(a.trend)}</b>. `:'')
     +(a.kez>1 ? (yeniSay?`Önceki analize göre <b>${yeniSay} yeni</b> bulgu/öneri eklendi (YENİ ile işaretli).`:'Önceki analize göre değişiklik yok.') : `${a.items.dikkat.length} dikkat, ${a.items.oneri.length} öneri.`);
   return `<div class="ozet"><span class="aiBadge">${ICO_AI} AI</span>${ozet}</div>
@@ -4194,7 +4206,7 @@ function olayAIRapor(r){
     ${aiGrupHTML('Gelişime Açık / Dikkat', li('dikkat'))}
     ${aiGrupHTML('Öneriler', li('oneri'))}
     ${aiAcilanHTML(aiAcilanAks(r.id), false)}
-    <div class="dip">Bağlamsal, <b>kural tabanlı</b> ve internetsiz üretildi (${a.n} kayıt). Analiz KAYDEDİLDİ; olay yeniden açıldığında korunur, yeniden analizde eklemeler YENİ gösterilir.</div>`;
+    <div class="dip">Bağlamsal, <b>kural tabanlı</b> ve internetsiz üretildi (${esc(a.n)} kayıt). Analiz KAYDEDİLDİ; olay yeniden açıldığında korunur, yeniden analizde eklemeler YENİ gösterilir.</div>`;
 }
 const aiKutuHTML = govde => `<div class="anAI"><h4><span class="rob">${ICO_AI}</span> AI Analiz — Değerlendirme ve Öneriler <small style="margin-left:auto;color:#9aa3b0;font-weight:600">bağlamsal · offline</small></h4><div class="body">${govde}</div></div>`;
 /* "AI Analiz" düğmesi: her tıklamada (yeniden) analiz eder ve KAYDEDER (append) */
@@ -4426,7 +4438,7 @@ function viewRec(id,saltOku){
 
           ${kv('Olay kaynağı',esc(kaynakAd(r)))}
           ${kv('Tamamlanma',tamamTarih)}
-          ${kv('Yaralı / kayıp gün',gizli?M:((r.yaraliSayi||0)+' kişi / '+(r.kayipGun||0)+' gün'))}
+          ${kv('Yaralı / kayıp gün',gizli?M:esc((r.yaraliSayi||0)+' kişi / '+(r.kayipGun||0)+' gün'))}
         </div>
         ${(r.bulgular||[]).length||r.bulguNot?`<div class="dLbl" style="margin-top:12px">Bulgular</div>
           ${(r.bulgular||[]).length?`<div class="chips" style="margin:5px 0">${listeAd(r.bulgular,r.bulgularDiger).map(x=>`<span class="pill p-amb">${esc(x)}</span>`).join('')}</div>`:''}
@@ -5232,7 +5244,7 @@ function renderLok(){
         <input type="text" value="${esc(l.sehir)}" oninput="setL('${l.id}','sehir',this.value)" style="margin-top:3px" placeholder="şehir"></td>
     <td><select onchange="setL('${l.id}','tip',this.value)">${opts(LOK_TIP,l.tip)}</select></td>
     <td><input type="text" value="${esc(l.sgk)}" oninput="setL('${l.id}','sgk',this.value)" placeholder="SGK sicil"></td>
-    <td><input type="number" min="0" value="${l.calisan!=null?l.calisan:''}" oninput="setL('${l.id}','calisan',this.value)" placeholder="—" style="width:72px" title="Bu lokasyondaki çalışan sayısı — '100 Çalışan Başına Olay' KPI'ı için kullanılır"></td>
+    <td><input type="number" min="0" value="${esc(l.calisan!=null?l.calisan:'')}" oninput="setL('${l.id}','calisan',this.value)" placeholder="—" style="width:72px" title="Bu lokasyondaki çalışan sayısı — '100 Çalışan Başına Olay' KPI'ı için kullanılır"></td>
     <td><input type="text" value="${esc(l.yonetici)}" oninput="setL('${l.id}','yonetici',this.value)" placeholder="Ad Soyad">
         <input type="email" value="${esc(l.yoneticiMail)}" oninput="setL('${l.id}','yoneticiMail',this.value)" style="margin-top:3px" placeholder="e-posta"></td>
     <td style="text-align:center"><input type="checkbox" ${l.aktif?'checked':''} onchange="setL('${l.id}','aktif',this.checked)" style="width:auto"></td>
@@ -5381,7 +5393,7 @@ function toggleUsrLok(id,kod){
 }
 function addUsr(pers){
   USR.push({id:uid(), ad:pers?pers.ad:'', mail:pers?(pers.mail||''):'', pozisyon:'kullanici',
-    loklar:pers&&pers.lok?[pers.lok]:[], dis:!pers, aktif:true, durum:'beklemede', ornek:false});
+    loklar:pers&&pers.lok&&VK_KOD.test(pers.lok)?[pers.lok]:[], dis:!pers, aktif:true, durum:'beklemede', ornek:false});
   saveUsr(); renderUsr();
   return USR[USR.length-1];
 }
@@ -7542,7 +7554,7 @@ function aiRapor(){
   AN_AI_SON={ B:B.slice(), O:O.slice(), lok:($('anLok')&&$('anLok').value)||'', etiket:kapsam };
   /* Aksiyona alınan madde bu listelerden ÇIKAR, alt bölümde durumuyla görünür */
   const li = (arr,grp) => aiBekleyenLi(arr, t=>t, i=>`oneriAksiyonAnaliz('${grp}',${i})`, null);
-  return `<div class="ozet"><span class="aiBadge">${ICO_AI} AI</span>${kapsam} kapsamında ${n} olay değerlendirildi. `
+  return `<div class="ozet"><span class="aiBadge">${ICO_AI} AI</span>${esc(kapsam)} kapsamında ${n} olay değerlendirildi. `
       +`${ciddi?'Ciddiyet açısından dikkat gerektiren '+ciddi+' olay var':'Bu kümede ciddi olay bulunmuyor'}; `
       +`odak alanı <b>${topKok?esc(topKok.ad):'—'}</b> ve <b>${topKay?esc(topKay.ad):'—'}</b>.</div>`
     +aiGrupHTML('Bulgular', li(B,'B'))
