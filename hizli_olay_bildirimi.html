@@ -1251,7 +1251,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
         <div class="bar" style="margin-top:12px">
           <button class="btn sm" onclick="backup()">Yedek Al (JSON)</button>
           <button class="btn sm" onclick="document.getElementById('imp').click()">Yedeği Geri Yükle</button>
-          <button class="btn sm" onclick="demoVeriYukle()">Örnek Veri Kur (14 Tür)</button>
+          
           <div style="flex:1"></div>
           <button class="btn red sm" onclick="wipe()">Tüm Olay Kayıtlarını Sil</button>
         </div>
@@ -1430,6 +1430,14 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 <div class="toast" id="toast"></div>
 
 <script>
+/* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
+   uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
+   Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
+   uygulamanın kendi önizlemesi) etkilenmez. */
+(function(){ let yabanci=false;
+  try{ yabanci = window.top!==window.self && window.top.location.origin!==location.origin; }catch(e){ yabanci = true; }
+  if(yabanci){ document.documentElement.innerHTML='<body style="font-family:sans-serif;padding:24px">Bu uygulama başka bir sayfanın içinde açılamaz. <a href="'+location.href.replace(/"/g,'%22')+'" target="_top">Doğrudan açın</a>.</body>';
+    throw new Error('çerçeve içinde açılış engellendi'); } })();
 /* ══════════════════════════════════════════════════════════════
    SİF İŞ MAKİNELERİ · HIZLI OLAY BİLDİRİMİ
    ---------------------------------------------------------------
@@ -1685,24 +1693,10 @@ const LOK_SEED = [
   {kod:'ADA',     bolge:'ADA', ad:'Adana Şube',               tip:'Şube',            sehir:'Adana',    sgk:'', yonetici:'', yoneticiMail:'', aktif:true, ornek:true}
 ];
 const USR_SEED = [
-  {ad:'(uygulama yöneticisi)', mail:'admin@sif.com.tr',     pozisyon:'admin',    loklar:['*'],       dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(İSG koordinatörü)',    mail:'isg@sif.com.tr',       pozisyon:'isgkoor',  loklar:['*'],       dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(dış İSG uzmanı — Ege)',mail:'uzman.ege@sif.com.tr',pozisyon:'isguzman', loklar:['IZM'],     dis:true,  aktif:true, durum:'aktif', ornek:true},
-  {ad:'(dış İSG uzmanı — İç Anadolu)',mail:'uzman.ic@sif.com.tr',pozisyon:'isguzman',loklar:['ANK-HQ','ANK-OPR'],dis:true, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(İzmir şube müdürü)',   mail:'izmir.mudur@sif.com.tr',pozisyon:'tesis',   loklar:['IZM'],     dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(servis lead — İzmir)', mail:'lead.izmir@sif.com.tr',pozisyon:'lead',     loklar:['IZM'],     dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(operatör — İzmir)',    mail:'operator.izmir@sif.com.tr',pozisyon:'operator',loklar:['IZM'],  dis:false, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(işyeri hekimi)',       mail:'hekim@sif.com.tr',     pozisyon:'hekim',    loklar:['IZM','ANK-HQ'],dis:true, aktif:true, durum:'aktif', ornek:true},
-  {ad:'(genel müdür)',         mail:'gm@sif.com.tr',        pozisyon:'yonetim',  loklar:['*'],       dis:false, aktif:true, durum:'aktif', ornek:true}
+
 ];
 const DIST_SEED = [
-  {ad:'(İSG koordinatörü)', unvan:'Merkez İSG Koordinatörü', mail:'isg@sif.com.tr',   lok:'*',   tip:'to', tetik:'both', kapsam:'all',   aktif:true, ornek:true},
-  {ad:'(İSG müdürü)',       unvan:'İSG Müdürü',              mail:'isgmd@sif.com.tr', lok:'*',   tip:'to', tetik:'both', kapsam:'all',   aktif:true, ornek:true},
-  {ad:'(genel müdür)',      unvan:'Genel Müdür',             mail:'gm@sif.com.tr',    lok:'*',   tip:'to', tetik:'send', kapsam:'agir',  aktif:true, ornek:true},
-  {ad:'(İK)',               unvan:'İnsan Kaynakları',        mail:'ik@sif.com.tr',    lok:'*',   tip:'cc', tetik:'send', kapsam:'all',   aktif:true, ornek:true},
-  {ad:'(İzmir şube müdürü)',unvan:'Şube Müdürü',             mail:'izmir.mudur@sif.com.tr', lok:'IZM', tip:'to', tetik:'both', kapsam:'all', aktif:true, ornek:true},
-  {ad:'(Ankara ofis müdürü)',unvan:'Ofis Müdürü',            mail:'ankara.mudur@sif.com.tr',lok:'ANK-HQ', tip:'to', tetik:'both', kapsam:'all', aktif:true, ornek:true},
-  {ad:'(işyeri hekimi)',    unvan:'İşyeri Hekimi',           mail:'hekim@sif.com.tr',lok:'*',   tip:'cc', tetik:'send', kapsam:'agir',  aktif:true, ornek:true}
+
 ];
 const GEN_SEED = {kod:'SIF', ad:'SİF İş Makineleri', yaklasanGun:7, merkezKod:'MRK', grupKod:'GRUP', mailAlan:['sif.com.tr']};
 
@@ -1761,6 +1755,18 @@ function veriTemizle(){
                console.warn('[İSG Portalı] güvenlik: '+n+' geçersiz kimlik/kod temizlendi (kurcalanmış veri olabilir).'); }catch(e){} }
   return n;
 }
+/* G18 (20.10.2026): şirket / merkez / grup kodu kayıt numaralarına girer (SIF-MRK-INC-…) ve ekranda
+   yazılır; Ayarlar'daki biçim kuralı (A-Z 0-9, en çok 8) yedekten ve depodan gelen değere de uygulanır. */
+function genKodTemiz(){
+  if(!GEN) return 0; let n=0;
+  [['kod','SIF'],['merkezKod','MRK'],['grupKod','GRUP']].forEach(([k,vars])=>{
+    if(GEN[k]==null) return;
+    const t=String(GEN[k]).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8) || vars;
+    if(t!==GEN[k]){ GEN[k]=t; n++; }
+  });
+  if(n){ try{ store.set(K.gen,GEN); console.warn('[İSG Portalı] güvenlik: '+n+' ayar kodu biçime getirildi.'); }catch(e){} }
+  return n;
+}
 
 /* ── VERİ ─────────────────────────────────────────────────────── */
 let RECS = store.get(K.rec, []);
@@ -1812,7 +1818,7 @@ if(!LOK.some(l=>l.tip==='Genel Merkez')){
   LOK.unshift({id:'lMRK',kod:GEN.merkezKod,bolge:GEN.merkezKod,ad:'Genel Merkez',tip:'Genel Merkez',sehir:'',sgk:'',yonetici:'',yoneticiMail:'',aktif:true,ornek:true});
   store.set(K.lok,LOK);
 }
-veriTemizle();   /* GÜVENLİK (SAST B4): depoda kurcalanmış kimlik/kod kalmasın */
+veriTemizle(); genKodTemiz();   /* GÜVENLİK (SAST B4, G18): depoda kurcalanmış kimlik/kod kalmasın */
 /* Öğrenme motoru tetikleri: veri her yazıldığında motora haber verilir. Motor
    hemen kurulmaz (12 sn sessizlik bekler) ve imza değişmediyse hiç kurulmaz —
    yani "kayıt açıldı/silindi, belge eklendi/çıkarıldı" anında yakalanır ama
@@ -2777,19 +2783,19 @@ function renderPersons(){
    <div class="arow">
     <div class="ah"><span class="ano">${i+1}. kişi</span><div style="flex:1"></div>
       <button class="btn sm" onclick="kisiSecFor('kisi:${p.id}','Kazazede')">Listeden Seç</button>
-      <button class="btn sm" onclick="delPerson('${p.id}')">Kaldır</button></div>
+      <button class="btn sm" onclick="delPerson(${jsA(p.id)})">Kaldır</button></div>
     <div class="grid">
       <div><label class="f">Sicil No</label><input type="text" list="dlSicil" value="${esc(p.sicil)}" oninput="kisiCoz('kisi:${p.id}','sicil',this.value)"></div>
       <div><label class="f">Ad Soyad</label><input type="text" list="dlAd" value="${esc(p.ad)}" oninput="kisiCoz('kisi:${p.id}','ad',this.value)"></div>
-      <div><label class="f">Görev</label><input type="text" value="${esc(p.gorev)}" oninput="setP('${p.id}','gorev',this.value)"></div>
-      <div><label class="f">Şirket (SİF / Taşeron / Müşteri)</label><input type="text" value="${esc(p.sirket)}" oninput="setP('${p.id}','sirket',this.value)"></div>
-      <div><label class="f">Yaş</label><input type="number" value="${esc(p.yas)}" oninput="setP('${p.id}','yas',this.value)"></div>
+      <div><label class="f">Görev</label><input type="text" value="${esc(p.gorev)}" oninput="setP(${jsA(p.id)},'gorev',this.value)"></div>
+      <div><label class="f">Şirket (SİF / Taşeron / Müşteri)</label><input type="text" value="${esc(p.sirket)}" oninput="setP(${jsA(p.id)},'sirket',this.value)"></div>
+      <div><label class="f">Yaş</label><input type="number" value="${esc(p.yas)}" oninput="setP(${jsA(p.id)},'yas',this.value)"></div>
       <div><label class="f">İşe Giriş Tarihi</label>${tarihKutu(p.iseGiris,`setP('${p.id}','iseGiris',this.dataset.iso)`)}</div>
       ${gizli?`<div class="g2"><label class="f">Sağlık Bilgileri</label><div class="note warn" style="margin:0">Rolünüz özel nitelikli sağlık verisini görmüyor (yaralanma türü, vücut bölgesi, tıbbi müdahale, kayıp gün).</div></div>`
-      :`<div><label class="f">Yaralanma Türü</label><select onchange="setP('${p.id}','yara',this.value)">${opts(YARA,p.yara,true)}</select></div>
-        <div><label class="f">Vücut Bölgesi</label><select onchange="setP('${p.id}','bolge',this.value)">${opts(BOLGE,p.bolge,true)}</select></div>
-        <div><label class="f">Tıbbi Müdahale</label><select onchange="setP('${p.id}','tibbi',this.value)">${opts(TIBBI,p.tibbi)}</select></div>
-        <div><label class="f">Kayıp Gün</label><input type="number" min="0" value="${esc(p.kayipGun)}" oninput="setP('${p.id}','kayipGun',this.value)"></div>`}
+      :`<div><label class="f">Yaralanma Türü</label><select onchange="setP(${jsA(p.id)},'yara',this.value)">${opts(YARA,p.yara,true)}</select></div>
+        <div><label class="f">Vücut Bölgesi</label><select onchange="setP(${jsA(p.id)},'bolge',this.value)">${opts(BOLGE,p.bolge,true)}</select></div>
+        <div><label class="f">Tıbbi Müdahale</label><select onchange="setP(${jsA(p.id)},'tibbi',this.value)">${opts(TIBBI,p.tibbi)}</select></div>
+        <div><label class="f">Kayıp Gün</label><input type="number" min="0" value="${esc(p.kayipGun)}" oninput="setP(${jsA(p.id)},'kayipGun',this.value)"></div>`}
     </div></div>`).join('');
 }
 /* Select'e değer atar; tam eşleşme yoksa harf duyarsız arar (eski kayıt uyumu) */
@@ -2811,12 +2817,12 @@ function renderTaniklar(){
    <div class="arow">
     <div class="ah"><span class="ano">${i+1}. tanık</span><div style="flex:1"></div>
       <button class="btn sm" onclick="kisiSecFor('tanik:${t.id}','Tanık')">Listeden Seç</button>
-      <button class="btn sm" onclick="delTanik('${t.id}')">Kaldır</button></div>
+      <button class="btn sm" onclick="delTanik(${jsA(t.id)})">Kaldır</button></div>
     <div class="grid">
       <div><label class="f">Sicil No</label><input type="text" list="dlSicil" value="${esc(t.sicil)}" oninput="kisiCoz('tanik:${t.id}','sicil',this.value)"></div>
       <div><label class="f">Ad Soyad</label><input type="text" list="dlAd" value="${esc(t.ad)}" oninput="kisiCoz('tanik:${t.id}','ad',this.value)"></div>
-      <div><label class="f">Görev</label><input type="text" value="${esc(t.gorev)}" oninput="setT('${t.id}','gorev',this.value)"></div>
-      <div><label class="f">Şirket</label><input type="text" value="${esc(t.sirket)}" oninput="setT('${t.id}','sirket',this.value)"></div>
+      <div><label class="f">Görev</label><input type="text" value="${esc(t.gorev)}" oninput="setT(${jsA(t.id)},'gorev',this.value)"></div>
+      <div><label class="f">Şirket</label><input type="text" value="${esc(t.sirket)}" oninput="setT(${jsA(t.id)},'sirket',this.value)"></div>
     </div></div>`).join('');
 }
 function setT(id,f,v){ const t=cur.taniklar.find(x=>x.id===id); if(t){ t[f]=v; onFormChange(); } }
@@ -2925,22 +2931,22 @@ function renderYeniAksiyon(){
   const rows=yaBatch.aksiyonlar.map((a,i)=>`
     <div class="yaAksKart">
       <div class="ah"><span class="pill p-gry">Aksiyon ${i+1}</span><div style="flex:1"></div>
-        ${yaBatch.aksiyonlar.length>1?`<button class="btn sm" onclick="yaAksSil('${a.id}')">Kaldır</button>`:''}</div>
+        ${yaBatch.aksiyonlar.length>1?`<button class="btn sm" onclick="yaAksSil(${jsA(a.id)})">Kaldır</button>`:''}</div>
       <div style="margin-bottom:10px"><label class="f">Aksiyon Numarası</label>
         <input type="text" readonly value="${esc(rowNo(a,i))}" style="background:var(--surface2);font-weight:700"></div>
       <div style="margin-bottom:10px"><label class="f">Aksiyon Tanımı <span class="req">*</span></label>
-        <textarea id="yatan_${a.id}" style="min-height:52px" oninput="yaSetA('${a.id}','tanim',this.value)" placeholder="Yapılacak işi tanımlayın">${esc(a.tanim)}</textarea></div>
+        <textarea id="yatan_${a.id}" style="min-height:52px" oninput="yaSetA(${jsA(a.id)},'tanim',this.value)" placeholder="Yapılacak işi tanımlayın">${esc(a.tanim)}</textarea></div>
       <div class="grid">
         ${multi?'':`<div><label class="f">Sorumlu <span class="req">*</span></label>
-          <input type="text" id="yasor_${a.id}" list="dlAlici" value="${esc(a.sorumlu)}" oninput="yaAksSorumlu('${a.id}',this.value)" placeholder="isim yazın"></div>
-        <div><label class="f">Sorumlunun E-postası</label><input type="email" id="yam_${a.id}" value="${esc(a.sorumluMail||'')}" oninput="yaSetA('${a.id}','sorumluMail',this.value)" placeholder="otomatik gelir"></div>`}
-        <div><label class="f">Öncelik</label><select onchange="yaSetA('${a.id}','oncelik',this.value)">${opts(['Yüksek','Orta','Düşük'],a.oncelik)}</select></div>
+          <input type="text" id="yasor_${a.id}" list="dlAlici" value="${esc(a.sorumlu)}" oninput="yaAksSorumlu(${jsA(a.id)},this.value)" placeholder="isim yazın"></div>
+        <div><label class="f">Sorumlunun E-postası</label><input type="email" id="yam_${a.id}" value="${esc(a.sorumluMail||'')}" oninput="yaSetA(${jsA(a.id)},'sorumluMail',this.value)" placeholder="otomatik gelir"></div>`}
+        <div><label class="f">Öncelik</label><select onchange="yaSetA(${jsA(a.id)},'oncelik',this.value)">${opts(['Yüksek','Orta','Düşük'],a.oncelik)}</select></div>
         <div><label class="f">Termin <span class="req">*</span></label>${tarihKutu(a.termin,`yaSetA('${a.id}','termin',this.dataset.iso)`,'id="yat_'+a.id+'"')}</div>
-        <div class="g2"><label class="f">Not</label><input type="text" value="${esc(a.not)}" oninput="yaSetA('${a.id}','not',this.value)"></div>
+        <div class="g2"><label class="f">Not</label><input type="text" value="${esc(a.not)}" oninput="yaSetA(${jsA(a.id)},'not',this.value)"></div>
       </div>
       <div style="margin-top:10px"><label class="f">Ekler (Foto / Belge) — sürükle-bırak</label>
         <div class="yaDz" id="yadz_${a.id}"><span class="paperclip">📎</span> Dosyaları buraya bırakın ya da tıklayın<input type="file" id="yafi_${a.id}" multiple style="display:none"></div>
-        ${a.ekler.length?`<div class="files" style="margin-top:8px">${a.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" title="Aç" onclick="openFile('${f.id}')">${ICO_AC}</button><button class="x" title="Kaldır" onclick="yaEkSil('${a.id}','${f.id}')">×</button></div>`).join('')}</div>`:''}
+        ${a.ekler.length?`<div class="files" style="margin-top:8px">${a.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" title="Aç" onclick="openFile(${jsA(f.id)})">${ICO_AC}</button><button class="x" title="Kaldır" onclick="yaEkSil(${jsA(a.id)},${jsA(f.id)})">×</button></div>`).join('')}</div>`:''}
       </div>
     </div>`).join('');
   w.innerHTML=`
@@ -2971,8 +2977,8 @@ function renderYeniAksiyon(){
        <div class="hint" style="margin-bottom:8px">Seçilen her lokasyon için sorumlu atayın — her lokasyon kendi aksiyon numarasını alır.</div>
        <div class="grid">
          ${yaBatch.kapsamlar.map(k=>`<div><label class="f">${esc(lokAd2(k))} — Sorumlu</label>
-           <input type="text" id="yals_ad_${k}" list="dlAlici" value="${esc((yaBatch.locSorumlu[k]||{}).ad||'')}" oninput="yaLocSor('${k}',this.value)" placeholder="isim yazın">
-           <input type="email" id="yals_mail_${k}" value="${esc((yaBatch.locSorumlu[k]||{}).mail||'')}" oninput="yaLocSorMail('${k}',this.value)" placeholder="e-posta" style="margin-top:3px"></div>`).join('')}
+           <input type="text" id="yals_ad_${k}" list="dlAlici" value="${esc((yaBatch.locSorumlu[k]||{}).ad||'')}" oninput="yaLocSor(${jsA(k)},this.value)" placeholder="isim yazın">
+           <input type="email" id="yals_mail_${k}" value="${esc((yaBatch.locSorumlu[k]||{}).mail||'')}" oninput="yaLocSorMail(${jsA(k)},this.value)" placeholder="e-posta" style="margin-top:3px"></div>`).join('')}
        </div>`:''}
      <div class="sep"></div>
      <h3 style="font-size:15px;margin-bottom:6px">Bildirim Gidecek Kişiler</h3>
@@ -2981,7 +2987,7 @@ function renderYeniAksiyon(){
        <div><label class="f">E-posta</label><input type="email" id="ya_al_mail" onkeydown="if(event.key==='Enter'){event.preventDefault();yaAliciEkle()}" placeholder="otomatik gelir"></div>
        <div style="display:flex;align-items:flex-end"><button class="btn pri" onclick="yaAliciEkle()">Ekle</button></div>
      </div>
-     ${yaBatch.alicilar.length?`<div class="chips" style="margin-top:8px">${yaBatch.alicilar.map(x=>`<span class="pill p-blu">${esc(x.ad)}${x.mail?' · '+esc(x.mail):''} <span onclick="yaAliciSil('${x.id}')" style="cursor:pointer;font-weight:800">×</span></span>`).join('')}</div>`:'<div class="hint">Alıcı eklenmedi.</div>'}
+     ${yaBatch.alicilar.length?`<div class="chips" style="margin-top:8px">${yaBatch.alicilar.map(x=>`<span class="pill p-blu">${esc(x.ad)}${x.mail?' · '+esc(x.mail):''} <span onclick="yaAliciSil(${jsA(x.id)})" style="cursor:pointer;font-weight:800">×</span></span>`).join('')}</div>`:'<div class="hint">Alıcı eklenmedi.</div>'}
      <div class="bar" style="margin-top:14px">
        <button class="btn pri" onclick="yaKaydet(false)">Kaydet</button>
        <button class="btn blue" onclick="yaKaydet(true)">Gönder</button>
@@ -3176,7 +3182,11 @@ async function mailGonder(p0){
   const p=testYonlendir({to:Array.isArray(p0.to)?p0.to.join(','):(p0.to||''),
                          cc:Array.isArray(p0.cc)?p0.cc.join(','):(p0.cc||''),
                          subject:p0.subject, body:p0.body});
-  const to=p.to, cc=p.cc, subject=p.subject, body=p.body;
+  /* GÜVENLİK (20.10.2026): başlık alanlarına (alıcı, konu) satır sonu girmez — kayıttan gelen bir
+     metin "\r\nBcc: …" ile gizli alıcı ekleyemesin. Gövdedeki satır sonları olduğu gibi kalır. */
+  const SATIR_SONU = new RegExp('[\\r\\n'+String.fromCharCode(0x2028,0x2029)+']+','g');   /* CR, LF, Unicode satır/paragraf ayırıcı */
+  const tekSatir = v => String(v==null?'':v).replace(SATIR_SONU,' ').trim();
+  const to=tekSatir(p.to), cc=tekSatir(p.cc), subject=tekSatir(p.subject), body=p.body;
   const wh=(GEN.mailWebhook||'').trim();
   const toStr=to, ccStr=cc;
   if(mailKanal()==='webhook' && wh){
@@ -3225,21 +3235,21 @@ function renderActions(){
       <span class="pill ${a.oncelik==='Yüksek'?'p-red':a.oncelik==='Orta'?'p-amb':'p-gry'}">${esc(a.oncelik)} öncelik</span>
       ${(a.gunluk||[]).length?`<span class="pill p-blu">${a.gunluk.length} ilerleme kaydı</span>`:''}
       <div style="flex:1"></div>
-      ${cur.no&&RECS.some(x=>x.id===cur.id)?`<button class="btn sm" onclick="openAct('${cur.id}','${a.id}')">Yapılanlar / Kapat</button>`:''}
-      <button class="btn sm" onclick="delAction('${a.id}')">Kaldır</button></div>
+      ${cur.no&&RECS.some(x=>x.id===cur.id)?`<button class="btn sm" onclick="openAct(${jsA(cur.id)},${jsA(a.id)})">Yapılanlar / Kapat</button>`:''}
+      <button class="btn sm" onclick="delAction(${jsA(a.id)})">Kaldır</button></div>
     <div style="margin-bottom:10px"><label class="f">Aksiyon Tanımı <span class="req">*</span></label>
-      <textarea style="min-height:52px" oninput="setA('${a.id}','tanim',this.value)">${esc(a.tanim)}</textarea></div>
+      <textarea style="min-height:52px" oninput="setA(${jsA(a.id)},'tanim',this.value)">${esc(a.tanim)}</textarea></div>
     <div class="grid">
       <div><label class="f">Sorumlu <span class="req">*</span></label>
         <div style="display:flex;gap:6px">
-          <input type="text" list="dlAlici" value="${esc(a.sorumlu)}" oninput="sorumluCoz('${a.id}',this.value)" placeholder="isim yazın">
-          <button class="btn sm" style="white-space:nowrap" onclick="sorumluSec('${a.id}')">Seç</button>
+          <input type="text" list="dlAlici" value="${esc(a.sorumlu)}" oninput="sorumluCoz(${jsA(a.id)},this.value)" placeholder="isim yazın">
+          <button class="btn sm" style="white-space:nowrap" onclick="sorumluSec(${jsA(a.id)})">Seç</button>
         </div></div>
-      <div><label class="f">Sorumlunun E-postası</label><input type="email" id="sm_${a.id}" value="${esc(a.sorumluMail||'')}" oninput="setA('${a.id}','sorumluMail',this.value)" placeholder="listeden otomatik gelir"></div>
-      <div><label class="f">Birim / Lokasyon</label><input type="text" value="${esc(a.birim)}" oninput="setA('${a.id}','birim',this.value)"></div>
+      <div><label class="f">Sorumlunun E-postası</label><input type="email" id="sm_${a.id}" value="${esc(a.sorumluMail||'')}" oninput="setA(${jsA(a.id)},'sorumluMail',this.value)" placeholder="listeden otomatik gelir"></div>
+      <div><label class="f">Birim / Lokasyon</label><input type="text" value="${esc(a.birim)}" oninput="setA(${jsA(a.id)},'birim',this.value)"></div>
       <div><label class="f">Termin Tarihi <span class="req">*</span></label>${tarihKutu(a.termin,`setA('${a.id}','termin',this.dataset.iso)`)}</div>
-      <div><label class="f">Öncelik</label><select onchange="setA('${a.id}','oncelik',this.value);renderActions()">${opts(['Yüksek','Orta','Düşük'],a.oncelik)}</select></div>
-      <div class="g2"><label class="f">Not</label><input type="text" value="${esc(a.not)}" oninput="setA('${a.id}','not',this.value)"></div>
+      <div><label class="f">Öncelik</label><select onchange="setA(${jsA(a.id)},'oncelik',this.value);renderActions()">${opts(['Yüksek','Orta','Düşük'],a.oncelik)}</select></div>
+      <div class="g2"><label class="f">Not</label><input type="text" value="${esc(a.not)}" oninput="setA(${jsA(a.id)},'not',this.value)"></div>
     </div>
     <div class="hint" style="margin-top:8px">Durum otomatik: <b>${esc(aksDurum(a))}</b>${a.kapanis?' — '+trDate(a.kapanis.tarih):''}. Değiştirmek için “Yapılanlar / Kapat” ekranını kullanın.</div>
     </div>`).join('');
@@ -3382,7 +3392,7 @@ function renderAlici(t){
   el.innerHTML = d.length ? d.map(x=>`<span class="chip on" style="padding-right:${kilit?'11px':'6px'}">
       ${esc(x.ad)} <span style="opacity:.7;font-size:11px">${esc(x.mail)}</span>
       ${x.kaynak==='matris'?'<span class="pill p-blu" style="margin-left:4px;font-size:10px">matris</span>':''}
-      ${kilit?'':`<button onclick="aliciSil('${t}','${x.id}')" style="border:none;background:none;color:#fff;cursor:pointer;font-size:15px;line-height:1;margin-left:5px">×</button>`}
+      ${kilit?'':`<button onclick="aliciSil(${jsA(t)},${jsA(x.id)})" style="border:none;background:none;color:#fff;cursor:pointer;font-size:15px;line-height:1;margin-left:5px">×</button>`}
     </span>`).join('') : `<span class="hint">${kilit?'Alıcı yok.':'Alıcı eklenmedi.'}</span>`;
 }
 function renderAlicilar(){ renderAlici('ilk'); renderAlici('rapor'); aliciBekleyenUyar('ilk'); aliciBekleyenUyar('rapor'); }
@@ -3411,8 +3421,8 @@ function renderFiles(){
     const ext=(f.ad.split('.').pop()||'?').toUpperCase().slice(0,4);
     return `<div class="fitem" data-id="${f.id}"><div class="ic">${esc(ext)}</div>
       <div class="nm"><div title="${esc(f.ad)}">${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div>
-      <button class="x" title="Aç" onclick="openFile('${f.id}')">${ICO_AC}</button>
-      <button class="x" title="Kaldır" onclick="rmFile('${f.id}')">×</button></div>`;
+      <button class="x" title="Aç" onclick="openFile(${jsA(f.id)})">${ICO_AC}</button>
+      <button class="x" title="Kaldır" onclick="rmFile(${jsA(f.id)})">×</button></div>`;
   }).join('');
   const tot=cur.ekler.reduce((s,f)=>s+f.boyut,0);
   $('fSum').textContent=cur.ekler.length?`${cur.ekler.length} ek · toplam ${kb(tot)}`:'Henüz ek yok.';
@@ -3732,13 +3742,13 @@ function aliciOnay(tip,mod){
    <textarea id="mailBody" style="min-height:200px;font-size:12px">${esc(govde)}</textarea>`;
   /* Gönderilmiş kaydı yeniden gönderme düğmesi de kanala uyar: doğrudan
      gönderimde yeniden yollar, Outlook kanalında taslağı açar. */
-  const mailAc=`<button class="btn blue" onclick="yenidenGonder('${tip}','${rec.id}')">${
+  const mailAc=`<button class="btn blue" onclick="yenidenGonder(${jsA(tip)},${jsA(rec.id)})">${
      mailKanal()==='webhook'?'Yeniden Gönder':'E-posta Taslağı Aç'}</button>`;
   $('sendFoot').innerHTML=`
    <button class="btn" onclick="closeOv('ovSend')">${mod==='onay'?'Vazgeç':'Kapat'}</button>
    <button class="btn" onclick="copyMails(${jsA(d.map(x=>x.mail).join('; '))})">Adresleri Kopyala (${d.length})</button>
    <button class="btn" onclick="copyBody()">Metni Kopyala</button>
-   ${mod==='onay' ? (d.length?`<button class="btn red" onclick="gonderOnayla('${tip}')">${tip==='rapor'?'Raporu Gönder':'Bildirimi Gönder'} (${d.length} kişi)</button>`:'')
+   ${mod==='onay' ? (d.length?`<button class="btn red" onclick="gonderOnayla(${jsA(tip)})">${tip==='rapor'?'Raporu Gönder':'Bildirimi Gönder'} (${d.length} kişi)</button>`:'')
     : (mod==='onizleme'||!d.length ? '' : mailAc)}`;
   ovAc('ovSend');
 }
@@ -3886,11 +3896,11 @@ async function arsivKaydet(rec){
       — ${s.yazilan} dosya + _kunye.json + bildirim.txt${s.eksik?` <span class="pill p-amb">${s.eksik} dosya içeriği bulunamadı</span>`:''}`;
   } else if(s.neden==='tarayici-desteklemiyor'){
     el().innerHTML=`<span class="pill p-amb">klasör yazılamadı</span> Bu tarayıcı klasöre yazmayı desteklemiyor (Chrome/Edge gerekir).
-      <button class="btn sm" onclick="ekleriIndir(RECS.find(r=>r.id==='${rec.id}')||cur)">Ekleri İndir</button>`;
+      <button class="btn sm" onclick="ekleriIndir(RECS.find(r=>r.id===${jsA(rec.id)})||cur)">Ekleri İndir</button>`;
   } else {
     el().innerHTML=`<span class="pill p-red">klasör bağlı değil</span> Ekler yalnız tarayıcıda duruyor.
-      <button class="btn sm" onclick="arsivBagla().then(()=>arsivKaydet(RECS.find(r=>r.id==='${rec.id}')||cur))">Arşiv Klasörü Bağla</button>
-      <button class="btn sm" onclick="ekleriIndir(RECS.find(r=>r.id==='${rec.id}')||cur)">Ekleri İndir</button>`;
+      <button class="btn sm" onclick="arsivBagla().then(()=>arsivKaydet(RECS.find(r=>r.id===${jsA(rec.id)})||cur))">Arşiv Klasörü Bağla</button>
+      <button class="btn sm" onclick="ekleriIndir(RECS.find(r=>r.id===${jsA(rec.id)})||cur)">Ekleri İndir</button>`;
   }
   return s;
 }
@@ -3969,7 +3979,7 @@ function renderReg(){
     /* Satır DÜZ YAZI — renk yalnız Durum kolonunda */
     return `<tr>
       <td class="sn">${ix+1}</td>
-      <td><span class="lnk" onclick="regAc('${r.id}')">${esc(r.no||'—')}</span>${r.aiAnaliz?` <span class="regAi" title="AI analizi yapıldı (${new Date(r.aiAnaliz.tarih).toLocaleDateString('tr-TR')})">AI</span>`:''}</td>
+      <td><span class="lnk" onclick="regAc(${jsA(r.id)})">${esc(r.no||'—')}</span>${r.aiAnaliz&&can('inceleme')?` <span class="regAi" title="AI analizi yapıldı (${new Date(r.aiAnaliz.tarih).toLocaleDateString('tr-TR')})">AI</span>`:''}</td>
       <td>${trDate(r.tarih)}</td>
       <td>${esc(turAd(r))}</td>
 
@@ -3992,7 +4002,7 @@ function renderReg(){
     [V.filter(r=>r.durum==='rapor').length,'Rapor Gönderildi','','rapor'],
     [V.filter(r=>ciddiAnaliz(r.sonuc)).length,'Ciddi Olay','',undefined]
   ].map(([v,l,s,f])=>
-    `<div class="kpi${f!==undefined?' clk':''}${f&&f===regSecF?' on':''}"${f!==undefined?` onclick="regKpiFiltre('${f||''}')" title="${f?'Yalnız bu durumu göster':'Filtreyi temizle'}"`:''}>`
+    `<div class="kpi${f!==undefined?' clk':''}${f&&f===regSecF?' on':''}"${f!==undefined?` onclick="regKpiFiltre(${jsA(f||'')})" title="${f?'Yalnız bu durumu göster':'Filtreyi temizle'}"`:''}>`
     +`<div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
   kpiSay('regKpi');   /* rakamlar önceki değerden akarak sayar (Hukuk portalı ile aynı) */
   requestAnimationFrame(function(){ requestAnimationFrame(listeBoy); }); setTimeout(listeBoy,60);   // layout otursun, sonra ölç
@@ -4211,6 +4221,7 @@ function olayAIRapor(r){
 const aiKutuHTML = govde => `<div class="anAI"><h4><span class="rob">${ICO_AI}</span> AI Analiz — Değerlendirme ve Öneriler <small style="margin-left:auto;color:#9aa3b0;font-weight:600">bağlamsal · offline</small></h4><div class="body">${govde}</div></div>`;
 /* "AI Analiz" düğmesi: her tıklamada (yeniden) analiz eder ve KAYDEDER (append) */
 function olayAI(id){
+  if(!can('inceleme')) return;   /* yetki: bkz. viewRec aiYetki */
   const wrap=$('recAIWrap'); if(!wrap) return; const btn=$('recAIBtn');
   const r=RECS.find(x=>x.id===id); if(!r) return;
   wrap.dataset.open='1'; if(btn) btn.classList.add('on');
@@ -4224,6 +4235,7 @@ function olayAI(id){
 }
 /* Olay açılışında KAYITLI analizi anında göster (sıfırlanmaz) */
 function olayAnalizGoster(r){
+  if(!can('inceleme')) return;
   const wrap=$('recAIWrap'); if(!wrap||!r.aiAnaliz) return; const btn=$('recAIBtn');
   wrap.dataset.open='1'; if(btn){ btn.classList.add('on'); btn.innerHTML=ICO_ANALIZ+' Yeniden Analiz Et'; }
   wrap.innerHTML=aiKutuHTML(olayAIRapor(r));
@@ -4455,7 +4467,7 @@ function viewRec(id,saltOku){
       <div class="in">
         ${acts.length?`<ul class="caList">${acts.map((a,i)=>{const d=daysTo(a.termin),gec=acikMi(a)&&d!==null&&d<0;
           return `<li class="caItem"><span class="caNum">${i+1}</span><div style="flex:1">
-            <div style="font-size:12.5px"><span class="lnk" onclick="openAct('${r.id}','${a.id}')">${esc(actNo(r,a))}</span> — ${esc(a.tanim)}</div>
+            <div style="font-size:12.5px"><span class="lnk" onclick="openAct(${jsA(r.id)},${jsA(a.id)})">${esc(actNo(r,a))}</span> — ${esc(a.tanim)}</div>
             <div style="font-size:11.5px;color:var(--text3);margin-top:3px">Sorumlu: ${esc(a.sorumlu||'—')} · Termin: ${trDate(a.termin)}${gec?` <span class="pill p-red">${-d} gün</span>`:''} · <span class="pill ${aksPil(a)}">${esc(aksDurum(a))}</span></div>
           </div></li>`;}).join('')}</ul>`:'<div class="hint">Tanımlı düzeltici aksiyon yok.</div>'}
       </div>
@@ -4465,7 +4477,7 @@ function viewRec(id,saltOku){
       <div class="in">
         ${benzer.length?`<ul class="caList">${benzer.map(b=>{ const x=b.rec, sev=cidOf(x.sonuc);
           return `<li class="caItem"><div style="flex:1">
-            <div style="font-size:12.5px"><span class="lnk" onclick="viewRecNav('${x.id}')">${esc(x.no||'—')}</span>
+            <div style="font-size:12.5px"><span class="lnk" onclick="viewRecNav(${jsA(x.id)})">${esc(x.no||'—')}</span>
               <span class="pill ${sev.pil}" style="margin-left:6px">${esc(sev.ad)}</span></div>
             <div style="font-size:11.5px;color:var(--text3);margin-top:3px">${trDate(x.tarih)} · ${esc(lokAd(x.lokasyon))} · ${esc(turAd(x))}${x.kaynak?' · '+esc(kaynakAd(x)):''}</div>
             <div class="chips" style="margin-top:4px">${b.ned.map(t=>`<span class="pill p-gry">${esc(t)}</span>`).join('')}</div>
@@ -4481,7 +4493,7 @@ function viewRec(id,saltOku){
       </tbody></table></div></div></div>`:''}
 
     <div class="dCard wide"><h4>Ekler <span class="st" style="color:var(--text3)">${(r.ekler||[]).length} dosya</span></h4>
-      <div class="in">${(r.ekler||[]).length?`<div class="files">${r.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" onclick="openFile('${f.id}')">${ICO_AC}</button></div>`).join('')}</div>`:'<div class="hint">Yüklenmiş dosya yok.</div>'}</div>
+      <div class="in">${(r.ekler||[]).length?`<div class="files">${r.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" onclick="openFile(${jsA(f.id)})">${ICO_AC}</button></div>`).join('')}</div>`:'<div class="hint">Yüklenmiş dosya yok.</div>'}</div>
     </div>
 
     ${(r.gonderimler||[]).length?`<div class="dCard wide"><h4>Bildirim Geçmişi</h4>
@@ -4495,8 +4507,12 @@ function viewRec(id,saltOku){
      aksiyon henüz girilmemiştir; analiz edilecek veri yoktur. Taslak ve
      "ilk bildirim yapıldı" aşamalarında düğme hiç çıkmaz, sebebi yazılır. */
   const aiUygun = (r.durum==='inceleme' || r.durum==='rapor');
-  const aiBtn = aiUygun
-    ? `<button class="btn acc" id="recAIBtn" onclick="olayAI('${r.id}')">${ICO_ANALIZ} AI Analiz</button>`
+  /* YETKİ (kullanıcı kararı 20.10.2026): kayıt kartındaki AI analizini YALNIZ "Olay inceleme yapar"
+     yetkisi olanlar görür ve çalıştırır — analiz değerlendirme/öneri içerir, nihai rapor geniş
+     dağıtıma gider. Yetkisizde düğme, kayıtlı analiz ve aşama ipucu hiç gösterilmez. */
+  const aiYetki = can('inceleme');
+  const aiBtn = (aiUygun && aiYetki)
+    ? `<button class="btn acc" id="recAIBtn" onclick="olayAI(${jsA(r.id)})">${ICO_ANALIZ} AI Analiz</button>`
     : '';
   $('recFoot').innerHTML = saltOku
     ? `<button class="btn" onclick="closeOv('ovRec')">Kapat</button>
@@ -4504,13 +4520,14 @@ function viewRec(id,saltOku){
        <button class="btn" onclick="window.print()">Yazdır / PDF</button>`
     : `<button class="btn" onclick="closeOv('ovRec')">Kapat</button>
     ${aiBtn}
-    ${(r.ekler||[]).length?`<button class="btn" onclick="klasoreYazElle('${r.id}')">Klasöre Yaz</button>
-    <button class="btn" onclick="ekleriIndir(RECS.find(x=>x.id==='${r.id}'))">Ekleri İndir</button>`:''}
-    ${can('ayar')?`<button class="btn red" onclick="delRec('${r.id}')">Kaydı Sil</button>`:''}
+    ${(r.ekler||[]).length?`<button class="btn" onclick="klasoreYazElle(${jsA(r.id)})">Klasöre Yaz</button>
+    <button class="btn" onclick="ekleriIndir(RECS.find(x=>x.id===${jsA(r.id)}))">Ekleri İndir</button>`:''}
+    ${can('ayar')?`<button class="btn red" onclick="delRec(${jsA(r.id)})">Kaydı Sil</button>`:''}
     <button class="btn" onclick="window.print()">Yazdır / PDF</button>
-    ${can('kayit')?`<button class="btn pri" onclick="editRec('${r.id}')">${r.durum==='draft'?'Devam Et (Forma Al)':(r.durum==='rapor'?'Raporu Düzenle':'Forma Al / Düzenle')}</button>`:''}`;
+    ${can('kayit')?`<button class="btn pri" onclick="editRec(${jsA(r.id)})">${r.durum==='draft'?'Devam Et (Forma Al)':(r.durum==='rapor'?'Raporu Düzenle':'Forma Al / Düzenle')}</button>`:''}`;
   if(saltOku) $('recTitle').innerHTML+=' <span class="pill p-gry" style="margin-left:6px">salt görüntüleme</span>';
-  if(aiUygun) olayAnalizGoster(r);   // daha önce analiz yapıldıysa koru, otomatik göster
+  if(!aiYetki){ const w=$('recAIWrap'); if(w) w.innerHTML=''; }
+  else if(aiUygun) olayAnalizGoster(r);   // daha önce analiz yapıldıysa koru, otomatik göster
   else { const w=$('recAIWrap'); if(w) w.innerHTML=
     '<div class="hint" style="margin-top:10px">AI analizi <b>inceleme aşamasında</b> açılır — '
     +'kök sebep, bulgular ve aksiyonlar girildikten sonra. Bu kayıt henüz '
@@ -4699,11 +4716,11 @@ function renderAct(){
     /* durum adı RENKLİ rozet; parantez ve içi normal metin renginde (gece: beyaz, gündüz: koyu) */
     return `<tr>
       <td class="sn">${ix+1}</td>
-      <td><span class="lnk" onclick="openAct(${sact?`'','${a.id}',true`:`'${r.id}','${a.id}'`})" title="Aksiyonu aç — yapılanları yaz, güncelle, kapat"><b>${esc(no)}</b></span>${a.aiOneri?`<span class="regAi" title="AI önerisinden açıldı: ${esc(a.aiOneri)}">AI</span>`:''}</td>
+      <td><span class="lnk" onclick="openAct(${sact?`'',${jsA(a.id)},true`:`${jsA(r.id)},${jsA(a.id)}`})" title="Aksiyonu aç — yapılanları yaz, güncelle, kapat"><b>${esc(no)}</b></span>${a.aiOneri?`<span class="regAi" title="AI önerisinden açıldı: ${esc(a.aiOneri)}">AI</span>`:''}</td>
       <td>${trDate((a.olusturma||r.olusturma||'').slice(0,10))}</td>
       <td>${esc(a.tanim)}</td>
       <td>${esc(sact?lokAd2(a.lokasyon):(lokOf(r.lokasyon).ad||r.lokasyon||'—'))}</td>
-      <td>${sact?`<span class="hint">${esc(a.kaynak||'—')}</span>`:`<span class="lnk" onclick="regAc('${r.id}')">${esc(r.no)}</span>`}</td>
+      <td>${sact?`<span class="hint">${esc(a.kaynak||'—')}</span>`:`<span class="lnk" onclick="regAc(${jsA(r.id)})">${esc(r.no)}</span>`}</td>
       <td>${esc(a.sorumlu||'—')}</td>
       <td>${trDate(a.termin)}</td>
       <td><span class="pill ${td.pil}">${esc(td.etiket||td.ad)}</span>${ekBilgi?` <span class="durumEk">(${esc(ekBilgi)})</span>`:''}</td></tr>`;
@@ -4729,7 +4746,7 @@ function renderAct(){
   kpiSet.push([aks.oran==null?'—':'%'+aks.oran,'Kapatma Oranı',oranRenk(aks.oran),'']);
   const sec=$('aSt')?$('aSt').value:'';
   $('actKpi').innerHTML=kpiSet.map(([v,l,s,f])=>
-    `<div class="kpi${f!==undefined?' clk':''}${f&&f===sec?' on':''}"${f!==undefined?` onclick="aktKpiFiltre('${f}')" title="${f?'Yalnız “'+esc(f)+'” göster':'Filtreyi temizle'}"`:''}>`
+    `<div class="kpi${f!==undefined?' clk':''}${f&&f===sec?' on':''}"${f!==undefined?` onclick="aktKpiFiltre(${jsA(f)})" title="${f?'Yalnız “'+esc(f)+'” göster':'Filtreyi temizle'}"`:''}>`
     +`<div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
   kpiSay('actKpi');
   renderUyari();
@@ -4850,8 +4867,8 @@ function openAct(rid,aid,sact){
      <dt>Aksiyon</dt><dd>${esc(a.tanim)}</dd>
      ${sact
         ? `<dt>Kapsam</dt><dd><span class="pill p-gry">Bağımsız aksiyon</span> · ${esc(lokAd2(a.lokasyon))}${a.kaynak?' · kaynak: '+esc(a.kaynak):''}</dd>
-     ${a.kaynakRef||a.bagliOlayId?`<dt>Kaynak</dt><dd>${a.bagliOlayId&&RECS.some(x=>x.id===a.bagliOlayId)?`<span class="lnk" onclick="closeOv('ovAct');regAc('${a.bagliOlayId}')">${esc(a.kaynakRef||'İlgili olayı aç')}</span>`:esc(a.kaynakRef||'—')}</dd>`:''}`
-        : `<dt>Olay</dt><dd><span class="lnk" onclick="closeOv('ovAct');regAc('${r.id}')">${esc(r.no)}</span> · ${esc(lokAd(r.lokasyon))} · ${esc(cidOf(r.sonuc).ad)}</dd>`}
+     ${a.kaynakRef||a.bagliOlayId?`<dt>Kaynak</dt><dd>${a.bagliOlayId&&RECS.some(x=>x.id===a.bagliOlayId)?`<span class="lnk" onclick="closeOv('ovAct');regAc(${jsA(a.bagliOlayId)})">${esc(a.kaynakRef||'İlgili olayı aç')}</span>`:esc(a.kaynakRef||'—')}</dd>`:''}`
+        : `<dt>Olay</dt><dd><span class="lnk" onclick="closeOv('ovAct');regAc(${jsA(r.id)})">${esc(r.no)}</span> · ${esc(lokAd(r.lokasyon))} · ${esc(cidOf(r.sonuc).ad)}</dd>`}
      <dt>Öncelik</dt><dd>${esc(a.oncelik)}</dd>
      <dt>Sorumlu</dt><dd>${esc(a.sorumlu||'—')}${a.birim?' ('+esc(a.birim)+')':''}${(a.sorumluMail||mailOf(a.sorumlu))?' · '+esc(a.sorumluMail||mailOf(a.sorumlu)):''}</dd>
      <dt>Termin</dt><dd>${trDate(a.termin)}${(a.terminGecmisi||[]).length?` <span class="pill p-amb">${a.terminGecmisi.length} kez revize edildi</span>`:''}</dd>
@@ -4862,7 +4879,7 @@ function openAct(rid,aid,sact){
      <div style="font-size:12.5px;margin-top:6px">${a.terminGecmisi.map(t=>`• ${trDate(t.eski)} → <b>${trDate(t.yeni)}</b> · ${new Date(t.tarih).toLocaleDateString('tr-TR')} · ${esc(t.kim||'')} · ${esc(t.gerekce||'gerekçe yok')}`).join('<br>')}</div></details>`:''}
 
    ${(a.ekler||[]).length?`<div class="sep"></div><h4 style="font-size:13px;margin-bottom:7px">Ekler</h4>
-     <div class="files">${a.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" onclick="openFile('${f.id}')">${ICO_AC}</button></div>`).join('')}</div>`:''}
+     <div class="files">${a.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" onclick="openFile(${jsA(f.id)})">${ICO_AC}</button></div>`).join('')}</div>`:''}
    ${a.taslak
      ? `<div class="sep"></div><div class="note">Bu bir <b>taslak</b>. Yapılanlar günlüğü ve kapanış, aksiyon <b>gönderildikten sonra</b> kullanılır. Tamamlayıp göndermek için <b>Devam Et</b>.</div>`
      : `<div class="sep"></div>
@@ -4887,7 +4904,7 @@ function openAct(rid,aid,sact){
      </div>`
      :'<div class="note warn">Yetkiniz yalnızca görüntüleme — kayıt ekleyemez, güncelleyemezsiniz.</div>'}`}`;
   $('aktFoot').innerHTML=`<button class="btn" onclick="closeOv('ovAct')">Kapat</button>
-    ${sact&&can('aksiyon')&&a.taslak?`<button class="btn pri" onclick="yaDuzenle('${a.id}')">Devam Et</button>`:''}
+    ${sact&&can('aksiyon')&&a.taslak?`<button class="btn pri" onclick="yaDuzenle(${jsA(a.id)})">Devam Et</button>`:''}
     ${acik&&a.sorumlu?`<button class="btn" onclick="aktHatirlat()" ${(a.sorumluMail||mailOf(a.sorumlu))?'':'disabled title="Sorumlunun e-posta adresi yok"'}>Sorumluya Hatırlat</button>`:''}
     ${yaz&&!a.taslak?`${acik?`<button class="btn" onclick="aktIptal()">İptal Et</button>`:''}
     ${acik?`<button class="btn" style="background:var(--green);border-color:var(--green);color:#fff" onclick="aktOnayaGonder()">Onaya Gönder</button>`
@@ -4913,9 +4930,9 @@ function gunlukHTML(a){
   return g.slice().reverse().map(e=>`<div class="arow" style="background:var(--surface)">
     <div class="ah"><span class="pill ${e.tip==='kapanis'?'p-grn':e.tip==='guncelleme'?'p-blu':'p-gry'}">${e.tip==='kapanis'?'KAPANIŞ':e.tip==='guncelleme'?'GÜNCELLEME':'YAPILAN İŞ'}</span>
       <span class="hint" style="margin:0">${new Date(e.tarih).toLocaleString('tr-TR')} · ${esc(e.kim||'—')}</span>
-      ${can('aksiyon')?`<button class="x" title="Bu kaydı sil" style="margin-left:auto;border:none;background:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1" onclick="aktGunlukSil('${e.id}')">✕</button>`:''}</div>
+      ${can('aksiyon')?`<button class="x" title="Bu kaydı sil" style="margin-left:auto;border:none;background:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1" onclick="aktGunlukSil(${jsA(e.id)})">✕</button>`:''}</div>
     <div style="white-space:pre-wrap;font-size:13px">${esc(e.metin)}</div>
-    ${(e.ekler||[]).length?`<div class="files" style="margin-top:8px">${e.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" onclick="openFile('${f.id}')">${ICO_AC}</button></div>`).join('')}</div>`:''}
+    ${(e.ekler||[]).length?`<div class="files" style="margin-top:8px">${e.ekler.map(f=>`<div class="fitem"><div class="ic">${esc((f.ad.split('.').pop()||'?').toUpperCase().slice(0,4))}</div><div class="nm"><div>${esc(f.ad)}</div><div>${kb(f.boyut)}</div></div><button class="x" onclick="openFile(${jsA(f.id)})">${ICO_AC}</button></div>`).join('')}</div>`:''}
   </div>`).join('');
 }
 let AKT_FILES=[];
@@ -5238,17 +5255,17 @@ function renderOrg(){
 function renderLok(){
   $('lokBody').innerHTML=LOK.map(l=>{
     return `<tr>
-    <td><input type="text" value="${esc(l.bolge||'')}" oninput="setL('${l.id}','bolge',this.value)" placeholder="ANK" style="font-weight:700" title="Klasör kökü — boşsa koddan türer"></td>
-    <td><input type="text" value="${esc(l.kod)}" oninput="setL('${l.id}','kod',this.value)" style="font-weight:700" placeholder="ANK-HQ"></td>
-    <td><input type="text" value="${esc(l.ad)}" oninput="setL('${l.id}','ad',this.value)">
-        <input type="text" value="${esc(l.sehir)}" oninput="setL('${l.id}','sehir',this.value)" style="margin-top:3px" placeholder="şehir"></td>
-    <td><select onchange="setL('${l.id}','tip',this.value)">${opts(LOK_TIP,l.tip)}</select></td>
-    <td><input type="text" value="${esc(l.sgk)}" oninput="setL('${l.id}','sgk',this.value)" placeholder="SGK sicil"></td>
-    <td><input type="number" min="0" value="${esc(l.calisan!=null?l.calisan:'')}" oninput="setL('${l.id}','calisan',this.value)" placeholder="—" style="width:72px" title="Bu lokasyondaki çalışan sayısı — '100 Çalışan Başına Olay' KPI'ı için kullanılır"></td>
-    <td><input type="text" value="${esc(l.yonetici)}" oninput="setL('${l.id}','yonetici',this.value)" placeholder="Ad Soyad">
-        <input type="email" value="${esc(l.yoneticiMail)}" oninput="setL('${l.id}','yoneticiMail',this.value)" style="margin-top:3px" placeholder="e-posta"></td>
-    <td style="text-align:center"><input type="checkbox" ${l.aktif?'checked':''} onchange="setL('${l.id}','aktif',this.checked)" style="width:auto"></td>
-    <td><button class="btn sm" onclick="delLok('${l.id}')">Sil</button></td></tr>`;
+    <td><input type="text" value="${esc(l.bolge||'')}" oninput="setL(${jsA(l.id)},'bolge',this.value)" placeholder="ANK" style="font-weight:700" title="Klasör kökü — boşsa koddan türer"></td>
+    <td><input type="text" value="${esc(l.kod)}" oninput="setL(${jsA(l.id)},'kod',this.value)" style="font-weight:700" placeholder="ANK-HQ"></td>
+    <td><input type="text" value="${esc(l.ad)}" oninput="setL(${jsA(l.id)},'ad',this.value)">
+        <input type="text" value="${esc(l.sehir)}" oninput="setL(${jsA(l.id)},'sehir',this.value)" style="margin-top:3px" placeholder="şehir"></td>
+    <td><select onchange="setL(${jsA(l.id)},'tip',this.value)">${opts(LOK_TIP,l.tip)}</select></td>
+    <td><input type="text" value="${esc(l.sgk)}" oninput="setL(${jsA(l.id)},'sgk',this.value)" placeholder="SGK sicil"></td>
+    <td><input type="number" min="0" value="${esc(l.calisan!=null?l.calisan:'')}" oninput="setL(${jsA(l.id)},'calisan',this.value)" placeholder="—" style="width:72px" title="Bu lokasyondaki çalışan sayısı — '100 Çalışan Başına Olay' KPI'ı için kullanılır"></td>
+    <td><input type="text" value="${esc(l.yonetici)}" oninput="setL(${jsA(l.id)},'yonetici',this.value)" placeholder="Ad Soyad">
+        <input type="email" value="${esc(l.yoneticiMail)}" oninput="setL(${jsA(l.id)},'yoneticiMail',this.value)" style="margin-top:3px" placeholder="e-posta"></td>
+    <td style="text-align:center"><input type="checkbox" ${l.aktif?'checked':''} onchange="setL(${jsA(l.id)},'aktif',this.checked)" style="width:auto"></td>
+    <td><button class="btn sm" onclick="delLok(${jsA(l.id)})">Sil</button></td></tr>`;
   }).join('')||'<tr><td colspan="9" class="empty">Lokasyon yok.</td></tr>';
 }
 function setL(id,f,v){
@@ -5278,19 +5295,19 @@ function delLok(id){
 function renderUsr(){
   $('usrBody').innerHTML=USR.map(u=>{
     const sel=(u.loklar||[]);
-    const lokChips=LOK.map(l=>`<span class="chip ${sel.includes(l.kod)?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok('${u.id}',${jsA(l.kod)})">${esc(l.kod)}</span>`).join('');
+    const lokChips=LOK.map(l=>`<span class="chip ${sel.includes(l.kod)?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok(${jsA(u.id)},${jsA(l.kod)})">${esc(l.kod)}</span>`).join('');
     return `<tr>
-    <td><input type="text" value="${esc(u.ad)}" oninput="setU('${u.id}','ad',this.value)" onchange="usrYaziBitti('${u.id}')">
-        <input type="email" value="${esc(u.mail)}" class="${u.mail&&!sirketMailMi(u.mail)?'bad':''}" onfocus="this.dataset.eski=this.value" oninput="setU('${u.id}','mail',this.value)" onchange="usrMailBitti('${u.id}',this)" style="margin-top:3px" placeholder="ad.soyad@${esc(sirketAlanlari()[0])}">
+    <td><input type="text" value="${esc(u.ad)}" oninput="setU(${jsA(u.id)},'ad',this.value)" onchange="usrYaziBitti(${jsA(u.id)})">
+        <input type="email" value="${esc(u.mail)}" class="${u.mail&&!sirketMailMi(u.mail)?'bad':''}" onfocus="this.dataset.eski=this.value" oninput="setU(${jsA(u.id)},'mail',this.value)" onchange="usrMailBitti(${jsA(u.id)},this)" style="margin-top:3px" placeholder="ad.soyad@${esc(sirketAlanlari()[0])}">
         ${u.ornek||(u.mail&&!sirketMailMi(u.mail))||!u.mail?`<div class="alt">${u.ornek?'<span class="pill p-amb">örnek</span> ':''}${u.mail&&!sirketMailMi(u.mail)?'<span class="pill p-red" title="Giriş yapamaz — şirket adresi tanımlayın">şirket adresi değil</span>':''}${!u.mail?'<span class="pill p-gry">e-posta yok — giriş yapamaz</span>':''}</div>`:''}</td>
-    <td><select onchange="setU('${u.id}','pozisyon',this.value)">${POZ.map(p=>`<option value="${esc(p.kod)}"${u.pozisyon===p.kod?' selected':''}>${esc(p.ad)}</option>`).join('')}</select></td>
-    <td><div class="chips"><span class="chip ${sel.includes('*')?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok('${u.id}','*')">TÜMÜ</span>${lokChips}</div></td>
+    <td><select onchange="setU(${jsA(u.id)},'pozisyon',this.value)">${POZ.map(p=>`<option value="${esc(p.kod)}"${u.pozisyon===p.kod?' selected':''}>${esc(p.ad)}</option>`).join('')}</select></td>
+    <td><div class="chips"><span class="chip ${sel.includes('*')?'on':''}" style="font-size:11px;padding:2px 8px" onclick="toggleUsrLok(${jsA(u.id)},'*')">TÜMÜ</span>${lokChips}</div></td>
     <td>${yetkiHucre(u)}</td>
-    <td><select onchange="setU('${u.id}','durum',this.value)">${['aktif','davet','beklemede'].map(d=>`<option value="${d}"${u.durum===d?' selected':''}>${({aktif:'Kullanıyor',davet:'Davet edildi',beklemede:'Davet bekliyor'})[d]}</option>`).join('')}</select>
-        ${u.durum!=='aktif'?`<div style="margin-top:3px"><button class="btn sm" onclick="davet('${u.id}')">Davet Taslağı</button></div>`:''}</td>
-    <td style="text-align:center"><input type="checkbox" ${u.dis?'checked':''} onchange="setU('${u.id}','dis',this.checked)" style="width:auto"></td>
-    <td style="text-align:center"><input type="checkbox" ${u.aktif?'checked':''} onchange="setU('${u.id}','aktif',this.checked)" style="width:auto"></td>
-    <td><button class="btn sm" onclick="delUsr('${u.id}')">Sil</button></td></tr>`;
+    <td><select onchange="setU(${jsA(u.id)},'durum',this.value)">${['aktif','davet','beklemede'].map(d=>`<option value="${d}"${u.durum===d?' selected':''}>${({aktif:'Kullanıyor',davet:'Davet edildi',beklemede:'Davet bekliyor'})[d]}</option>`).join('')}</select>
+        ${u.durum!=='aktif'?`<div style="margin-top:3px"><button class="btn sm" onclick="davet(${jsA(u.id)})">Davet Taslağı</button></div>`:''}</td>
+    <td style="text-align:center"><input type="checkbox" ${u.dis?'checked':''} onchange="setU(${jsA(u.id)},'dis',this.checked)" style="width:auto"></td>
+    <td style="text-align:center"><input type="checkbox" ${u.aktif?'checked':''} onchange="setU(${jsA(u.id)},'aktif',this.checked)" style="width:auto"></td>
+    <td><button class="btn sm" onclick="delUsr(${jsA(u.id)})">Sil</button></td></tr>`;
   }).join('')||'<tr><td colspan="8" class="empty">Kullanıcı yok.</td></tr>';
 }
 /* Yetki hücresi: pozisyondan gelen değer + kişiye özel sapma.
@@ -5300,15 +5317,15 @@ function yetkiHucre(u){
   const sw=f=>{
     const sapma=u.yetki&&f in u.yetki && !!u.yetki[f]!==!!p[f];
     return `<label class="chip ${e[f]?'on':''}" style="font-size:11px;padding:2px 8px;${sapma?'outline:2px solid var(--purple);outline-offset:1px':''}" title="${esc(YETKI_AD[f])}${sapma?' — pozisyondan sapma':''}">
-      <input type="checkbox" ${e[f]?'checked':''} onchange="setYetki('${u.id}','${f}',this.checked)" style="width:auto;margin-right:4px;vertical-align:-1px">${esc(YETKI_AD[f])}</label>`;
+      <input type="checkbox" ${e[f]?'checked':''} onchange="setYetki(${jsA(u.id)},${jsA(f)},this.checked)" style="width:auto;margin-right:4px;vertical-align:-1px">${esc(YETKI_AD[f])}</label>`;
   };
   return `<div class="chips">${YETKI_ALAN.map(sw).join('')}</div>
     <div class="hint" style="margin-top:4px">Kapsam:
-      <select onchange="setYetki('${u.id}','kapsam',this.value)" style="width:auto;font-size:11.5px;padding:2px 5px;display:inline-block">
+      <select onchange="setYetki(${jsA(u.id)},'kapsam',this.value)" style="width:auto;font-size:11.5px;padding:2px 5px;display:inline-block">
         <option value="own"${e.kapsam==='own'?' selected':''}>Atandığı lokasyonlar</option>
         <option value="all"${e.kapsam==='all'?' selected':''}>Tüm lokasyonlar</option>
       </select>
-      ${ozelYetki(u)?`<span class="pill p-pur" style="margin-left:5px">özel yetki</span> <button class="btn sm" style="padding:1px 6px;font-size:11px" onclick="yetkiSifirla('${u.id}')">Pozisyona Dön</button>`:''}
+      ${ozelYetki(u)?`<span class="pill p-pur" style="margin-left:5px">özel yetki</span> <button class="btn sm" style="padding:1px 6px;font-size:11px" onclick="yetkiSifirla(${jsA(u.id)})">Pozisyona Dön</button>`:''}
     </div>`;
 }
 function setYetki(id,f,v){
@@ -5439,7 +5456,7 @@ function delUsr(id){
 function renderPoz(){
   $('pozBody').innerHTML=POZ.map(p=>{
     const kisi=USR.filter(u=>u.pozisyon===p.kod).length;
-    const cb=f=>`<td style="text-align:center"><input type="checkbox" ${p[f]?'checked':''} onchange="setPoz(${jsA(p.kod)},'${f}',this.checked)" style="width:auto"></td>`;
+    const cb=f=>`<td style="text-align:center"><input type="checkbox" ${p[f]?'checked':''} onchange="setPoz(${jsA(p.kod)},${jsA(f)},this.checked)" style="width:auto"></td>`;
     return `<tr>
       <td><input type="text" value="${esc(p.ad)}" oninput="setPoz(${jsA(p.kod)},'ad',this.value)" onchange="pozYaziBitti()" style="font-weight:600">
           <div class="alt">kod: ${esc(p.kod)}</div></td>
@@ -5505,18 +5522,18 @@ function pozTable(){
 /* dağıtım */
 function renderDist(){
   $('distBody').innerHTML=DIST.map(d=>`<tr>
-    <td><input type="text" value="${esc(d.ad)}" oninput="setD('${d.id}','ad',this.value)" placeholder="Ad Soyad">
-        <input type="text" value="${esc(d.unvan)}" oninput="setD('${d.id}','unvan',this.value)" style="margin-top:3px" placeholder="ünvan / rol">
-        <input type="email" value="${esc(d.mail)}" oninput="setD('${d.id}','mail',this.value)" style="margin-top:3px" placeholder="e-posta">
+    <td><input type="text" value="${esc(d.ad)}" oninput="setD(${jsA(d.id)},'ad',this.value)" placeholder="Ad Soyad">
+        <input type="text" value="${esc(d.unvan)}" oninput="setD(${jsA(d.id)},'unvan',this.value)" style="margin-top:3px" placeholder="ünvan / rol">
+        <input type="email" value="${esc(d.mail)}" oninput="setD(${jsA(d.id)},'mail',this.value)" style="margin-top:3px" placeholder="e-posta">
         ${d.ornek?'<div class="alt"><span class="pill p-amb">örnek</span></div>':''}</td>
-    <td><select onchange="setD('${d.id}','lok',this.value)">
+    <td><select onchange="setD(${jsA(d.id)},'lok',this.value)">
       <option value="*"${d.lok==='*'?' selected':''}>★ Tüm lokasyonlar (merkez)</option>
       ${LOK.map(l=>`<option value="${esc(l.kod)}"${d.lok===l.kod?' selected':''}>${esc(l.kod)} — ${esc(l.ad)}</option>`).join('')}</select></td>
-    <td><select onchange="setD('${d.id}','tip',this.value)">${['to','cc'].map(k=>`<option value="${k}"${d.tip===k?' selected':''}>${TIP_AD[k]}</option>`).join('')}</select></td>
-    <td><select onchange="setD('${d.id}','tetik',this.value)">${['save','send','both'].map(k=>`<option value="${k}"${d.tetik===k?' selected':''}>${TETIK_AD[k]}</option>`).join('')}</select></td>
-    <td><select onchange="setD('${d.id}','kapsam',this.value)">${['all','agir','fatal'].map(k=>`<option value="${k}"${d.kapsam===k?' selected':''}>${KAPSAM_AD[k]}</option>`).join('')}</select></td>
-    <td style="text-align:center"><input type="checkbox" ${d.aktif?'checked':''} onchange="setD('${d.id}','aktif',this.checked)" style="width:auto"></td>
-    <td><button class="btn sm" onclick="delDist('${d.id}')">Sil</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">Liste boş.</td></tr>';
+    <td><select onchange="setD(${jsA(d.id)},'tip',this.value)">${['to','cc'].map(k=>`<option value="${k}"${d.tip===k?' selected':''}>${TIP_AD[k]}</option>`).join('')}</select></td>
+    <td><select onchange="setD(${jsA(d.id)},'tetik',this.value)">${['save','send','both'].map(k=>`<option value="${k}"${d.tetik===k?' selected':''}>${TETIK_AD[k]}</option>`).join('')}</select></td>
+    <td><select onchange="setD(${jsA(d.id)},'kapsam',this.value)">${['all','agir','fatal'].map(k=>`<option value="${k}"${d.kapsam===k?' selected':''}>${KAPSAM_AD[k]}</option>`).join('')}</select></td>
+    <td style="text-align:center"><input type="checkbox" ${d.aktif?'checked':''} onchange="setD(${jsA(d.id)},'aktif',this.checked)" style="width:auto"></td>
+    <td><button class="btn sm" onclick="delDist(${jsA(d.id)})">Sil</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">Liste boş.</td></tr>';
 }
 function setD(id,f,v){ const d=DIST.find(x=>x.id===id); if(!d) return; d[f]=v; if(f==='ad'||f==='mail') d.ornek=false; saveDist(); }
 function addDist(){ DIST.push({id:uid(),ad:'',unvan:'',mail:'',lok:'*',tip:'cc',tetik:'send',kapsam:'all',aktif:true,ornek:false}); saveDist(); renderDist(); }
@@ -5677,73 +5694,7 @@ function renderGen(){
    <dt>Dağıtım alıcısı</dt><dd>${DIST.length} (${DIST.filter(d=>d.aktif).length} aktif)</dd>
    <dt>SAP personel</dt><dd>${PERS.length}</dd>`;
 }
-/* ── ÖRNEK (DUMMY) VERİ — 14 olay türünü kapsar ───────────────────────────
-   Tür + sonuç birleşmesinden sonra listeyi ve tüm grafikleri dolduran örnek
-   kayıtlar üretir. MEVCUT olay kayıtlarını siler (iki kez onay ister). */
-function demoVeriYukle(){
-  if(!can('ayar')) return;
-  if(!confirm('DİKKAT: Mevcut '+RECS.length+' olay kaydı silinecek ve 14 olay türünü kapsayan ÖRNEK (dummy) kayıtlar oluşturulacak.\n\nLokasyon / kullanıcı / dağıtım ayarları KALIR. Devam edilsin mi?')) return;
-  if(!confirm('Son onay: bu işlem geri alınamaz. Örnek veri kurulsun mu?')) return;
-  const loklar=LOK.filter(l=>l.aktif!==false).map(l=>l.kod); if(!loklar.length){ toast('Önce lokasyon tanımlayın'); return; }
-  const kis=(a)=>a[Math.floor(Math.random()*a.length)];
-  /* kategorisiyle TUTARLI kök sebep: aynı kategorinin kendi listesinden seçer */
-  const kokKis=()=>{ const k=kis(KOK_KAT); return k.ad+' — '+kis(k.ops); };
-  const yil=new Date().getFullYear();
-  const gun=(n)=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
-  /* tür → kaç kayıt (gerçekçi piramit: ucuz atlatma çok, ölümlü az) */
-  /* 50 kayıt — TEPE AĞIRLIKLI: ilk 6 tür baskın (toplam 40), kalan 8 tür seyrek (10).
-     Böylece Olay Türü grafiğinde "top 6" net okunur, kuyruk dilimler onu bastırmaz. */
-  const dagilim={'Ucuz Atlatma (NM)':10,'İlk Yardım (FAC)':8,'Maddi Hasar (PD)':7,'Tıbbi Müdahaleli Olay (MTC)':6,
-    'Kısıtlı İş Göremezlik (RWC)':5,'Kayıp Günlü Olay (LTI)':3,'Araç Kazası':2,'Yangın':2,'Güvenlik Olayı':2,
-    'Meslek Hastalığı':1,'İş Dışı Hastalık':1,'Fiziksel Engel':1,'Kaza Dışı Ölüm':1,'Ölümlü Kaza':1};
-  const sorumlular=['Vardiya Amiri','Servis Şefi','Depo Sorumlusu','İSG Uzmanı','Saha Şefi'];
-  const durumlar=['rapor','rapor','rapor','inceleme','bildirildi','draft'];
-  const yaralilar=['Kesik','Ezilme / Sıkışma','Kırık','Burkulma / İncinme','Yanık','Göze Yabancı Cisim','Düşme Travması'];
-  const bolgeler=['Baş / Yüz','Göz','El / Parmak','Kol / Dirsek','Bacak / Diz','Ayak / Parmak','Gövde / Sırt'];
-  RECS.flatMap(r=>r.ekler||[]).forEach(f=>{ try{ delFile(f.id); }catch(e){} });
-  const yeni=[]; let sira=0;
-  Object.keys(dagilim).forEach(function(tur){
-    for(let i=0;i<dagilim[tur];i++){
-      sira++;
-      const lok=kis(loklar), kod=turKod(tur), c=cidOf(kod);
-      const dur=kis(durumlar), gecmis=Math.floor(Math.random()*330)+5;
-      const yaralanmali=yaralanmaliMi(kod);   /* ortak tanım (CIDDIYET.yarali) */
-      const r=Object.assign(blank(),{
-        id:uid(), no:'SIF-'+lok+'-INC-'+yil+'-'+String(sira).padStart(3,'0'),
-        lokasyon:lok, tur:tur, sonuc:kod, kaynak:kis(KAYNAKLAR.filter(k=>k!=='Diğer')),
-        tarih:gun(gecmis), saat:String(7+Math.floor(Math.random()*11)).padStart(2,'0')+':'+kis(['00','15','30','45']),
-        yer:kis(['Servis atölyesi','Yedek parça deposu','Saha sevkiyat alanı','Yıkama alanı','Test sahası']),
-        faaliyet:kis(['Bakım / onarım','Yükleme-boşaltma','Test sürüşü','Temizlik','Montaj']),
-        durum:dur, aciklama:tur+' — örnek kayıt, saha koşullarında meydana geldi.',
-        acil:'Alan emniyete alındı, ilk müdahale yapıldı.',
-        /* kök sebep "Kategori — sebep" biçiminde: kategori BİR KEZ seçilir,
-           sebep O KATEGORİNİN listesinden gelir (yoksa kategori-sebep karışır) */
-        bulgular:[kis(BULGULAR)], kokSebep:[kokKis()],
-        kisiler:[], aksiyonlar:[], ekler:[],
-        /* Kayit ACILIS ani: olayin kendi gunu + 0-2 gun bildirim gecikmesi.
-           Hepsine ayni ani yazmak listeleri acilisa gore siralanamaz hale getiriyordu. */
-        olusturma: gun(Math.max(0,gecmis-Math.floor(Math.random()*3)))+'T'+String(8+Math.floor(Math.random()*9)).padStart(2,'0')+':'+kis(['05','20','35','50'])+':00'
-      });
-      if(yaralanmali) r.kisiler=[{id:uid(),ad:'Örnek Personel '+sira,sicil:String(10000+sira),gorev:'Teknisyen',sirket:'SİF',
-        yara:kis(yaralilar), bolge:kis(bolgeler), tibbi:kod==='fac'?'Yerinde İlk Yardım':(kod==='lti'?'Hastane — Yatarak':'Revir'),
-        kayipGun:kod==='lti'?String(1+Math.floor(Math.random()*20)):'0'}];
-      if(dur==='rapor'||dur==='inceleme'){
-        const n=1+Math.floor(Math.random()*2);
-        for(let a=0;a<n;a++){
-          const kapali=Math.random()<0.5, gecikmis=!kapali&&Math.random()<0.45;
-          r.aksiyonlar.push({id:uid(), no:r.no+'-A0'+(a+1), tanim:kis(['Ekipman/alan iyileştirmesi','Eğitim ve bilgilendirme','Prosedür güncellemesi','KKD temini ve kontrolü','Periyodik bakım planı revizyonu']),
-            sorumlu:kis(sorumlular), termin:gecikmis?gun(gecmis-10):gun(gecmis-60),
-            /* aksiyon, olay acildiktan 0-3 gun sonra baslatilir */
-            olusturma: gun(Math.max(0,gecmis-Math.floor(Math.random()*4)))+'T'+String(9+Math.floor(Math.random()*8)).padStart(2,'0')+':00:00',
-            kapanis:kapali?{tarih:gun(gecmis-45),not:'Tamamlandı'}:null, gunluk:[], ekler:[], alicilar:[]});
-        }
-      }
-      yeni.push(r);
-    }
-  });
-  RECS=yeni; saveRecs(); renderAll(); newRec();
-  toast(yeni.length+' örnek olay kaydı oluşturuldu');
-}
+
 function wipe(){
   if(!can('ayar')) return;
   if(!confirm(`DİKKAT: ${RECS.length} olay kaydı ve tüm ekleri kalıcı olarak silinecek.\nLokasyon, kullanıcı ve dağıtım ayarları KALIR.\n\nÖnce yedek aldınız mı? Devam edilsin mi?`)) return;
@@ -5865,7 +5816,7 @@ function restore(inp){
           +'\n\nBu ayarlar olay bildirimlerinin (sağlık verisi dahil) NEREYE gönderileceğini belirler.\n'
           +'Yedekteki değerler uygulansın mı?\n\n(İptal = mevcut e-posta ayarları korunur, geri kalan yedek yüklenir)'))
         fark.forEach(k=>{ if(GEN[k]===undefined) delete ng[k]; else ng[k]=GEN[k]; });
-      GEN=ng;
+      GEN=ng; genKodTemiz();   /* G18: kodlar Ayarlar'daki biçim kuralına */
     }
     if(Array.isArray(d.lokasyonlar)&&d.lokasyonlar.length) LOK=d.lokasyonlar;
     if(Array.isArray(d.pozisyonlar)&&d.pozisyonlar.length) POZ=d.pozisyonlar;
@@ -7613,7 +7564,7 @@ function anPie(rows,boyut,sec,animate){
     const sw=animate?`--arc:${arc.toFixed(2)}px;stroke-dashoffset:${arc.toFixed(2)}px;animation:anDonutSweep .7s cubic-bezier(.22,1,.36,1) forwards;animation-delay:${(i*0.05).toFixed(2)}s;`:'stroke-dashoffset:0;';
     segs+=`<circle class="seg" data-anclick cx="${cx}" cy="${cy}" r="${rM}" fill="none" stroke="${col}" stroke-width="${th}"
       stroke-dasharray="${arc.toFixed(2)} ${(C-arc).toFixed(2)}" transform="rotate(${(acc*360-90).toFixed(2)} ${cx} ${cy})"
-      style="${sw}cursor:pointer" onclick="anSec('${boyut}',${qA(row.ad)})"><title>${esc(row.ad)}: ${row.n} (%${Math.round(f*100)})</title></circle>`;
+      style="${sw}cursor:pointer" onclick="anSec(${jsA(boyut)},${qA(row.ad)})"><title>${esc(row.ad)}: ${row.n} (%${Math.round(f*100)})</title></circle>`;
     const mid=(acc+f/2)*2*Math.PI - Math.PI/2, sag=Math.cos(mid)>=0;
     const satir=pieLbl(row.ad).length+1;   // ad (1-2 satır) + yüzde satırı
     L.push({row,f,sag,satir,
@@ -7655,7 +7606,7 @@ function anPie(rows,boyut,sec,animate){
     const y0=-((lines.length-1)*lh)/2;
     const tsp=lines.map((X,idx)=>`<tspan x="${tx.toFixed(1)}" dy="${(idx===0?y0:lh).toFixed(1)}" style="font-size:11.5px;font-weight:${X.w};fill:${X.fl}">${esc(X.t)}</tspan>`).join('');
     labs+=`<polyline points="${l.ex.toFixed(1)},${l.ey.toFixed(1)} ${l.bx.toFixed(1)},${l.by.toFixed(1)} ${(l.sag?l.bx+4:l.bx-4).toFixed(1)},${l.by.toFixed(1)}" fill="none" stroke="#c9ccd1" stroke-width="1"/>
-      <text data-anclick x="${tx.toFixed(1)}" y="${l.by.toFixed(1)}" text-anchor="${anc}" style="cursor:pointer" onclick="anSec('${boyut}',${qA(row.ad)})">${tsp}</text>`;
+      <text data-anclick x="${tx.toFixed(1)}" y="${l.by.toFixed(1)}" text-anchor="${anc}" style="cursor:pointer" onclick="anSec(${jsA(boyut)},${qA(row.ad)})">${tsp}</text>`;
   });
   return `<div style="text-align:center"><svg viewBox="0 0 ${W} ${H}" class="donut" style="width:100%;max-width:430px;overflow:visible">${segs}${labs}</svg></div>`;
 }
@@ -7773,7 +7724,7 @@ let anDom=null;
 const _anImza={};   /* grafik başına son veri imzası: yalnız değişen grafik yeniden canlanır (anGuncelle) */
 function anBarSkeleton(dim,boyut){
   return `<div data-barchart="${dim}">`+anDom[dim].map((k,i)=>
-    `<div class="barRow${boyut?' clk':''}" data-key="${esc(k)}" ${boyut?`data-anclick onclick="anSec('${boyut}',${qA(k)})"`:''}>
+    `<div class="barRow${boyut?' clk':''}" data-key="${esc(k)}" ${boyut?`data-anclick onclick="anSec(${jsA(boyut)},${qA(k)})"`:''}>
       <div class="lbl" title="${esc(k)}">${esc(k)}</div>
       <div class="barTrack"><div class="barFill" style="width:0"></div></div>
       <div class="val"></div></div>`).join('')+`</div>`;
@@ -7883,7 +7834,7 @@ function anGuncelle(animate){
     [st.acik,'Açık Aksiyon','','Termini geçmemiş, onay beklemeyen açık aksiyonlar (Aksiyon Listesi ile aynı tanım)','k-acikaks'],
     [st.gecikti,'Geciken Aksiyon','','Termini geçmiş, kapanmamış aksiyonlar (onay bekleyen gecikmişler dahil)','k-gecikenaks'],   /* Aksiyon Listesi ile aynı (dışlayan) tanım */
     [st.oran==null?'—':'%'+st.oran,'Aksiyon Kapatılma Oranı',oranRenk(st.oran),kapanmaTip+` · %${ESIK.oranKirmizi} altı kırmızı, %${ESIK.oranKirmizi}–${ESIK.oranYesil} turuncu, %${ESIK.oranYesil} üstü yeşil`,'k-kapatmaoran']
-  ].map(([v,l,s,t,w])=>`<div class="kpi clk" data-w="${w}" onclick="anKpiTik('${w}')" title="${esc(t)}${t?'\n':''}Tıklayın: bu kayıtları listele"><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
+  ].map(([v,l,s,t,w])=>`<div class="kpi clk" data-w="${w}" onclick="anKpiTik(${jsA(w)})" title="${esc(t)}${t?'\n':''}Tıklayın: bu kayıtları listele"><div class="v" style="${s}">${v}</div><div class="l">${l}</div></div>`).join('');
   wUygula();   /* #anKpi her çizimde baştan yazılıyor → sıra/gizleme/− düğmesi yeniden işlenir */
   kpiSay('anKpi');
   const setW=(chart,html)=>{ const w=document.querySelector(`#anCharts [data-chart="${chart}"]`); if(w) w.innerHTML=html; };
@@ -8067,7 +8018,7 @@ function wUygula(){
     const id=el.dataset.w;
     el.classList.toggle('wGizli', d.gizli.includes(id));
     if(!el.querySelector(':scope > .wSil'))
-      el.insertAdjacentHTML('afterbegin', `<button type="button" class="wSil" aria-label="Kaldır" onclick="wKaldir('${id}')">−</button>`);
+      el.insertAdjacentHTML('afterbegin', `<button type="button" class="wSil" aria-label="Kaldır" onclick="wKaldir(${jsA(id)})">−</button>`);
   });
   if(document.body.classList.contains('wListeAcik') || ($('s-widget')&&$('s-widget').classList.contains('on'))) wListeYaz();
 }
@@ -8091,7 +8042,7 @@ function wSifirla(){
 function wListeYaz(){
   const d=wOku();
   const grup=(baslik,ids)=>`<div class="wGrup">${baslik}</div>`
-    + ids.map(id=>`<label class="wSatir"><input type="checkbox"${d.gizli.includes(id)?'':' checked'} onchange="wTik('${id}',this.checked)"><span>${esc(W_AD[id]||id)}</span></label>`).join('');
+    + ids.map(id=>`<label class="wSatir"><input type="checkbox"${d.gizli.includes(id)?'':' checked'} onchange="wTik(${jsA(id)},this.checked)"><span>${esc(W_AD[id]||id)}</span></label>`).join('');
   const html=grup('KPI Balonları', W_VARSAYILAN.k)+grup('Grafikler', W_VARSAYILAN.c);
   ['wListe','wListeAyar'].forEach(i=>{ const el=$(i); if(el) el.innerHTML=html; });
 }
