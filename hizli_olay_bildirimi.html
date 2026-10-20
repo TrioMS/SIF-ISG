@@ -2379,6 +2379,160 @@ function yetkiler(u){
 const ozelYetki = u => !!(u.yetki && Object.keys(u.yetki).length);
 function rol(){ return yetkiler(SES); }
 function can(x){ const r=rol(); return !!(r && r[x]); }
+/* ═══ BİLEŞENLER VE GÜNCELLEMELER (20.10.2026) — ORTAK BLOK: HSE, Kalite ve SİF'te AYNI ═══
+   Kullanıcı kararı: arka planda çalışan her şey (OCR, PDF, görüntü çözücüleri, çeviri,
+   öğrenme / analiz motorları…) listelenir; yalnız YÖNETİCİ görür (çağıran portal denetler).
+   Sunucu (.claude/serve.ps1 + bilesen.ps1) kurulu dosyaları ONAYLI sürüm listesiyle
+   (sürüm + SHA-256) karşılaştırır, npm'deki son sürümü günde bir sorar. İnternette daha
+   yenisi varsa "inceleme gerekli" yazar — OTOMATİK KURULMAZ. "Seçilenleri güncelle" yalnız
+   onaylı sürümü kurar ve özetini doğrular. İnternetten yüklenen kitaplıklar bilgi satırıdır
+   (güncellemesi kod değişikliğidir). Portalın kendi motorları "portalla birlikte" güncellenir.
+   qbPanel(el, {portal:'hse'|'kalite'|'sif', dil:function(){return 'tr'|'en';}, ic:[[ad, sürüm], …]}) */
+var QB = {veri:null, secili:{}, izle:null, ayar:null, el:null};
+function qbT(tr, en){ return (QB.ayar && QB.ayar.dil && QB.ayar.dil() === 'en') ? en : tr; }
+function qbEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function qbTarih(iso){ var d = new Date(iso); if(isNaN(d)) return ''; function p(n){ return String(n).padStart(2,'0'); }
+  return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+var QB_AD = {
+  'tesseract':['OCR motoru (Tesseract.js)','OCR engine (Tesseract.js)'],
+  'tesseract-core':['OCR wasm çekirdeği (tesseract.js-core)','OCR wasm core (tesseract.js-core)'],
+  'tur':['Türkçe OCR dil modeli','Turkish OCR language model'],
+  'pdfjs':['PDF motoru (pdf.js)','PDF engine (pdf.js)'],
+  'pdfjs-wasm':['PDF görüntü çözücüleri (JPEG 2000, JBIG2, renk profili)','PDF image decoders (JPEG 2000, JBIG2, colour profiles)'],
+  'jspdf':['PDF üretici (jsPDF)','PDF generator (jsPDF)'],
+  'msal':['Microsoft girişi (MSAL)','Microsoft sign-in (MSAL)'],
+  'chartjs':['Grafik kitaplığı (Chart.js)','Chart library (Chart.js)'],
+  'bayraklar':['Bayrak simgeleri (flag-icon-css)','Flag icons (flag-icon-css)'],
+  'googlefonts':['Yazı tipleri (Google Fonts)','Fonts (Google Fonts)'],
+  'pptxgenjs':['Sunum üretici (PptxGenJS)','Presentation generator (PptxGenJS)'],
+  'qrcode':['QR kod üreteci (qrcode-generator)','QR code generator (qrcode-generator)']
+};
+function qbAd(b){ var a = QB_AD[b.id]; return a ? qbT(a[0], a[1]) : b.ad; }
+function qbPanel(el, ayar){
+  QB.el = el; QB.ayar = ayar || {};
+  if(!el) return;
+  if(!/^http/.test(location.protocol) || !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){
+    el.innerHTML = '<div style="font-size:12px;color:#5C6675;line-height:1.5">' + qbEsc(qbT('Bu bölüm yalnız portal bilgisayardaki sunucudan (Portali Ac.bat) açıldığında çalışır.',
+      'This section only works when the portal is opened from the local server (Portali Ac.bat).')) + '</div>';
+    return;
+  }
+  el.innerHTML = '<div style="font-size:12px;color:#5C6675">' + qbEsc(qbT('Bileşenler denetleniyor…', 'Checking components…')) + '</div>';
+  qbYukle(false);
+}
+function qbYukle(kontrol){
+  var el = QB.el; if(!el) return;
+  var db = el.querySelector('.qb-denetle'); if(kontrol && db){ db.disabled = true; db.textContent = qbT('Denetleniyor…', 'Checking…'); }
+  fetch('/__bilesen?portal=' + encodeURIComponent(QB.ayar.portal) + (kontrol ? '&kontrol=1' : ''), {cache:'no-store'})
+    .then(function(r){ if(r.status === 404) throw new Error(qbT('Portal sunucusu eski sürüm — pencereyi kapatıp Portali Ac.bat ile yeniden açın.', 'The portal server is outdated — restart it with Portali Ac.bat.'));
+      return r.json(); })
+    .then(function(j){ if(!j.ok) throw new Error(j.hata || 'hata'); QB.veri = j; qbCiz(); })
+    .catch(function(e){ if(QB.el) QB.el.innerHTML = '<div style="font-size:12px;color:#7A1F2B">' + qbEsc(e.message) + '</div>'; });
+}
+function qbRozet(metin, tur){
+  var r = {mavi:['#E8EEF6','#132846'], bordo:['#F3E6E8','#7A1F2B'], gri:['#EEF0F3','#4A5361']}[tur || 'gri'];
+  return '<span style="display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + r[0] + ';color:' + r[1] + ';white-space:nowrap">' + qbEsc(metin) + '</span>';
+}
+function qbCiz(){
+  var el = QB.el, j = QB.veri; if(!el || !j) return;
+  var is = j.is || {durum:'yok'}, suruyor = is.durum === 'suruyor';
+  /* Dar kap (ör. HSE AI Mode penceresi): sürümler bileşen adının altına iner, 3 sütun kalır. */
+  var dar = el.clientWidth > 0 && el.clientWidth < 560;
+  var td = 'padding:7px 8px;border-bottom:1px solid #EEF0F3;vertical-align:top;font-size:12px';
+  function yukariHucre(b){
+    if(!b.npm) return '<span style="color:#8A94A3">—</span>';
+    if(!b.yukari) return '<span style="color:#8A94A3">' + qbEsc(qbT('bilinmiyor', 'unknown')) + '</span>';
+    if(b.yeniVar) return qbRozet(b.yukari, 'gri') + ' <span style="font-size:11px;color:#4A5361">' + qbEsc(qbT('yeni sürüm — inceleme gerekli', 'newer version — review needed')) + '</span>';
+    return qbEsc(b.yukari) + (/\d/.test(b.onayli) ? ' <span style="color:#8A94A3">· ' + qbEsc(qbT('güncel', 'up to date')) + '</span>' : '');
+  }
+  function satir(b){
+    var durum;
+    if(b.durum === 'tam') durum = qbRozet(qbT('onaylı sürüm kurulu', 'approved version installed'), 'mavi');
+    else if(b.durum === 'eksik') durum = qbRozet(qbT('eksik (' + b.eksik.length + ' dosya)', 'missing (' + b.eksik.length + ' files)'), 'bordo');
+    else if(b.durum === 'farkli') durum = qbRozet(qbT('farklı / değişmiş (' + b.farkli.length + ' dosya)', 'different / modified (' + b.farkli.length + ' files)'), 'bordo');
+    else if(b.durum === 'cdn') durum = qbRozet(qbT('internetten yükleniyor', 'loaded from the internet'), 'gri');
+    else durum = qbRozet(qbT('yerel, sürümü belirsiz', 'local, version unknown'), 'gri');
+    var sec = (b.durum === 'eksik' || b.durum === 'farkli') && !suruyor;
+    var kutu = '<td style="' + td + ';width:24px">' + (sec ? '<input type="checkbox" class="qb-sec" data-qb="' + qbEsc(b.id) + '"' + (QB.secili[b.id] ? ' checked' : '') + '>' : '') + '</td>';
+    if(dar) return '<tr>' + kutu + '<td style="' + td + '"><b>' + qbEsc(qbAd(b)) + '</b><div style="font-size:11px;color:#6B7482;margin-top:2px">' +
+      qbEsc(qbT('onaylı ', 'approved ') + b.onayli) + ' · ' + qbEsc(qbT('internette: ', 'upstream: ')) + yukariHucre(b) + '</div></td><td style="' + td + '">' + durum + '</td></tr>';
+    return '<tr>' + kutu +
+      '<td style="' + td + '"><b>' + qbEsc(qbAd(b)) + '</b></td><td style="' + td + '">' + qbEsc(b.onayli) + '</td><td style="' + td + '">' + durum + '</td><td style="' + td + '">' + yukariHucre(b) + '</td></tr>';
+  }
+  var bl = j.bilesenler || [];
+  var yerel = bl.filter(function(b){ return b.durum === 'tam' || b.durum === 'eksik' || b.durum === 'farkli'; });
+  var dis = bl.filter(function(b){ return b.durum === 'cdn' || b.durum === 'bilgi'; });
+  var ic = (QB.ayar.ic || []).map(function(x){
+    if(dar) return '<tr><td style="' + td + '"></td><td style="' + td + '"><b>' + qbEsc(x[0]) + '</b><div style="font-size:11px;color:#6B7482;margin-top:2px">' + qbEsc(x[1] + ' · ' + qbT('portalla birlikte güncellenir', 'updated with the portal')) +
+      '</div></td><td style="' + td + '">' + qbRozet(qbT('çalışıyor', 'running'), 'mavi') + '</td></tr>';
+    return '<tr><td style="' + td + '"></td><td style="' + td + '"><b>' + qbEsc(x[0]) + '</b></td><td style="' + td + '">' + qbEsc(x[1]) + '</td><td style="' + td + '">' +
+      qbRozet(qbT('çalışıyor', 'running'), 'mavi') + '</td><td style="' + td + ';color:#8A94A3">' + qbEsc(qbT('portalla birlikte güncellenir', 'updated with the portal')) + '</td></tr>';
+  }).join('');
+  function grup(baslik){ return '<tr><td colspan="' + (dar ? 3 : 5) + '" style="padding:10px 8px 4px;font-size:10.5px;font-weight:800;letter-spacing:.05em;color:#6B7482;text-transform:uppercase">' + qbEsc(baslik) + '</td></tr>'; }
+  var th = 'text-align:left;padding:6px 8px;font-size:10.5px;color:#6B7482;font-weight:700;border-bottom:2px solid #E7EBF0';
+  var isHtml = '';
+  if(suruyor) isHtml = '<div style="background:#E8EEF6;color:#132846;border-radius:8px;padding:8px 11px;font-size:12px;margin-bottom:10px">' +
+    qbEsc(qbT('Güncelleniyor — onaylı sürüm indiriliyor ve doğrulanıyor. Bu ekran kapanabilir; sonuç burada görünür.', 'Updating — the approved version is being downloaded and verified. You can leave this screen.')) + '</div>';
+  else if(is.durum === 'bitti' && (!is.portal || is.portal === QB.ayar.portal)){
+    isHtml = '<div style="background:' + (is.tamam ? '#E8EEF6;color:#132846' : '#F3E6E8;color:#7A1F2B') + ';border-radius:8px;padding:8px 11px;font-size:12px;margin-bottom:10px">' +
+      qbEsc(is.tamam ? qbT('Güncelleme tamamlandı (' + qbTarih(is.bitis) + '). Sayfayı yenileyince yeni dosyalar kullanılır.', 'Update completed (' + qbTarih(is.bitis) + '). Reload the page to use the new files.')
+                     : qbT('Güncelleme tamamlanamadı (' + qbTarih(is.bitis) + '); doğrulanamayan dosya kurulmadı.', 'Update failed (' + qbTarih(is.bitis) + '); files that could not be verified were not installed.')) +
+      '<div style="font-size:11px;margin-top:5px;line-height:1.6">' + (is.satirlar || []).map(qbEsc).join('<br>') + '</div></div>';
+  }
+  var btn = 'border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#132846;color:#fff';
+  el.innerHTML =
+    '<div style="font-size:12px;color:#5C6675;line-height:1.55;margin-bottom:10px">' + qbEsc(qbT(
+      'Arka planda çalışan motorlar onaylı sürüm listesiyle (liste ' + (j.listeSurum || '') + ') karşılaştırılır. İnternette daha yeni sürüm çıkmışsa gösterilir ama otomatik kurulmaz: önce incelenip onaylanır, sonra listeye eklenir.',
+      'Background engines are compared with the approved version list (list ' + (j.listeSurum || '') + '). A newer upstream version is shown but never installed automatically: it is reviewed and approved first.')) + '</div>' +
+    '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' +
+      '<button type="button" class="qb-denetle" style="' + btn + '"' + (suruyor ? ' disabled' : '') + '>' + qbEsc(qbT('Güncellemeleri denetle', 'Check for updates')) + '</button>' +
+      '<span style="font-size:11.5px;color:#8A94A3">' + qbEsc(j.kontrolTarih ? qbT('son denetim: ', 'last check: ') + qbTarih(j.kontrolTarih) : qbT('henüz denetlenmedi', 'not checked yet')) + '</span>' +
+      (j.kontrolHata ? qbRozet(qbT('internete ulaşılamadı — son bilinen sonuç', 'offline — last known result'), 'bordo') : '') +
+    '</div>' + isHtml +
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="' + th + '"></th><th style="' + th + '">' + qbEsc(qbT('Bileşen', 'Component')) +
+      (dar ? '' : '</th><th style="' + th + '">' + qbEsc(qbT('Onaylı sürüm', 'Approved'))) + '</th><th style="' + th + '">' + qbEsc(qbT('Bu bilgisayarda', 'On this computer')) +
+      (dar ? '' : '</th><th style="' + th + '">' + qbEsc(qbT('İnternetteki son sürüm', 'Latest upstream'))) + '</th></tr></thead><tbody>' +
+      (yerel.length ? grup(qbT('Bilgisayarda kurulu motorlar', 'Installed engines')) + yerel.map(satir).join('') : '') +
+      (dis.length ? grup(qbT('İnternetten yüklenenler — yerelleştirilmeli', 'Loaded from the internet — should be made local')) + dis.map(satir).join('') : '') +
+      (ic ? grup(qbT('Portalın kendi motorları', 'The portal’s own engines')) + ic : '') +
+    '</tbody></table></div>' +
+    (yerel.length ? '<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="qb-guncelle" style="' + btn + '" disabled>' + qbEsc(qbT('Seçilenleri güncelle', 'Update selected')) + '</button>' +
+      '<span style="font-size:11.5px;color:#8A94A3">' + qbEsc(qbT('Yalnız eksik ya da değişmiş motorlar seçilebilir; onaylı sürüm kurulur ve özeti doğrulanır.', 'Only missing or modified engines can be selected; the approved version is installed and verified.')) + '</span></div>' : '');
+  var gb = el.querySelector('.qb-guncelle');
+  function say(){ var n = Object.keys(QB.secili).filter(function(k){ return QB.secili[k]; }).length; if(gb){ gb.disabled = !n || suruyor; gb.style.opacity = gb.disabled ? '.45' : '1'; } }
+  Array.prototype.forEach.call(el.querySelectorAll('.qb-sec'), function(c){ c.onchange = function(){ QB.secili[c.getAttribute('data-qb')] = c.checked; say(); }; });
+  say();
+  el.querySelector('.qb-denetle').onclick = function(){ qbYukle(true); };
+  if(gb) gb.onclick = function(){
+    var idler = Object.keys(QB.secili).filter(function(k){ return QB.secili[k]; });
+    if(!idler.length || !confirm(qbT(idler.length + ' bileşen onaylı sürüme güncellenecek. Devam edilsin mi?', idler.length + ' component(s) will be updated to the approved version. Continue?'))) return;
+    fetch('/__bilesen_guncelle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({portal:QB.ayar.portal, idler:idler})})
+      .then(function(r){ return r.json(); })
+      .then(function(x){ if(!x.ok) throw new Error(x.hata || 'hata'); QB.secili = {}; QB.veri.is = {durum:'suruyor'}; qbCiz(); qbIzle(); })
+      .catch(function(e){ alert(e.message); });
+  };
+  if(suruyor) qbIzle();
+}
+function qbIzle(){
+  if(QB.izle) return;
+  QB.izle = setInterval(function(){
+    if(!QB.el || !document.body.contains(QB.el)){ clearInterval(QB.izle); QB.izle = null; return; }
+    fetch('/__bilesen_is', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(x){
+      if(x.is && x.is.durum !== 'suruyor'){ clearInterval(QB.izle); QB.izle = null; qbYukle(false); }
+    }).catch(function(){});
+  }, 3000);
+}
+/* ═══ /BİLEŞENLER VE GÜNCELLEMELER ═══ */
+
+/* SİF: Ayarlar › Analiz Sağlığı sekmesine "Bileşenler ve Güncellemeler" kartı — yalnız 'ayar' yetkili yönetici */
+function sifBilesenYaz(){
+  if(!can('ayar')) return;
+  var s = document.getElementById('s-ansag'); if(!s) return;
+  var k = document.getElementById('sifBilesenKart');
+  if(!k){ k = document.createElement('div'); k.className = 'card'; k.id = 'sifBilesenKart'; k.style.cssText = 'max-width:860px;margin-top:14px';
+    k.innerHTML = '<h3>Bileşenler ve Güncellemeler</h3><div class="cb"><div id="sifBilesenGovde"></div></div>'; s.appendChild(k); }
+  qbPanel(document.getElementById('sifBilesenGovde'), {portal:'sif', dil:function(){ return 'tr'; },
+    ic:[['Öğrenme motoru (model)', OGR_MOTOR_SURUM], ['Analiz motoru', AN_MOTOR_SURUM], ['Belge okuma motoru', BELGE_SURUM]]});
+}
 function kapsamLoklari(){                       // görebileceği lokasyon kodları
   if(!SES) return [];
   if(rol().kapsam==='all' || (SES.loklar||[]).includes('*')) return LOK.map(l=>l.kod);
@@ -5176,7 +5330,8 @@ document.querySelectorAll('#setTabs button').forEach(b=>b.onclick=()=>{
      kullanıcıyı ayrıca düğmeye bastırmanın bir faydası yok. */
   if(b.dataset.s==='ansag' && typeof anSaglikCalistir==='function'){ anSaglikCalistir();
     if(typeof ogrPanelYaz==='function') ogrPanelYaz();
-    if(typeof ocrDurumYaz==='function') ocrDurumYaz(); }
+    if(typeof ocrDurumYaz==='function') ocrDurumYaz();
+    if(typeof sifBilesenYaz==='function') sifBilesenYaz(); }
   if(b.dataset.s==='widget' && typeof wListeYaz==='function') wListeYaz();
   /* Kaydet cubugu Airtable, Analiz Sağlığı ve Widget sekmelerinde islevsiz — gizlenir
      (Widget düzeni anında kaydedilir; Ayarlar'ın beklet/kaydet akışına girmez) */
