@@ -6695,7 +6695,8 @@ function pdfKanvas(buf, ilerle){
           const c=document.createElement('canvas');
           c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
           /* pdf.js 5+: canvas parametresi (canvasContext eski yol) */
-          return p.render({canvas:c, viewport:vp}).promise.then(()=>{ kanvaslar.push(c); });
+          /* intent:'print' (20.10.2026): ekran kipi her adımda requestAnimationFrame bekler; sekme arka plandayken tarayıcı onu durdurur ve OCR asılı kalıyordu. Baskı kipi zamanlayıcıyla ilerler. */
+          return p.render({canvas:c, viewport:vp, intent:'print'}).promise.then(()=>{ kanvaslar.push(c); });
         });
       });
     }
@@ -6708,9 +6709,15 @@ function ocrTani(kaynak, ilerle){
     /* Yerel kurulumda üçü de havuzdan gelir: işçi betiği, wasm çekirdeği
        (SIMD'li ve SIMD'siz — işçi işlemciye göre SEÇER, bu yüzden KLASÖR
        verilir) ve Türkçe dil modeli. */
+    /* cacheMethod 'none' (20.10.2026, Hukuk güvenlik raporu H28): yerel kurulumda dil modeli
+       tarayıcı deposuna (IndexedDB) önbelleğe alınmaz — kurcalanmış model Tesseract açıklarının
+       tetikleyicisi; model her seferinde doğrulanmış yerel dosyadan gelir.
+       Telefon yayınında (GitHub Pages) lib/ altında tesseract YOK: orada ana betik CDN'den
+       bütünlük karmasıyla (CDN_SRI) gelir; o yol bilerek korunuyor — kaldırılırsa telefonda OCR durur. */
     const sec = k.yerelMi ? {workerPath:k.kok+'tesseract-worker.min.js',
                              corePath:k.kok+'tesseract-core',
-                             langPath:k.kok+'tessdata'} : {};
+                             langPath:k.kok+'tessdata',
+                             cacheMethod:'none'} : {};
     sec.logger = m => { if(ilerle && m.status==='recognizing text') ilerle(Math.round(m.progress*100)); };
     return window.Tesseract.recognize(kaynak,'tur',sec);
   }).then(r=>(r.data&&r.data.text)||'');
