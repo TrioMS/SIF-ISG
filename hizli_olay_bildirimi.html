@@ -2220,6 +2220,7 @@ const MS_DOGRULAMA_KEY = 'hse::HOB::msDogrulama';
    sessionStorage'da tutulur ve uygulama kapanınca biter. Seçim girişten ÖNCE saklanır
    çünkü Microsoft dönüşünde kitaplık aynı depoyla yeniden kurulmalı. */
 const MS_HATIRLA_KEY = 'hse::HOB::msHatirla';
+const MS_SON_HESAP_KEY = 'hse::HOB::msSonHesap';   /* yalnız e-posta (ipucu); Çıkış'ta kalır, "Beni hatırla" kapalıysa silinir */
 const msHatirla = () => { try{ return localStorage.getItem(MS_HATIRLA_KEY)!=='0'; }catch(e){ return true; } };
 const MS_GIRIS = {
   /* DENEME AŞAMASI (kullanıcı kararı 19.10.2026): Çağrı Dinçtürk STFA iş hesabıyla dener.
@@ -2300,8 +2301,15 @@ async function msGirisBaslat(){
   msHata('');
   { const k=$('gateMsHatirla'); const yeni=k&&!k.checked?'0':'1';
     try{ if(localStorage.getItem(MS_HATIRLA_KEY)!==yeni && MS_PCA) MS_PCA=null; localStorage.setItem(MS_HATIRLA_KEY,yeni); }catch(e){} }
+  /* HESAP SEÇİMİ ATLANIR (kullanıcı isteği 20.10.2026): "Beni hatırla" işaretliyse Microsoft'un doğruladığı
+     son hesap ipucu olarak verilir — Microsoft hesap seçtirmeden doğrudan PIN/parola ister (Microsoft
+     sayfasında "başka hesap" yine seçilebilir). İşaret kapalıysa hesap tutulmaz, seçim ekranı gelir.
+     Çıkış'tan sonra kimlik doğrulaması (PIN/parola) her zaman istenir — bu güvenlik gereği. */
+  let ipucu=null;
+  try{ if(msHatirla()) ipucu=localStorage.getItem(MS_SON_HESAP_KEY); else localStorage.removeItem(MS_SON_HESAP_KEY); }catch(e){}
   try{ const pca=await msHazirla();
-    await pca.loginRedirect({ scopes:['openid','profile','email'], prompt:'select_account' });
+    await pca.loginRedirect(ipucu ? { scopes:['openid','profile','email'], loginHint:ipucu }
+                                  : { scopes:['openid','profile','email'], prompt:'select_account' });
   }catch(e){ msHata('Microsoft girişine yönlendirilemedi: '+(e&&e.message||e)); }
 }
 function msHesapGiris(hesap){
@@ -2319,7 +2327,9 @@ function msHesapGiris(hesap){
   }
   if(!u){ msHata(mail+' portalda tanımlı değil. Yöneticinizin sizi Ayarlar → Kullanıcılar\'dan eklemesi gerekir.'); return; }
   if(!u.aktif){ msHata('Kullanıcınız pasif durumda. Yöneticinize başvurun.'); return; }
-  MS_HESAP=mail; giris(u.id);
+  MS_HESAP=mail;
+  try{ if(msHatirla()) localStorage.setItem(MS_SON_HESAP_KEY, mail); else localStorage.removeItem(MS_SON_HESAP_KEY); }catch(e){}
+  giris(u.id);
 }
 
 let SES = null;
