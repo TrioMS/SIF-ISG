@@ -6558,6 +6558,8 @@ const BELGE_SURUM = '2026.09.18';
    paketi SHA-512 doğrulamalı). Sunucu .mjs'i text/javascript türüyle sunmalı (.claude/serve.ps1). */
 let LIB_KOK = null;
 const PDF_SURUM    = '6.4.299';
+/* wasmUrl (20.10.2026): taramalarda sik gorulen JPEG 2000 (openjpeg), JBIG2 ve renk profili (qcms) cozuculeri lib/wasm/ altinda; verilmezse bu goruntuler BOS cizilir ve OCR bos metin doner. */
+let PDF_WASM = '';
 const OCR_CDN      = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js';
 const OCR_EN_FAZLA_SAYFA = 20;
 const BELGE_EN_BUYUK = 25*1024*1024;
@@ -6618,6 +6620,7 @@ function pdfjsYukle(){
     const taban=new URL(kok, location.href).href;
     return import(taban+'pdf.min.mjs').then(m=>{
       m.GlobalWorkerOptions.workerSrc=taban+'pdf.worker.min.mjs';
+      PDF_WASM = taban + 'wasm/';
       return m;
     });
   });
@@ -6656,7 +6659,7 @@ function ocrYerelMi(taze){
 function pdfMetin(buf){
   return pdfjsYukle().then(pdfjs=>{
     /* isEvalSupported 6.x'te yok (açığın yolu kaldırıldı); eski sürüme dönülürse diye bırakıldı. */
-    return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false}).promise;
+    return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false, wasmUrl:PDF_WASM}).promise;
   }).then(pdf=>{
     const n=Math.min(pdf.numPages, OCR_EN_FAZLA_SAYFA), isler=[];
     for(let i=1;i<=n;i++) isler.push(pdf.getPage(i).then(p=>p.getTextContent()));
@@ -6682,7 +6685,7 @@ function pdfMetin(buf){
    okumayı belirgin iyileştiriyor, daha yükseği belleği şişiriyor. */
 function pdfKanvas(buf, ilerle){
   return pdfjsYukle().then(pdfjs=>{
-    return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false}).promise;   /* kopya: pdf.js tamponu devralıp boşaltıyor */
+    return pdfjs.getDocument({data:buf.slice(0), isEvalSupported:false, wasmUrl:PDF_WASM}).promise;   /* kopya: pdf.js tamponu devralıp boşaltıyor */
   }).then(pdf=>{
     const toplam=Math.min(pdf.numPages, OCR_EN_FAZLA_SAYFA), kanvaslar=[];
     let z=Promise.resolve();
