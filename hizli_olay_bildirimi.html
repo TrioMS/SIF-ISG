@@ -2252,14 +2252,43 @@ async function msHazirla(){
   return MS_PCA;
 }
 /* Açılışta: Microsoft'tan dönülüyorsa sonucu işle, oturum varsa sürdür */
+/* "BENİ HATIRLA" KAPALI = 5 DK KURALI (kullanıcı kararı 20.10.2026): telefonlar kapatılan uygulamanın
+   oturum deposunu (sessionStorage) çoğu zaman geri getiriyor; "uygulama kapandı" bilgisi güvenilir değil.
+   Bu yüzden süre ölçülür: uygulama arka plana geçince (ya da kapanırken) zaman damgası yazılır; 5 dk'dan
+   uzun görünmez kaldıysa oturum CİHAZDA kapatılır, giriş ekranı gelir ve yeniden girişte Microsoft
+   kimlik doğrulamasını (PIN/parola) ZORUNLU ister (prompt=login). "Beni hatırla" açıkken uygulanmaz. */
+const MS_ARKA_PLAN_DK = 5;
+const MS_GIZLENDI_KEY = 'hse::HOB::msGizlendi';
+function msArkaPlanAsildi(){
+  if(!msAktif() || msHatirla()) return false;
+  let t=0; try{ t=parseInt(localStorage.getItem(MS_GIZLENDI_KEY)||'0',10)||0; }catch(e){}
+  return t>0 && (Date.now()-t) > MS_ARKA_PLAN_DK*60000;
+}
+function msArkaPlanKapat(){
+  msOturumuSil(); SES=null; try{ sessionStorage.removeItem('hse::HOB::ses'); localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
+  document.querySelectorAll('.ov.on').forEach(o=>o.classList.remove('on'));
+  $('gate').style.display=''; gateKilit(true); gateRender();
+  msHata('Uygulama '+MS_ARKA_PLAN_DK+' dakikadan uzun kapalı kaldı ("Beni hatırla" kapalı) — yeniden giriş yapın.');
+}
+(function(){
+  const gizle=()=>{ if(SES && msAktif() && !msHatirla()){ try{ localStorage.setItem(MS_GIZLENDI_KEY,String(Date.now())); }catch(e){} } };
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden) gizle();
+    else if(SES){ if(msArkaPlanAsildi()) msArkaPlanKapat(); else { try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){} } }
+  });
+  window.addEventListener('pagehide', gizle);
+})();
 async function msBaslat(){
   gateRender();
   try{
     const pca=await msHazirla();
     const sonuc=await pca.handleRedirectPromise();
-    if(sonuc && sonuc.account){ msDogrulandi(); msHesapGiris(sonuc.account); return; }   /* yeni giriş */
+    if(sonuc && sonuc.account){ try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
+      msDogrulandi(); msHesapGiris(sonuc.account); return; }   /* yeni giriş */
     const hesap=pca.getAllAccounts()[0] || null;
     if(!hesap) return;
+    if(msArkaPlanAsildi()){ msArkaPlanKapat(); return; }   /* 5 dk kuralı (yukarıda) */
+    try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
     /* Kayıtlı oturum: internet varsa Microsoft'a sessizce yeniden doğrulat */
     if(navigator.onLine!==false){
       try{ await pca.acquireTokenSilent({ scopes:['openid','profile','email'], account:hesap, forceRefresh:true });
@@ -2309,7 +2338,7 @@ async function msGirisBaslat(){
   try{ if(msHatirla()) ipucu=localStorage.getItem(MS_SON_HESAP_KEY); else localStorage.removeItem(MS_SON_HESAP_KEY); }catch(e){}
   try{ const pca=await msHazirla();
     await pca.loginRedirect(ipucu ? { scopes:['openid','profile','email'], loginHint:ipucu }
-                                  : { scopes:['openid','profile','email'], prompt:'select_account' });
+                                  : { scopes:['openid','profile','email'], prompt:'login' });   /* hatırla kapalı: tarayıcıda kalan Microsoft oturumu kimseyi doğrudan içeri almaz */
   }catch(e){ msHata('Microsoft girişine yönlendirilemedi: '+(e&&e.message||e)); }
 }
 function msHesapGiris(hesap){
