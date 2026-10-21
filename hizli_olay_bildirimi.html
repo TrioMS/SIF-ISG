@@ -357,9 +357,9 @@ main.dar{max-width:1280px}
 /* siyah zeminli giriş formu (hero'nun altında) */
 #gate .login{width:100%;max-width:330px;margin:22px auto 0;background:#000;border:1px solid #26262a;border-radius:16px;padding:26px 30px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 #gate .login .f{display:block;color:#c9c9c9;font-size:12.5px;font-weight:600;margin-bottom:6px}
-#gate .login input[type=email]{width:100%;background:#151517;border:1px solid #33343a;border-radius:10px;padding:12px 14px;font-size:14px;color:#fff}
-#gate .login input[type=email]::placeholder{color:#7b7f88}
-#gate .login input[type=email]:focus{outline:2px solid var(--jcb);outline-offset:1px;border-color:var(--jcb)}
+#gate .login input[type=email],#gate .login input[type=password]{width:100%;background:#151517;border:1px solid #33343a;border-radius:10px;padding:12px 14px;font-size:14px;color:#fff}
+#gate .login input[type=email]::placeholder,#gate .login input[type=password]::placeholder{color:#7b7f88}
+#gate .login input[type=email]:focus,#gate .login input[type=password]:focus{outline:2px solid var(--jcb);outline-offset:1px;border-color:var(--jcb)}
 #gate .giris{width:100%;margin-top:12px;background:var(--jcb);color:#141414;border:none;border-radius:10px;padding:13px;font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:.3px;cursor:pointer;transition:background .15s}
 #gate .giris:hover{background:var(--jcb-600)}
 #gate .warn{font-size:11.5px;line-height:1.6;padding:11px 13px;border-radius:10px;margin-bottom:14px}
@@ -675,6 +675,19 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     </div>
     <div class="login">
       <div id="gateRecover"></div>
+      <!-- ŞİRKET PAROLASIYLA GİRİŞ (21.10.2026) — yalnız localhost:8090'da ve sunucu /__sif_giris ucunu
+           tanıyorsa görünür; Microsoft düğmesinin yerini alır. Parola Windows'a doğrulatılır (Hukuk portalı gibi). -->
+      <div id="gatePw" style="display:none">
+        <div class="f" style="text-align:center;margin-bottom:4px">Şirket parolanızla giriş yapın</div>
+        <div id="gatePwHesap" style="text-align:center;color:#e6e6e6;font-size:13px;margin-bottom:12px;word-break:break-all"></div>
+        <input type="password" id="gatePwParola" placeholder="Şirket (Windows) parolanız" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')pwGirisDene()">
+        <button class="giris" id="gatePwBtn" onclick="pwGirisDene()">Giriş</button>
+        <div id="gatePwErr" style="color:#ff8a80;font-size:12.5px;margin-top:10px;text-align:center"></div>
+        <label style="display:flex;align-items:center;justify-content:center;gap:8px;color:#e6e6e6;font-size:13px;margin-top:12px;cursor:pointer">
+          <input type="checkbox" id="gatePwHatirla" checked style="width:16px;height:16px;accent-color:#F5C518"> Beni hatırla</label>
+        <div style="color:#9aa0a6;font-size:11.5px;margin-top:6px;text-align:center;line-height:1.45">Parolanız bu bilgisayarda Windows'a doğrulatılır; saklanmaz.<br>İşaretliyse oturum bu bilgisayarda 14 gün açık kalır.</div>
+      </div>
       <!-- MICROSOFT ŞİRKET HESABI GİRİŞİ (MS_GIRIS doluysa görünür; e-posta kutusu ve liste gizlenir) -->
       <div id="gateMs" style="display:none">
         <div class="f" style="text-align:center;margin-bottom:10px">Şirket hesabınızla giriş yapın</div>
@@ -2265,10 +2278,10 @@ function msArkaPlanAsildi(){
   return t>0 && (Date.now()-t) > MS_ARKA_PLAN_DK*60000;
 }
 function msArkaPlanKapat(){
-  msOturumuSil(); SES=null; try{ sessionStorage.removeItem('hse::HOB::ses'); localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
+  msOturumuSil(); pwOturumuSil(); SES=null; try{ sessionStorage.removeItem('hse::HOB::ses'); localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
   document.querySelectorAll('.ov.on').forEach(o=>o.classList.remove('on'));
   $('gate').style.display=''; gateKilit(true); gateRender();
-  msHata('Uygulama '+MS_ARKA_PLAN_DK+' dakikadan uzun kapalı kaldı ("Beni hatırla" kapalı) — yeniden giriş yapın.');
+  { const m='Uygulama '+MS_ARKA_PLAN_DK+' dakikadan uzun kapalı kaldı ("Beni hatırla" kapalı) — yeniden giriş yapın.'; msHata(m); pwHata(m); }
 }
 (function(){
   const gizle=()=>{ if(SES && msAktif() && !msHatirla()){ try{ localStorage.setItem(MS_GIZLENDI_KEY,String(Date.now())); }catch(e){} } };
@@ -2345,20 +2358,99 @@ function msHesapGiris(hesap){
   const c=hesap.idTokenClaims||{};
   if(String(c.tid||hesap.tenantId||'').toLowerCase()!==MS_GIRIS.tenantId.toLowerCase()){ msHata('Bu hesap şirket dizinine ait değil.'); return; }
   const mail=String(c.preferred_username||c.email||hesap.username||'').trim().toLowerCase();
+  sirketHesapGiris(mail, String(c.name||''), msHata, true);
+}
+/* DOĞRULANMIŞ ŞİRKET E-POSTASIYLA GİRİŞ (21.10.2026'da msHesapGiris'ten ayrıldı): Microsoft girişi
+   de yerel şirket parolası girişi de buradan geçer — alan denetimi, Ayarlar → Kullanıcılar eşleşmesi
+   ve ilk yönetici kuralı tek yerde. hata: mesajı yazacak fonksiyon (msHata / pwHata). */
+function sirketHesapGiris(mail, ad, hata, ms){
+  mail=String(mail||'').trim().toLowerCase();
   const alan=mail.slice(mail.lastIndexOf('@')+1);
-  if(!mail || !MS_GIRIS.alanlar.includes(alan)){ msHata('Yalnız şirket hesabıyla ('+MS_GIRIS.alanlar.map(a=>'@'+a).join(', ')+') giriş yapılır.'); return; }
+  if(!mail || !MS_GIRIS.alanlar.includes(alan)){ hata('Yalnız şirket hesabıyla ('+MS_GIRIS.alanlar.map(a=>'@'+a).join(', ')+') giriş yapılır.'); return; }
   /* Doğrulanan alan adı cihazın şirket adresi listesine eklenir (giris() bu listeyi şart koşar) */
   { const l=sirketAlanlari(); if(!l.includes(alan)){ GEN.mailAlan=l.concat([alan]); store.set(K.gen,GEN); } }
   let u=USR.find(x=>(x.mail||'').trim().toLowerCase()===mail);
   if(!u && (MS_GIRIS.ilkYoneticiler||[]).map(x=>String(x).trim().toLowerCase()).includes(mail)){
-    u={id:uid(), ad:String(c.name||mail), mail:mail, pozisyon:'admin', loklar:['*'], aktif:true, ornek:false, dis:false};
+    u={id:uid(), ad:String(ad||mail), mail:mail, pozisyon:'admin', loklar:['*'], aktif:true, ornek:false, dis:false};
     USR.push(u); store.set(K.usr,USR);
   }
-  if(!u){ msHata(mail+' portalda tanımlı değil. Yöneticinizin sizi Ayarlar → Kullanıcılar\'dan eklemesi gerekir.'); return; }
-  if(!u.aktif){ msHata('Kullanıcınız pasif durumda. Yöneticinize başvurun.'); return; }
+  if(!u){ hata(mail+' portalda tanımlı değil. Yöneticinizin sizi Ayarlar → Kullanıcılar\'dan eklemesi gerekir.'); return; }
+  if(!u.aktif){ hata('Kullanıcınız pasif durumda. Yöneticinize başvurun.'); return; }
   MS_HESAP=mail;
-  try{ if(msHatirla()) localStorage.setItem(MS_SON_HESAP_KEY, mail); else localStorage.removeItem(MS_SON_HESAP_KEY); }catch(e){}
+  if(ms){ try{ if(msHatirla()) localStorage.setItem(MS_SON_HESAP_KEY, mail); else localStorage.removeItem(MS_SON_HESAP_KEY); }catch(e){} }
   giris(u.id);
+}
+/* ══════════ ŞİRKET PAROLASIYLA GİRİŞ — yalnız localhost:8090 (21.10.2026, Çağrı Bey) ══════════
+   NEDEN: Bilgisayarda Microsoft girişi Windows Hello PIN / passkey istiyor; kullanıcı Hukuk portalındaki
+   gibi şirket (Windows) parolasıyla girmek istedi. Yerel sunucu (.claude/serve.ps1, /__sif_giris)
+   parolayı Windows'a (LogonUser) doğrulatır ve sunucuyu çalıştıran Windows hesabının e-postasını
+   döndürür; parola ne tarayıcıda ne sunucuda saklanır. Sonrası Microsoft girişiyle aynı yol
+   (sirketHesapGiris). Hatalı deneme sınırı sunucuda: 5 dakikada 2 (şirket hesabı kilitlenmesin).
+   KAPSAM: yalnız localhost / 127.0.0.1:8090 ve sunucu ucu tanıyorsa. GitHub (telefon) yayınında ve
+   ucu olmayan eski sunucuda bu panel hiç görünmez — Microsoft girişi aynen çalışır.
+   "Beni hatırla": doğrulama damgası localStorage'da MS_CEVRIMDISI_GUN (14) gün geçerli ve yalnız AYNI
+   Windows hesabına; kapalıysa sessionStorage + 5 dakika arka plan kuralı (Microsoft girişindekiyle aynı). */
+const PW_YEREL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && location.port==='8090';
+const PW_DOGRULAMA_KEY = 'hse::HOB::pwDogrulama';
+let PW_DESTEK = PW_YEREL ? null : false, PW_EPOSTA = '', PW_MESGUL = false;
+const pwAktif = () => PW_DESTEK===true;
+function pwHata(m){ const e=$('gatePwErr'); if(e) e.textContent=m||''; }
+async function pwIstek(govde){
+  const r=await fetch('/__sif_giris',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(govde),cache:'no-store',credentials:'same-origin'});
+  return r.json();
+}
+async function pwDurum(){
+  if(!PW_YEREL){ PW_DESTEK=false; return false; }
+  try{ const j=await pwIstek({islem:'durum'});
+       PW_DESTEK=!!(j&&j.ok&&j.destek&&j.eposta); PW_EPOSTA=PW_DESTEK?String(j.eposta).trim().toLowerCase():''; }
+  catch(e){ PW_DESTEK=false; }
+  return PW_DESTEK;
+}
+function pwDamgaOku(){ try{ const s=(msHatirla()?localStorage:sessionStorage).getItem(PW_DOGRULAMA_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function pwOturumuSil(){ try{ localStorage.removeItem(PW_DOGRULAMA_KEY); sessionStorage.removeItem(PW_DOGRULAMA_KEY); }catch(e){} }
+function pwDamgaYaz(mail){ pwOturumuSil();
+  try{ (msHatirla()?localStorage:sessionStorage).setItem(PW_DOGRULAMA_KEY, JSON.stringify({mail:mail, t:Date.now()})); }catch(e){} }
+/* Açılış: kayıtlı doğrulama taze ve AYNI Windows hesabınaysa parola sorulmadan girilir.
+   Dönüş false = yerel parola girişi yok (GitHub / eski sunucu) → çağıran Microsoft girişine geçer. */
+async function pwBaslat(){
+  if(!(await pwDurum())) return false;
+  gateRender();
+  const d=pwDamgaOku(), simdi=Date.now();
+  if(d && d.mail===PW_EPOSTA && d.t>0 && d.t<=simdi+60000 && (simdi-d.t) < MS_CEVRIMDISI_GUN*86400000){
+    if(msArkaPlanAsildi()){ msArkaPlanKapat(); return true; }
+    try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
+    sirketHesapGiris(PW_EPOSTA, '', pwHata);
+    return true;
+  }
+  if(d) pwOturumuSil();
+  setTimeout(()=>{ const i=$('gatePwParola'); if(i && $('gate').style.display!=='none') i.focus(); },50);
+  return true;
+}
+const PW_KOD_METNI = { 1326:'Parola hatalı.', 1909:'Şirket hesabınız kilitli. BT birimine başvurun.',
+  1330:'Parolanızın süresi dolmuş. Önce Windows\'ta parolanızı yenileyin.',
+  1907:'Parolanızı değiştirmeniz gerekiyor. Önce Windows\'ta parolanızı yenileyin.',
+  1331:'Şirket hesabınız devre dışı. BT birimine başvurun.' };
+async function pwGirisDene(){
+  if(PW_MESGUL) return; pwHata('');
+  const i=$('gatePwParola'); const p=i?i.value:'';
+  if(!p){ pwHata('Parolanızı yazın.'); return; }
+  { const k=$('gatePwHatirla'); try{ localStorage.setItem(MS_HATIRLA_KEY, k&&!k.checked?'0':'1'); }catch(e){} }
+  PW_MESGUL=true; const b=$('gatePwBtn'); if(b){ b.disabled=true; b.textContent='Doğrulanıyor…'; }
+  let j=null;
+  try{ j=await pwIstek({islem:'giris', parola:p}); }
+  catch(e){ j={ok:false, hata:'Yerel sunucuya ulaşılamadı. Portalı "Olay Bildirimi Ac.bat" ile yeniden açın.'}; }
+  if(i) i.value='';
+  PW_MESGUL=false; if(b){ b.disabled=false; b.textContent='Giriş'; }
+  if(!j || !j.ok){
+    let m = (j&&PW_KOD_METNI[j.kod]) || (j&&j.kalan===0&&!j.kod ? 'Çok fazla hatalı deneme. Şirket hesabınızın kilitlenmemesi için 5 dakika bekleyin.' : (j&&j.hata)||'Giriş yapılamadı.');
+    if(j && j.kod===1326 && j.kalan===1) m+=' Hesabınızın kilitlenmemesi için 1 deneme hakkınız kaldı.';
+    pwHata(m); if(i) i.focus(); return;
+  }
+  const mail=String(j.eposta||'').trim().toLowerCase();
+  pwDamgaYaz(mail);
+  try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
+  sirketHesapGiris(mail, '', pwHata);
 }
 
 let SES = null;
@@ -2546,9 +2638,13 @@ function gateRender(){
   /* KURTARMA YOLU: hiç aktif yönetici kalmadıysa Ayarlar'a girecek kimse
      olmadığı için uygulama kilitlenir. Giriş ekranı bu durumda yetkiyi
      geri vermeyi teklif eder — aksi halde tek çıkış depoyu silmek olurdu. */
-  { const ms=msAktif(); const k=$('gateKlasik'), m=$('gateMs');
-    if(k) k.style.display = ms?'none':''; if(m) m.style.display = ms?'':'none';
-    const h=$('gateMsHatirla'); if(h) h.checked = msHatirla(); }
+  { const ms=msAktif(); const k=$('gateKlasik'), m=$('gateMs'), p=$('gatePw');
+    /* localhost:8090'da sunucu cevabı gelene dek (PW_DESTEK===null) iki panel de gizli: Microsoft düğmesi bir an görünüp kaybolmasın */
+    const pw=pwAktif(), bekle=(PW_DESTEK===null);
+    if(k) k.style.display = ms?'none':''; if(m) m.style.display = (ms&&!pw&&!bekle)?'':'none'; if(p) p.style.display = pw?'':'none';
+    const h=$('gateMsHatirla'); if(h) h.checked = msHatirla();
+    const ph=$('gatePwHatirla'); if(ph) ph.checked = msHatirla();
+    const ha=$('gatePwHesap'); if(ha) ha.textContent = PW_EPOSTA; }
   const yok = aktifAdmin().length===0 && (!msAktif() || !!MS_HESAP);
   $('gateRecover').innerHTML = yok ? `
     <div class="warn" style="background:var(--red-light);border-color:var(--red);color:var(--red-700)">
@@ -2621,6 +2717,9 @@ function gateKilit(acik){
   }catch(e){}
 }
 function cikis(){ SES=null; try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){}
+  /* Yerel şirket parolası girişi: cihazdaki doğrulama damgası silinir, Microsoft'a gidilmez; sonraki girişte parola yine sorulur */
+  if(pwAktif()){ pwOturumuSil(); MS_HESAP=null; if(typeof ogrDurdur==='function') ogrDurdur();
+    $('gate').style.display=''; gateKilit(true); gateRender(); pwHata(''); return; }
   /* SAST B5: Microsoft oturumu da kapatılır (ortak cihazda bir sonraki kişi açık oturum bulmasın) */
   if(msAktif()){ const h=MS_PCA?MS_PCA.getAllAccounts()[0]:null; msOturumuSil();   /* önce cihazdaki kayıtlar (internetsiz de) */
     if(MS_PCA && navigator.onLine!==false){ try{ MS_PCA.logoutRedirect({account:h, postLogoutRedirectUri:location.origin+location.pathname}); return; }catch(e){} }
@@ -8399,7 +8498,9 @@ function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); re
   cur=blank(); gateKilit(true); gateRender();
   // aynı sekmede oturum sürüyorsa geri yükle (sekme kapanınca düşer)
   let prev=null; try{ prev=sessionStorage.getItem('hse::HOB::ses'); }catch(e){}
-  if(msAktif()) msBaslat();                                   /* SAST B5: Microsoft girişi zorunlu */
+  /* localhost:8090: önce yerel şirket parolası girişi; sunucu ucu yoksa (eski sunucu) Microsoft girişine düşer */
+  if(PW_YEREL) pwBaslat().then(ok=>{ if(!ok){ gateRender(); if(msAktif()) msBaslat(); } });
+  else if(msAktif()) msBaslat();                              /* SAST B5: Microsoft girişi zorunlu */
   else if(prev && USR.find(u=>u.id===prev&&u.aktif)) giris(prev);
 })();
 window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeOv('ovMail'); closeOv('ovSend'); closeOv('ovRec'); closeOv('ovAct'); } });
