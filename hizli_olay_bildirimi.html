@@ -103,7 +103,7 @@ nav button.on{background:var(--jcb);border-color:var(--jcb);color:#141414;box-sh
 .navBrand{margin-left:auto;align-self:center;font-family:var(--font-display);font-weight:800;font-size:18px;letter-spacing:.7px;color:#fff;white-space:nowrap}
 .appFoot{text-align:center;padding:16px 12px;margin-top:28px;border-top:1px solid var(--border);color:var(--text3);font-size:12px;letter-spacing:.2px}
 /* Yuklenen dosyanin surum damgasi — "degisiklik gelmedi" durumunu ayirt etmek icin */
-.footSurum{margin-left:10px;opacity:.75;font-variant-numeric:tabular-nums}
+.footSurum{display:block;margin-top:3px;opacity:.75;font-variant-numeric:tabular-nums}
 /* Açılır sekme grupları (Olaylar / Aksiyonlar) */
 .navGrp{position:relative;display:inline-flex}
 .navGrp .navTop{cursor:default}
@@ -658,7 +658,42 @@ body.dark .anAI li{border-top-color:var(--border)}
 body.dark .anAI .dip{border-top-color:var(--border)}
 /* "Aksiyona Alindi" rozeti gece modunda koyu yesil zeminde koyu yesil yaziydi (okunmuyordu) */
 body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;border-color:#3f8f5c}
-</style>
+
+/* BALON ALANLAR (27.10.2026, Hukuk Portali balon-form duzeni): olay formu ve yeni aksiyon formunda her alan
+   (etiket + deger) tek yumusak balon; kutu cizgisi yok, odakta beyaz + mavi halka. Yalniz gorunum.
+   Balon = tek alani saran kutu; icinde baska alan olan kart govdesi (.cb, ornek: Olayin Anlatimi) balon olmaz. */
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)){background:var(--surface2);border:1px solid transparent;border-radius:12px;padding:7px 12px 8px;transition:background .15s,border-color .15s,box-shadow .15s;min-width:0}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):hover{border-color:var(--border)}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):focus-within{background:var(--surface);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) > label.f{font-size:11.5px;margin-bottom:1px;cursor:pointer}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :is(input[type=text],input[type=date],input[type=time],input[type=email],input[type=number],select,textarea){background:transparent;border:0;border-radius:0;padding:3px 0;font-weight:600;box-shadow:none}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) textarea{font-weight:500}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :is(input,select,textarea):focus{box-shadow:none}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :is(input,textarea)::placeholder{font-weight:400;color:var(--text3)}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) select{margin-left:-3px;width:calc(100% + 3px);cursor:pointer}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) .dt > input[type=date]{width:26px;padding:0}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) .btn.sm{border-radius:99px}
+/* salt okunur (olay no) ve kapali alan: koyu gri balon; eksik alan: kirmizi cerceve */
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):has(input[readonly]:not(.dt input)),:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):has(:is(input,select,textarea):disabled){background:#E3E6EB;cursor:default}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):has(.bad){border-color:var(--red);background:var(--surface)}
+:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :is(input,select,textarea).bad,:is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) input[readonly]{background:transparent!important}
+body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):has(input[readonly]){background:#1a2029}
+body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)):has(.bad){background:#2c171a}
+body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :is(input,select,textarea){background:transparent}/* gri zeminli kart icindeki balonlar (Yeni Aksiyon karti .yaAksKart, formdaki satirlar .arow) BEYAZ; salt okunur da beyaz */
+:is(#v-form,#yaWrap) :is(.yaAksKart,.arow) div:has(> label.f):not(.cb,:has(div > label.f)),:is(#v-form,#yaWrap) :is(.yaAksKart,.arow) div:has(> label.f):not(.cb,:has(div > label.f)):has(input[readonly]){background:var(--surface)!important;border-color:var(--border)}
+:is(#v-form,#yaWrap) :is(.yaAksKart,.arow) div:has(> label.f):not(.cb,:has(div > label.f)):focus-within{border-color:var(--blue)}
+:is(#v-form,#yaWrap) :is(.yaAksKart,.arow) div:has(> label.f):not(.cb,:has(div > label.f)):has(.bad){border-color:var(--red)}
+/* ARAMA PANELI EKRANA SIGSIN (27.10.2026; masaustu): kisa alanlar ikiser yan yana (.fld.y2: tarih araliklari,
+   kazazede, durum/tur, aksiyon no/referans); yine tasarsa panel kendi icinde kayar. Olay Envanteri ve Aksiyon
+   Listesi'nde telif satiri sag alta sabitlenir (sayfayi uzatmasin). Telefon duzeni (uygulama.css) degismez. */
+@media (min-width:961px){
+  .regLayout{grid-template-columns:276px 1fr}
+  .srcPanel{display:flex;flex-wrap:wrap;column-gap:8px;align-content:flex-start;max-height:calc(100vh - var(--topH,116px) - 104px);overflow-y:auto}
+  .srcPanel > *{flex:1 1 100%;min-width:0}
+  .srcPanel > .fld.y2{flex:1 1 calc(50% - 4px)}
+  .srcPanel .fld.y2 .dt > input[type=date]{width:26px;padding:6px 2px}
+  body:has(#v-reg.on,#v-act.on) .appFoot{position:fixed;right:16px;bottom:10px;margin:0;padding:0;border:0;background:none;font-size:10.5px;line-height:1.4;z-index:5;text-align:right;max-width:min(190px,calc(50vw - 330px))}
+}</style>
 <link rel="stylesheet" href="uygulama.css">   <!-- telefon görünümü; kendi stillerinden SONRA yüklenmeli -->
 </head>
 <body>
@@ -711,7 +746,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
       <div id="kurBox"></div>
     </div>
   </div>
-  <div class="gateFoot">STFA HSE Management Solutions. All Rights Reserved <span id="gateFootYear"></span></div>
+  <div class="gateFoot">STFA HSE Management Solutions. All Rights Reserved <span id="gateFootYear"></span><span class="footSurum" id="gateSurum"></span></div>
 </div>
 
 
@@ -962,14 +997,14 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
     <h4>Arama<button type="button" class="srcKapat" aria-label="Kapat" onclick="document.body.classList.remove('aramaAcik')">×</button></h4>
     <div class="fld"><label class="f">Olay No</label><input type="text" id="fNo" onkeydown="if(event.key==='Enter')renderReg()" placeholder="SIF-IZM-INC-2026-001"></div>
     <div class="fld"><label class="f">Lokasyon</label><select id="fLok"></select></div>
-    <div class="fld"><label class="f">Olay Türü</label><select id="fTur"></select></div>
-    <div class="fld"><label class="f">Durum</label><select id="fSt"></select></div>
-    <div class="fld"><label class="f">Tarih (Başlangıç)</label>
+    <div class="fld y2"><label class="f">Olay Türü</label><select id="fTur"></select></div>
+    <div class="fld y2"><label class="f">Durum</label><select id="fSt"></select></div>
+    <div class="fld y2"><label class="f">Tarih (Başlangıç)</label>
       <span class="dt"><input type="text" id="fTar1" inputmode="numeric" maxlength="10" placeholder="gg/aa/yyyy" oninput="dtMask(this)" onchange="dtSet(this)" onkeydown="if(event.key==='Enter')renderReg()"><input type="date" onchange="dtPick(this)" tabindex="-1" aria-label="Takvim"></span></div>
-    <div class="fld"><label class="f">Tarih (Bitiş)</label>
+    <div class="fld y2"><label class="f">Tarih (Bitiş)</label>
       <span class="dt"><input type="text" id="fTar2" inputmode="numeric" maxlength="10" placeholder="gg/aa/yyyy" oninput="dtMask(this)" onchange="dtSet(this)" onkeydown="if(event.key==='Enter')renderReg()"><input type="date" onchange="dtPick(this)" tabindex="-1" aria-label="Takvim"></span></div>
-    <div class="fld"><label class="f">Kazazede Sicil No</label><input type="text" id="fSicil" onkeydown="if(event.key==='Enter')renderReg()"></div>
-    <div class="fld"><label class="f">Kazazede Adı</label><input type="text" id="fKisi" onkeydown="if(event.key==='Enter')renderReg()"></div>
+    <div class="fld y2"><label class="f">Kazazede Sicil No</label><input type="text" id="fSicil" onkeydown="if(event.key==='Enter')renderReg()"></div>
+    <div class="fld y2"><label class="f">Kazazede Adı</label><input type="text" id="fKisi" onkeydown="if(event.key==='Enter')renderReg()"></div>
     <div class="fld"><label class="f">Metin İçinde Ara</label><input type="text" id="q" onkeydown="if(event.key==='Enter')renderReg()" placeholder="yer, açıklama, bulgu…"></div>
     <div class="bar" style="margin-top:12px">
       <button class="btn pri sm" style="flex:1" onclick="renderReg();document.body.classList.remove('aramaAcik')">Ara</button>
@@ -998,15 +1033,15 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
   <div class="regLayout">
    <aside class="srcPanel">
     <h4>Arama<button type="button" class="srcKapat" aria-label="Kapat" onclick="document.body.classList.remove('aramaAcik')">×</button></h4>
-    <div class="fld"><label class="f">Aksiyon No</label><input type="text" id="aNo" onkeydown="if(event.key==='Enter')renderAct()" placeholder="…-A01"></div>
-    <div class="fld"><label class="f">Referans (Olay No)</label><input type="text" id="aRef" onkeydown="if(event.key==='Enter')renderAct()"></div>
+    <div class="fld y2"><label class="f">Aksiyon No</label><input type="text" id="aNo" onkeydown="if(event.key==='Enter')renderAct()" placeholder="…-A01"></div>
+    <div class="fld y2"><label class="f">Referans (Olay No)</label><input type="text" id="aRef" onkeydown="if(event.key==='Enter')renderAct()"></div>
     <div class="fld"><label class="f">Lokasyon</label><select id="aLok"></select></div>
     <div class="fld"><label class="f">Sorumlu</label><input type="text" id="aSor" list="dlAktSorumlu" onkeydown="if(event.key==='Enter')renderAct()" placeholder="listeden seçin ya da yazın"><datalist id="dlAktSorumlu"></datalist></div>
-    <div class="fld"><label class="f">Durum</label><select id="aSt"></select></div>
-    <div class="fld"><label class="f">Kaynak</label><select id="aKay"><option value="">Tümü</option><option value="ai">AI önerisinden açılanlar</option><option value="diger">Diğerleri</option></select></div>
-    <div class="fld"><label class="f">Termin (Başlangıç)</label>
+    <div class="fld y2"><label class="f">Durum</label><select id="aSt"></select></div>
+    <div class="fld y2"><label class="f">Kaynak</label><select id="aKay"><option value="">Tümü</option><option value="ai">AI önerisinden açılanlar</option><option value="diger">Diğerleri</option></select></div>
+    <div class="fld y2"><label class="f">Termin (Başlangıç)</label>
       <span class="dt"><input type="text" id="aTar1" inputmode="numeric" maxlength="10" placeholder="gg/aa/yyyy" oninput="dtMask(this)" onchange="dtSet(this)" onkeydown="if(event.key==='Enter')renderAct()"><input type="date" onchange="dtPick(this)" tabindex="-1" aria-label="Takvim"></span></div>
-    <div class="fld"><label class="f">Termin (Bitiş)</label>
+    <div class="fld y2"><label class="f">Termin (Bitiş)</label>
       <span class="dt"><input type="text" id="aTar2" inputmode="numeric" maxlength="10" placeholder="gg/aa/yyyy" oninput="dtMask(this)" onchange="dtSet(this)" onkeydown="if(event.key==='Enter')renderAct()"><input type="date" onchange="dtPick(this)" tabindex="-1" aria-label="Takvim"></span></div>
     <div class="fld"><label class="f">Sıralama</label><select id="aSort"><option value="tarih" selected>Açılış tarihine göre</option><option value="termin">Termine göre</option><option value="no">Aksiyon numarasına göre</option><option value="oncelik">Önceliğe göre</option></select></div>
     <div class="fld"><label class="f">Metin İçinde Ara</label><input type="text" id="aq" onkeydown="if(event.key==='Enter')renderAct()" placeholder="tanım, birim, not…"></div>
@@ -1400,7 +1435,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 </main>
 
 <footer class="appFoot">STFA HSE Management Solutions. All Rights Reserved <span id="footYear"></span>
-  <span class="footSurum" id="footSurum" title="Tarayıcıya yüklenen dosyanın son değişiklik zamanı. Beklediğiniz güncelleme burada görünmüyorsa sayfa eski kopyayı çalıştırıyor demektir."></span></footer>
+  <span class="footSurum" id="footSurum"></span></footer>
 
 <div class="ov" id="ovSend"><div class="mod">
   <div class="mh"><h3 id="sendTitle">Bildirim Kime Gidecek?</h3><button class="close" onclick="closeOv('ovSend')">×</button></div>
@@ -1443,6 +1478,7 @@ body.dark .anAI li .oneriAlindi{background:rgba(102,217,141,.16);color:#66d98d;b
 <div class="toast" id="toast"></div>
 
 <script>
+const APP_SURUM = '1.8.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -8466,16 +8502,16 @@ function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); re
   document.querySelectorAll('#nav .navGrp').forEach(g=>{ const ic=NAV_GRP_ICO[g.dataset.grp], t=g.querySelector('.navTop'); if(ic&&t) t.innerHTML=ic+'<span>'+t.textContent+'</span>'; });
   bindInputs(); renderDatalists();
   { const y=new Date().getFullYear(); const fy=$('footYear'); if(fy) fy.textContent=y; const gy=$('gateFootYear'); if(gy) gy.textContent=y; }   // footer yılı otomatik (uygulama + giriş)
-  /* SÜRÜM DAMGASI: tarayıcıya gerçekten yüklenen dosyanın son değişiklik zamanı.
-     "Değişiklik gelmedi" durumunda eski kopya mı çalışıyor, yoksa kod mu eksik —
-     bunu ayırt etmek için ekranda görünür (konsola da yazılır). */
+  /* SÜRÜM (27.10.2026): ekranda yayın sürüm kodu APP_SURUM (ana.ara.yama) — her yayında yükseltilir ve
+     Raporlar/GUNCELLEME_GUNLUGU.md başlığına yazılır. Tarayıcıya yüklenen dosyanın son değişiklik zamanı
+     artık ekranda değil, konsolda ve sürüm yazısının ipucunda ("değişiklik gelmedi" teşhisi için). */
   (function(){
-    const el=$('footSurum'); if(!el) return;
     let m=''; try{ const d=new Date(document.lastModified);
       if(!isNaN(d)) m=('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear()
         +' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
     }catch(e){}
-    if(m){ el.textContent='· Sürüm '+m; try{ console.log('[İSG Portalı] yüklenen sürüm:', m); }catch(e){} }
+    ['footSurum','gateSurum'].forEach(id=>{ const el=$(id); if(!el) return; el.textContent='Sürüm '+APP_SURUM; if(m) el.title=m; });
+    try{ console.log('[İSG Portalı] sürüm', APP_SURUM, '· dosya', m); }catch(e){}
   })();
   try{ temaUygula(localStorage.getItem('hse::HOB::tema')==='dark'); }catch(e){ temaUygula(false); }   // kayıtlı gece/gündüz modu
   /* ÜST BÖLGE SABİT: header ve nav sticky. Yükseklikleri ölçülüp CSS değişkenlerine yazılır
