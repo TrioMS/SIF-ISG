@@ -201,8 +201,8 @@ main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
 .bgPlanTablo td{vertical-align:top}
 .bgPlanTablo td{vertical-align:middle}
 .bgPlanTablo .bgBulguBag{display:inline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
-.bgPlanTablo table{table-layout:fixed;width:100%;min-width:1000px}
-.bgPlanTablo th:nth-child(1){width:150px}.bgPlanTablo th:nth-child(4){width:140px}
+.bgPlanTablo table{table-layout:fixed;width:100%;min-width:900px}
+.bgPlanTablo th:nth-child(1){width:200px}.bgPlanTablo th:nth-child(4){width:140px}
 .bgPlanTablo th:nth-child(5){width:124px}.bgPlanTablo th:nth-child(6){width:96px}.bgPlanTablo th:nth-child(7){width:128px}
 .bgPlanTablo td:nth-child(4){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bgPlanTablo td:nth-child(2) .tn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -210,7 +210,7 @@ main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
 .bgPlanTablo td:nth-child(3) .hint{overflow:hidden;text-overflow:ellipsis}
 .bgAksSatir{cursor:pointer}
 .bgAksSatir:hover td{background:var(--surface2,#f3f4f6)}
-.bgNo{white-space:nowrap;font-weight:700;font-size:12.5px}
+.bgNo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;font-size:12.5px}
 .bgAksKart{position:fixed;z-index:1200;background:#fff;color:#1f2937;border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.22);padding:12px 14px;font-size:12.5px;line-height:1.45;opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
 .bgAksKart.acik{opacity:1;transform:none}
 .bgAksKart .ust{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
@@ -1672,7 +1672,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.9';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.10';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -9254,7 +9254,9 @@ function bgPlanYaz(){
   const durum=a=>{ const d=aksTerminDurum(a); return `<span class="pill ${d.pil}">${esc(d.etiket||d.ad)}</span>`; };
   /* Açılmış aksiyon satırı: başta aksiyon no; üzerine gelince ayrıntı penceresi, tıklayınca aksiyon */
   const aksSatir=(a,bulgu)=>`<tr class="bgAksSatir" onmouseenter="bgAksKart(this,${jsA(a.id)})" onmouseleave="bgAksKartKapat()" onclick="bgAksKartKapat();openAct('',${jsA(a.id)},true)">`
-    +`<td class="bgNo">${esc(a.no||'—')}</td><td title="${esc(a.tanim||'')}"><span class="tn">${esc(a.tanim||'')}</span></td><td>${bulgu}</td><td>${esc(a.sorumlu||'—')}</td><td>${trDate(a.termin)}</td><td>${durum(a)}</td><td></td></tr>`;
+    +`<td class="bgNo">${esc(a.no||'—')}</td><td title="${esc(a.tanim||'')}"><span class="tn">${esc(a.tanim||'')}</span></td><td>${bulgu}</td><td>${esc(a.sorumlu||'—')}</td><td>${trDate(a.termin)}</td><td>${durum(a)}</td>${islem?'<td></td>':''}</tr>`;
+  /* işlem sütunu yalnız planda bekleyen satır varsa (yoksa sağ taraf boş kalıyordu) */
+  const islem = yetki && D.plan.some(p=>!bgPlanAks(p).length);
   const satirlar=D.plan.slice().reverse().map(p=>{ const A=bgPlanAks(p), b=bulguHTML(p.ai,p.bham,p.bk,p.kaynak);
     if(A.length) return A.map(a=>aksSatir(a,b)).join('');
     return `<tr><td class="bgNo"><span class="hint">—</span></td><td title="${esc(p.tanim)}"><span class="tn">${esc(p.tanim)}</span></td><td>${b}</td>`
@@ -9263,8 +9265,8 @@ function bgPlanYaz(){
            <td><input type="date" value="${esc(p.termin||'')}" onchange="bgPlanAlan(${jsA(p.id)},'termin',this.value)"></td>
            <td><span class="pill p-blu">Planda</span></td>
            <td style="white-space:nowrap"><button class="btn pri sm" onclick="bgPlanAc(${jsA(p.id)})">Aksiyon aç</button> <button class="btn sm" title="Plandan çıkar" onclick="bgPlanSil(${jsA(p.id)})">✕</button></td>`
-        : `<td>${esc(p.sorumlu||'—')}</td><td>${trDate(p.termin)}</td><td><span class="pill p-blu">Planda</span></td><td></td>`)+'</tr>'; }).join('');
-  el.innerHTML=`<div class="tw bgPlanTablo"><table><thead><tr><th>Aksiyon no</th><th>Aksiyon</th><th>Bulgu</th><th>Sorumlu</th><th>Termin</th><th>Durum</th><th></th></tr></thead><tbody>`
+        : `<td>${esc(p.sorumlu||'—')}</td><td>${trDate(p.termin)}</td><td><span class="pill p-blu">Planda</span></td>${islem?'<td></td>':''}`)+'</tr>'; }).join('');
+  el.innerHTML=`<div class="tw bgPlanTablo"><table><thead><tr><th>Aksiyon no</th><th>Aksiyon</th><th>Bulgu</th><th>Sorumlu</th><th>Termin</th><th>Durum</th>${islem?'<th></th>':''}</tr></thead><tbody>`
     + satirlar + dis.map(a=>aksSatir(a,disBulgu(a))).join('')
     + '</tbody></table></div>';
 }
@@ -9391,7 +9393,8 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.9':['Analiz ekranı sadeleşti: üstte özet, bulgular tek satır (kaynak ve durum yanında), Aksiyon Planı düzenli tablo',
+const SURUM_NOTU={'1.9.10':['Aksiyon Planı tablosu ekranı tam kullanır; aksiyon no taşmaz, boş işlem sütunu kalktı'],
+  '1.9.9':['Analiz ekranı sadeleşti: üstte özet, bulgular tek satır (kaynak ve durum yanında), Aksiyon Planı düzenli tablo',
   'Lokasyon radarı süzgeçte yukarıdan inmeden yerinde değişir'],
   '1.9.8':['Grafik penceresi başlık barına tıklayınca açılır; grafiğe tıklamak süzgeç yapar',
   'Lokasyon radarı açılışta kaymaz, şekli yerinde değişir',
