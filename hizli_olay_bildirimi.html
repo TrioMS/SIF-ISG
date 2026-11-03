@@ -199,6 +199,15 @@ main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
 .bgKendi textarea{flex:1;border:1px solid var(--border);border-radius:12px;padding:8px 10px;font:inherit;font-size:13px}
 .bgPlanTablo input,.bgPlanTablo select{width:100%;min-width:110px;border:1px solid var(--border);border-radius:10px;padding:6px 8px;font:inherit;font-size:12.5px;background:#fff}
 .bgPlanTablo td{vertical-align:top}
+.bgPlanTablo td{vertical-align:middle}
+.bgPlanTablo .bgBulguBag{display:inline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+.bgPlanTablo table{table-layout:fixed;width:100%;min-width:1000px}
+.bgPlanTablo th:nth-child(1){width:150px}.bgPlanTablo th:nth-child(4){width:140px}
+.bgPlanTablo th:nth-child(5){width:124px}.bgPlanTablo th:nth-child(6){width:96px}.bgPlanTablo th:nth-child(7){width:128px}
+.bgPlanTablo td:nth-child(4){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bgPlanTablo td:nth-child(2) .tn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bgPlanTablo td:nth-child(3){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bgPlanTablo td:nth-child(3) .hint{overflow:hidden;text-overflow:ellipsis}
 .bgAksSatir{cursor:pointer}
 .bgAksSatir:hover td{background:var(--surface2,#f3f4f6)}
 .bgNo{white-space:nowrap;font-weight:700;font-size:12.5px}
@@ -215,22 +224,30 @@ body.dark .bgAksKart .kaynak{border-top-color:#343b48}
 .bgBulguBag,.bgAksNo{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border)}
 .bgGecmisKart summary{cursor:pointer;list-style:none}
 .bgGecmisKart summary::-webkit-details-marker{display:none}
+.bgGecmisKart:not([open]) > summary > h3{border-bottom:0}
 .bgGecmisKart summary h3::after{content:' ▸';color:var(--text3)}
 .bgGecmisKart[open] summary h3::after{content:' ▾'}
-#bgListe{max-height:none}
 .bgLayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;align-items:start}
 @media(max-width:960px){ .bgLayout{grid-template-columns:1fr} }
 .bgDetayKart{position:sticky;top:12px}
 @media(max-width:960px){ .bgDetayKart{position:static} }
 .bgSuz{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
 .bgKaySec{margin-left:auto;max-width:220px;border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;background:#fff}
-#bgListe{max-height:62vh;overflow:auto}
-.bgSatir{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:background .15s}
-.bgSatir:hover{background:var(--surface2,#f3f4f6)}
-.bgSatir.on{border-color:var(--jcb);background:rgba(245,197,24,.08)}
-.bgSatir .m{flex:1;min-width:0}
-.bgSatir .t{font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.bgSatir .k{font-size:11px;color:var(--text3,#8a94a3);margin-top:3px}
+#bgListe{max-height:40vh;overflow:auto}
+.bgSatir{display:flex;gap:10px;align-items:center;padding:7px 10px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:background .15s}
+.bgSatir+.bgSatir{border-top-color:var(--border);border-radius:0}
+.bgSatir:hover{background:var(--surface2,#f3f4f6);border-radius:10px}
+.bgSatir .t{flex:1;min-width:0;font-size:13px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bgSatir .kay{flex:none;width:150px;font-size:11.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.bgSatir .kay.genel{font-weight:700}
+.bgSatir .pill{flex:none;min-width:74px;text-align:center}
+@media(max-width:700px){ .bgSatir .kay{width:84px} .bgSatir .pill{min-width:0} }
+.bgOzetBar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.bgOzetBar button{background:var(--surface,#fff);border:1px solid var(--border);border-radius:14px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;color:inherit;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+.bgOzetBar button:hover{transform:translateY(-1px);border-color:var(--text3,#8a94a3)}
+.bgOzetBar b{display:block;font-size:22px;line-height:1.1}.bgOzetBar .kirmizi b{color:var(--red)}
+.bgOzetBar span{font-size:11.5px;color:var(--text2)}
+@media(max-width:700px){ .bgOzetBar{grid-template-columns:repeat(3,minmax(0,1fr))} }
 .bgSatir .aiBadge,.bgUst .aiBadge{flex:none}
 .bgBos{background:var(--surface2,#f3f4f6);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .bgBosDetay{padding:30px 10px;text-align:center;color:var(--text2)}
@@ -405,7 +422,6 @@ body.dark .sagKayit{color:#8ab4f8}
 /* animasyon YALNIZ sekme ilk açıldığında (.ani) — çapraz filtre tıklamasında
    grafikler yerinde/anlık güncellenir, kartlar tekrar "gidip gelmez" */
 .anCard.ani{animation:anFadeUp .35s ease both}
-.anCard.ani[data-w="c-lok"]{animation:none}   /* lokasyon radarı kaymaz; yalnız şekli yerinde değişir */
 svg.radar.ani{animation:anFadeUp .45s ease both}
 .pie path,.pie circle{transition:opacity .15s}
 .pie .sel{stroke:var(--ink);stroke-width:3}
@@ -458,7 +474,7 @@ main.dar{max-width:1280px}
 #gate .gateFoot{width:100%;flex:none;text-align:center;color:#8a94a3;font-size:12px;letter-spacing:.2px;padding-top:20px}
 /* ── KARTLAR ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
-.card > h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:8px}
+.card > h3,.card > summary > h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:8px}
 .card > h3 .n{background:var(--navy);color:#fff;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:11px;flex:none}
 .cb{padding:16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px 14px}
@@ -1246,8 +1262,9 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <!-- ══════════ ANALİZ — BULGULAR (03.11.2026: AI raporu Pano'dan buraya taşındı) ══════════ -->
 <section class="view" id="v-bulgu">
   <div class="bar" style="margin-bottom:12px;align-items:baseline;flex-wrap:wrap;gap:10px"><h2 style="font-size:19px">Analiz</h2><span class="hint" id="bgKapsam"></span></div>
+  <div class="bgOzetBar" id="bgOzetBar"></div>
   <div class="card"><h3>Bulgular <span class="hint" id="bgSay" style="font-weight:600;margin-left:6px"></span></h3><div class="cb"><div class="bgSuz" id="bgSuz"></div><div id="bgListe"></div></div></div>
-  <div class="card" style="margin-top:16px"><h3>Aksiyon Planı</h3><div class="cb" id="bgPlan"></div></div>
+  <div class="card" id="bgPlanKart" style="margin-top:16px;scroll-margin-top:12px"><h3>Aksiyon Planı</h3><div class="cb" id="bgPlan"></div></div>
   <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Analiz Geçmişi</h3></summary><div class="cb" id="bgGecmis"></div></details>
   <div class="anAI" id="anAI" style="display:none"></div>   <!-- rapor kutusu gizli: bulgular listesinin veri kaynağı -->
   <button class="aiFab" id="aiBtn" onclick="bgAI()" title="AI — tüm verileri ve grafikleri analiz et">AI</button>
@@ -1655,7 +1672,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.8';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.9';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -9109,10 +9126,23 @@ function renderBulgu(){
   BG_LISTE=bulguTopla();
   const fl=$('anLok')?$('anLok').value:'';
   $('bgKapsam').textContent=(fl?lokAd(fl):'Tüm lokasyonlar')+(anFiltre?' · '+AN_AD[anFiltre.boyut]+': '+anFiltreMetin(anFiltre):'')+' — kapsam Pano’daki seçimden gelir';
-  bgListeYaz(); bgPlanYaz(); bgGecmisYaz();
+  bgListeYaz(); bgPlanYaz(); bgGecmisYaz(); bgOzetYaz();
 }
 /* Plan satırına bağlı, hâlâ var olan aksiyonlar */
 const bgPlanAks = p => (p.aks||[]).map(id=>SACT.find(a=>a.id===id)).filter(Boolean);
+/* Analiz ekranı özeti: açık / aksiyonda bulgu, plandaki ve açılmış aksiyonlar (tıklanınca süzer ya da plana iner) */
+function bgOzetYaz(){
+  const el=$('bgOzetBar'); if(!el) return;
+  const D=bgDepo(), bagli=new Set(D.plan.flatMap(p=>p.aks||[]));
+  const planda=D.plan.filter(p=>!bgPlanAks(p).length).length;
+  const A=[...D.plan.flatMap(bgPlanAks), ...SACT.filter(a=>a.aiOneri && a.aiTip!=='olay' && !a.iptal && !bagli.has(a.id) && lokGorebilir(a.lokasyon))];
+  const gec=A.filter(a=>aksTerminDurum(a).gecikti).length, acik=BG_LISTE.filter(f=>!f.aks.length).length;
+  const b=(n,t,on,cls)=>`<button type="button" class="${cls||''}" onclick="${on}"><b>${n}</b><span>${t}</span></button>`;
+  el.innerHTML=b(acik,'açık bulgu',"BG_SUZ='acik';bgListeYaz()")+b(BG_LISTE.length-acik,'aksiyonda',"BG_SUZ='alinan';bgListeYaz()")
+    +b(planda,'planda bekleyen',"document.getElementById('bgPlanKart').scrollIntoView({behavior:'smooth',block:'start'})")
+    +b(A.length,'açılan aksiyon',"document.getElementById('bgPlanKart').scrollIntoView({behavior:'smooth',block:'start'})")
+    +b(gec,'geciken',"document.getElementById('bgPlanKart').scrollIntoView({behavior:'smooth',block:'start'})",gec?'kirmizi':'');
+}
 function bgListeYaz(){
   const kaynaklar=[...new Set(BG_LISTE.map(f=>f.kaynak))];
   if(BG_KAY && !kaynaklar.includes(BG_KAY)) BG_KAY='';
@@ -9126,10 +9156,12 @@ function bgListeYaz(){
   const genelVar=BG_LISTE.some(f=>f.kaynak==='Genel analiz');
   $('bgListe').innerHTML=(genelVar?'':`<div class="bgBos">Veri analizi henüz yapılmadı — sağ alttaki AI düğmesiyle analiz edin. <button class="btn sm" onclick="bgAI()">Analiz et</button></div>`)
     +(L.length?L.map(f=>{ const np=P.filter(p=>p.bk===f.k&&!bgPlanAks(p).length).length;
-      return `<div class="bgSatir" onclick="bgSec(${jsA(f.k)})">
+      const kay=f.kaynak==='Genel analiz'?'Genel':f.kaynak.replace(/^Grafik: /,'');
+      return `<div class="bgSatir" title="${esc(aiDumTag(f.html))}" onclick="bgSec(${jsA(f.k)})">
         <span class="aiBadge${f.ai==='AI+'?' aiArti':''}">${ICO_AI} ${f.ai}</span>
-        <div class="m"><div class="t">${f.html}</div><div class="k">${esc(f.kaynak)}</div></div>
-        ${f.aks.length?`<span class="pill p-grn">Aksiyonda${f.aks.length>1?' ('+f.aks.length+')':''}</span>`:np?`<span class="pill p-blu">${np} planda</span>`:'<span class="pill p-amb">Açık</span>'}</div>`; }).join('')
+        <div class="t">${f.html}</div><span class="kay${f.kaynak==='Genel analiz'?' genel':''}">${esc(kay)}</span>
+        ${f.aks.length?`<span class="pill p-grn">Aksiyonda${f.aks.length>1?' ('+f.aks.length+')':''}</span>`:np?`<span class="pill p-blu">Planda</span>`:'<span class="pill p-amb">Açık</span>'}</div>`; }).join('')
+
       :'<div class="hint" style="padding:10px 4px">Bu süzgeçte bulgu yok.</div>');
 }
 /* ── BULGU PENCERESİ ── */
@@ -9192,7 +9224,7 @@ function bgPlanaEkle(i){
   if(D.plan.some(p=>p.bk===f.k && aiAnahtar(p.tanim)===aiAnahtar(t))){ toast('Bu aksiyon zaten planda.'); return; }
   D.plan.push({id:uid(), bk:f.k, bham:f.ham, kaynak:f.kaynak, ai:f.ai, lok:(f.baglam&&f.baglam.lok)||'', tanim:t,
     kok:K.ops[0]||K.kat[0]||'', sorumlu:'', termin:'', aks:[], at:new Date().toISOString()});
-  bgDepoYaz(D); bgPencereYaz(); bgListeYaz(); bgPlanYaz(); toast('Aksiyon planına eklendi.');
+  bgDepoYaz(D); bgPencereYaz(); bgListeYaz(); bgPlanYaz(); bgOzetYaz(); toast('Aksiyon planına eklendi.');
 }
 /* ── AKSİYON PLANI (Analiz ekranının altı) ── */
 /* Kök sebep referansı seçenekleri: önce bulgu penceresinde seçilenler, sonra Kapsamlı Sebep Tablosunun tamamı
@@ -9216,23 +9248,23 @@ function bgPlanYaz(){
   if(!BG_LISTE.length) try{ BG_LISTE=bulguTopla(); }catch(e){}
   const kisa=t=>t.length>70?t.slice(0,70)+'…':t;
   const bulguHTML=(ai,metin,k,kaynak)=>`<span class="aiBadge${ai==='AI+'?' aiArti':''}">${ICO_AI} ${ai}</span> `
-    +(k?`<a class="bgBulguBag" onclick="event.stopPropagation();bgSecAnahtar(${jsA(k)})">${esc(kisa(metin))}</a>`:esc(kisa(metin)))+`<div class="hint">${esc(kaynak)}</div>`;
+    +(k?`<a class="bgBulguBag" title="${esc(metin)}" onclick="event.stopPropagation();bgSecAnahtar(${jsA(k)})">${esc(kisa(metin))}</a>`:esc(kisa(metin)))+`<div class="hint">${esc(kaynak)}</div>`;
   const disBulgu=a=>{ const ah=aiAnahtar(a.aiOneri), f=BG_LISTE.find(x=>aiAnahtar(x.ham)===ah)||BG_LISTE.find(x=>x.oneriler.some(o=>aiAnahtar(o.ham)===ah));
     return bulguHTML(/AI\+|Çevrimiçi/i.test(a.kaynakRef||'')?'AI+':'AI', a.aiOneri, f&&f.k, (a.kaynakRef||'').replace(/^Analiz( bulgusu)?:\s*/,'')||'AI analizi'); };
   const durum=a=>{ const d=aksTerminDurum(a); return `<span class="pill ${d.pil}">${esc(d.etiket||d.ad)}</span>`; };
   /* Açılmış aksiyon satırı: başta aksiyon no; üzerine gelince ayrıntı penceresi, tıklayınca aksiyon */
   const aksSatir=(a,bulgu)=>`<tr class="bgAksSatir" onmouseenter="bgAksKart(this,${jsA(a.id)})" onmouseleave="bgAksKartKapat()" onclick="bgAksKartKapat();openAct('',${jsA(a.id)},true)">`
-    +`<td class="bgNo">${esc(a.no||'—')}</td><td>${esc(a.tanim||'')}</td><td>${bulgu}</td><td>${esc(a.sorumlu||'—')}</td><td>${trDate(a.termin)}</td><td>${durum(a)}</td><td></td></tr>`;
+    +`<td class="bgNo">${esc(a.no||'—')}</td><td title="${esc(a.tanim||'')}"><span class="tn">${esc(a.tanim||'')}</span></td><td>${bulgu}</td><td>${esc(a.sorumlu||'—')}</td><td>${trDate(a.termin)}</td><td>${durum(a)}</td><td></td></tr>`;
   const satirlar=D.plan.slice().reverse().map(p=>{ const A=bgPlanAks(p), b=bulguHTML(p.ai,p.bham,p.bk,p.kaynak);
     if(A.length) return A.map(a=>aksSatir(a,b)).join('');
-    return `<tr><td class="bgNo"><span class="hint">—</span></td><td>${esc(p.tanim)}</td><td>${b}</td>`
+    return `<tr><td class="bgNo"><span class="hint">—</span></td><td title="${esc(p.tanim)}"><span class="tn">${esc(p.tanim)}</span></td><td>${b}</td>`
       +(yetki
         ? `<td><input type="text" list="dlAd" value="${esc(p.sorumlu||'')}" onchange="bgPlanAlan(${jsA(p.id)},'sorumlu',this.value)"></td>
            <td><input type="date" value="${esc(p.termin||'')}" onchange="bgPlanAlan(${jsA(p.id)},'termin',this.value)"></td>
            <td><span class="pill p-blu">Planda</span></td>
            <td style="white-space:nowrap"><button class="btn pri sm" onclick="bgPlanAc(${jsA(p.id)})">Aksiyon aç</button> <button class="btn sm" title="Plandan çıkar" onclick="bgPlanSil(${jsA(p.id)})">✕</button></td>`
         : `<td>${esc(p.sorumlu||'—')}</td><td>${trDate(p.termin)}</td><td><span class="pill p-blu">Planda</span></td><td></td>`)+'</tr>'; }).join('');
-  el.innerHTML=`<div class="tw bgPlanTablo"><table><thead><tr><th style="width:150px">Aksiyon no</th><th style="width:28%">Aksiyon</th><th style="width:24%">Bulgu</th><th>Sorumlu</th><th>Termin</th><th>Durum</th><th></th></tr></thead><tbody>`
+  el.innerHTML=`<div class="tw bgPlanTablo"><table><thead><tr><th>Aksiyon no</th><th>Aksiyon</th><th>Bulgu</th><th>Sorumlu</th><th>Termin</th><th>Durum</th><th></th></tr></thead><tbody>`
     + satirlar + dis.map(a=>aksSatir(a,disBulgu(a))).join('')
     + '</tbody></table></div>';
 }
@@ -9359,7 +9391,9 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.8':['Grafik penceresi başlık barına tıklayınca açılır; grafiğe tıklamak süzgeç yapar',
+const SURUM_NOTU={'1.9.9':['Analiz ekranı sadeleşti: üstte özet, bulgular tek satır (kaynak ve durum yanında), Aksiyon Planı düzenli tablo',
+  'Lokasyon radarı süzgeçte yukarıdan inmeden yerinde değişir'],
+  '1.9.8':['Grafik penceresi başlık barına tıklayınca açılır; grafiğe tıklamak süzgeç yapar',
   'Lokasyon radarı açılışta kaymaz, şekli yerinde değişir',
   'Yaralanma türü ve vücut bölgesi grafikleri de çevrimiçi analize girer (yalnız toplam dağılım)'],
   '1.9.7':['Aksiyon Planı sadeleşti: başta aksiyon no, durum etiketi; aksiyonun üzerine gelince ayrıntı penceresi, tıklayınca aksiyon açılır'],
@@ -9508,7 +9542,10 @@ let _radVals=null,_radRAF=0;
 function updRadar(vals,sec){
   const svg=document.querySelector('#anCharts .radar'); if(!svg) return;
   const labels=anDom.lok, n=vals.length, {cx,cy,R}=RAD, max=Math.max(1,...vals);
-  const geo=(arr)=>arr.map((val,i)=>{const a=-Math.PI/2+i/n*2*Math.PI, v=val/max; return [cx+R*v*Math.cos(a), cy+R*v*Math.sin(a)];});
+  /* Koordinat ORANDAN (0–1) üretilir. Eskiden ara kareler eski SAYILARI yeni ölçeğe (yeni max) bölüyordu: süzgeçle
+     max 10'dan 2'ye düşünce ilk karede şekil grafiğin 5 katına taşıp "yukarıdan iniyordu" (03.11.2026 düzeltme). */
+  const geoN=(oran)=>oran.map((v,i)=>{const a=-Math.PI/2+i/n*2*Math.PI; return [cx+R*v*Math.cos(a), cy+R*v*Math.sin(a)];});
+  const geo=(arr)=>geoN(arr.map(val=>val/max));
   // etiket/nokta metin + renk (anlık)
   /* sec: çoklu seçimde dizi (bkz. anLokSecim) — her seçili lokasyon koyu işaretlenir */
   const secL=[].concat(sec==null?[]:sec), onMu=i=>secL.includes(labels[i]);
@@ -9519,17 +9556,18 @@ function updRadar(vals,sec){
   { const ip=svg.parentNode&&svg.parentNode.querySelector('.radIpucu');
     if(ip) ip.textContent = secL.length ? secL.length+' lokasyon seçili · kaldırmak için yeniden dokunun' : 'Birden çok lokasyon seçilebilir'; }
   /* önceki şekil aynı eksenlerle varsa ondan süzül; ilk çizimde ya da eksenler değiştiyse animasyonsuz yerine otur */
-  const target=geo(vals), start=(_radVals && _radVals.length===n) ? _radVals.slice() : vals.slice();
+  const oranY=vals.map(v=>v/max), oncekiMax=_radVals&&_radVals.length===n ? Math.max(1,..._radVals) : 0;
+  const target=geoN(oranY), oranE=oncekiMax ? _radVals.map(v=>v/oncekiMax) : vals.map(()=>0);
   _radVals=vals.slice();
   // hedefi hemen yaz (rAF çalışmazsa doğru kalsın), sonra tween
   poly.setAttribute('points', target.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '));
   target.forEach((p,i)=>{ dots[i].setAttribute('cx',p[0].toFixed(1)); dots[i].setAttribute('cy',p[1].toFixed(1)); });
   if(typeof requestAnimationFrame!=='function'||typeof performance==='undefined') return;
-  if(start.every((s,i)=>s===vals[i])) return;  // değişim yok → tween gereksiz
+  if(oranE.every((s,i)=>Math.abs(s-oranY[i])<1e-6)) return;  // şekil aynı → tween gereksiz
   cancelAnimationFrame(_radRAF);
   const t0=performance.now(), dur=460;
   function frame(now){ let k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3);
-    const cur=start.map((s,i)=>s+(vals[i]-s)*e), g=geo(cur);
+    const g=geoN(oranE.map((s,i)=>s+(oranY[i]-s)*e));
     poly.setAttribute('points', g.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '));
     g.forEach((p,i)=>{ dots[i].setAttribute('cx',p[0].toFixed(1)); dots[i].setAttribute('cy',p[1].toFixed(1)); });
     if(k<1) _radRAF=requestAnimationFrame(frame);
@@ -9635,7 +9673,7 @@ function renderAnaliz(animate){
     bulgu: sayimla(base.flatMap(r=>listeAd(r.bulgular,r.bulgularDiger))).slice(0,8).map(x=>x.ad),
     lok: sayimla(base.map(r=>lokAd(r.lokasyon))).map(x=>x.ad)
   };
-  /* radar sıfırdan büyümez: önceki şekil korunur, yeni değerlere yerinde süzülür (03.11.2026, kullanıcı isteği) */
+  _radVals=null;  // radar animasyonu 0'dan büyüsün
   /* w: kalıcı widget kimliği (telefon düzeni, bkz. W_VARSAYILAN). KVKK maskeli kart AYNI kimliği taşır. */
   const card=(w,t,body,ek)=>`<div class="anCard${animate?' ani':''}${ek?' '+ek:''}" data-w="${w}"><h3><span>${t}</span></h3><div class="anCb">${body}</div></div>`;
   const maskCard=(w,t)=>`<div class="anCard" data-w="${w}"><h3><span>${t}</span></h3><div class="anCb"><div class="anEmpty">Özel nitelikli sağlık verisi — görüntüleme yetkiniz yok (KVKK).</div></div></div>`;
