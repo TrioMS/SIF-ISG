@@ -693,7 +693,57 @@ body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :
   .srcPanel > .fld.y2{flex:1 1 calc(50% - 4px)}
   .srcPanel .fld.y2 .dt > input[type=date]{width:26px;padding:6px 2px}
   body:has(#v-reg.on,#v-act.on) .appFoot{position:fixed;right:16px;bottom:10px;margin:0;padding:0;border:0;background:none;font-size:10.5px;line-height:1.4;z-index:5;text-align:right;max-width:min(190px,calc(50vw - 330px))}
-}</style>
+}
+/* GRAFİK PENCERESİ (03.11.2026): analiz grafiğine tıklayınca açılan yumuşak pencere + grafiğe özel AI */
+#ovGrafik{background:rgba(20,24,31,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#ovGrafik.on .mod{animation:gpAc .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes gpAc{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+#ovGrafik .mod{max-width:940px;margin:3vh auto;border-radius:20px;overflow:hidden;box-shadow:0 24px 70px rgba(20,24,31,.28)}
+#ovGrafik .mh{border-bottom:0;padding:16px 20px 6px}
+#ovGrafik .mb{max-height:82vh;padding:6px 20px 20px}
+#ovGrafik .close{border-radius:50%}
+.gpKapsam{font-size:12.5px;color:var(--text2);margin-bottom:12px}
+.gpUst{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.gpGrafik{background:var(--surface2);border-radius:16px;padding:14px;pointer-events:none;min-width:0}
+.gpGrafik svg{max-width:100%;height:auto;max-height:360px;display:block;margin:0 auto}
+.gpTablo{width:100%;border-collapse:collapse;font-size:12.5px}
+.gpTablo td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
+.gpTablo td:first-child{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gpTablo tr.on td{font-weight:700;background:var(--blue-light)}
+.gpTablo .gpBar{width:34%}
+.gpTablo .gpBar i{display:block;height:7px;border-radius:99px;background:var(--jcb)}
+.gpTablo .n{text-align:right;font-weight:700;width:36px}
+.gpTablo .p{text-align:right;color:var(--text3);width:42px}
+.gpTablo .gpDaha{color:var(--text3);font-size:11.5px;border-bottom:0}
+.gpAI{margin-top:16px;border-radius:16px}
+.gpPaket{max-height:52vh;overflow:auto;font-size:11.5px;line-height:1.45;background:var(--surface2);padding:12px 14px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
+html:has(#ovGrafik.on),body:has(#ovGrafik.on){overflow:hidden;overscroll-behavior:none}   /* pencere açıkken arka sayfa kaymaz */
+body:has(#ovGrafik.on) .aiFab{display:none}
+body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)), body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) *{cursor:pointer}   /* grafik penceresi açılır */   /* pencere açıkken sağ alttaki AI düğmesi üstte kalmasın */
+@media(max-width:760px){ .gpUst{grid-template-columns:1fr} #ovGrafik .mod{margin:0;border-radius:20px 20px 0 0;position:fixed;left:0;right:0;bottom:0;max-height:92vh} #ovGrafik .mb{max-height:78vh} }
+/* MOTOR TABLOSU + AI KARTI + ÇEVRİMİÇİ AI (03.11.2026) */
+.motorTablo td{vertical-align:middle}
+.motorTablo td .alt{font-size:11px;color:var(--text3);margin-top:2px}
+.motorTablo .grpSatir{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);font-weight:800;background:var(--surface2)}
+.aiSecim{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.aiSecenek{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--surface2);border:1px solid transparent;border-radius:14px;padding:11px 14px;cursor:pointer;font:inherit;color:var(--text);transition:background .15s,border-color .15s,box-shadow .15s}
+.aiSecenek b{font-size:13.5px}
+.aiSecenek span{font-size:12px;color:var(--text2);line-height:1.35}
+.aiSecenek:hover{border-color:var(--border)}
+.aiSecenek.on{background:var(--surface);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+.aiAlanlar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.aiBalon{background:var(--surface2);border:1px solid transparent;border-radius:12px;padding:7px 12px 8px;min-width:0;transition:background .15s,border-color .15s,box-shadow .15s}
+.aiBalon.genis{grid-column:1/-1}
+.aiBalon:hover{border-color:var(--border)}
+.aiBalon:focus-within{background:var(--surface);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+.aiBalon > label.f{font-size:11.5px;margin-bottom:1px}
+.aiBalon :is(input,select){width:100%;background:transparent!important;border:0!important;border-radius:0;padding:3px 0;font-weight:600;font-size:13.5px;color:var(--text);box-shadow:none!important;outline:none}
+.aiBalon select{margin-left:-3px;width:calc(100% + 3px);cursor:pointer}
+@media(max-width:700px){ .aiSecim,.aiAlanlar{grid-template-columns:1fr} }
+.aiCevr{margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed #e0d5a8}
+.body.yalnizCevr > :not(.aiCevr){display:none}
+.body.yalnizCevr > .aiCevr{border-bottom:0;margin-bottom:0}
+.surumNot{margin:4px 0 2px 18px;line-height:1.7;font-size:13.5px}</style>
 <link rel="stylesheet" href="uygulama.css">   <!-- telefon görünümü; kendi stillerinden SONRA yüklenmeli -->
 </head>
 <body>
@@ -1452,6 +1502,11 @@ body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :
   <div class="mb" id="aktBody"></div><div class="mf noprint" id="aktFoot"></div>
 </div></div>
 
+<div class="ov" id="ovGrafik" onclick="if(event.target===this)closeOv('ovGrafik')"><div class="mod">
+  <div class="mh"><h3 id="gpBaslik">Grafik</h3><button class="close" onclick="closeOv('ovGrafik')">×</button></div>
+  <div class="mb" id="gpGovde"></div>
+</div></div>
+
 <!-- PROFİL — üst banttaki baş harf düğmesi açar (profilAc) -->
 <div class="ov" id="ovProfil" onclick="if(event.target===this)closeOv('ovProfil')"><div class="mod" style="max-width:460px">
   <div class="mh"><h3>Profil</h3><button class="close" onclick="closeOv('ovProfil')">×</button></div>
@@ -1478,7 +1533,7 @@ body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.8.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2655,11 +2710,18 @@ function qbIzle(){
 function sifBilesenYaz(){
   if(!can('ayar')) return;
   var s = document.getElementById('s-ansag'); if(!s) return;
-  var k = document.getElementById('sifBilesenKart');
-  if(!k){ k = document.createElement('div'); k.className = 'card'; k.id = 'sifBilesenKart'; k.style.cssText = 'max-width:860px;margin-top:14px';
-    k.innerHTML = '<h3>Bileşenler ve Güncellemeler</h3><div class="cb"><div id="sifBilesenGovde"></div></div>'; s.appendChild(k); }
-  qbPanel(document.getElementById('sifBilesenGovde'), {portal:'sif', dil:function(){ return 'tr'; },
-    ic:[['Öğrenme motoru (model)', OGR_MOTOR_SURUM], ['Analiz motoru', AN_MOTOR_SURUM], ['Belge okuma motoru', BELGE_SURUM]]});
+  /* TEK KART (03.11.2026, Hukuk düzeni): motorlar, sürümler, durumları ve tek "Güncellemeleri denetle".
+     Altında sade "AI Modu ve API" kartı (balon alanlar). */
+  var k = document.getElementById('motorBirlesikKart');
+  if(!k){ k = document.createElement('div'); k.className = 'card'; k.id = 'motorBirlesikKart'; k.style.cssText = 'max-width:860px;margin-top:14px';
+    k.innerHTML = '<h3>Motorlar ve Güncellemeler</h3><div class="cb"><div id="motorBirlesikGovde"></div></div>'; s.appendChild(k); }
+  var a = document.getElementById('aiAyarKart');
+  if(!a){ a = document.createElement('div'); a.className = 'card'; a.id = 'aiAyarKart'; a.style.cssText = 'max-width:860px;margin-top:14px';
+    a.innerHTML = '<h3>AI Modu ve API</h3><div class="cb"><div id="aiAyarGovde"></div></div>'; s.appendChild(a); }
+  motorBirlesikCiz(); aiAyarYaz();
+  bilYukle(false);
+  if(!MOTOR_SON) motorDenetimi(false);
+  if(!MOTOR_GNC_SON) motorGuncellemeDenetle(true);
 }
 function kapsamLoklari(){                       // görebileceği lokasyon kodları
   if(!SES) return [];
@@ -6232,6 +6294,10 @@ function setKaydet(){   // Kaydet butonu: bekleyen ayarları depoya yaz + bağl�
 function go(v, fromPop){
   if(v==='set'&&!can('ayar')) return;
   if(v==='form'&&!can('kayit')) return;
+  /* analiz balonundan gelen süzgeç (etiketsiz) yalnız o tıklamada geçerli: listeye başka yoldan gelince kalkar;
+     balon tıklaması go()'dan SONRA yeni süzgeci kurar */
+  if(v==='reg'&&REG_ANZ){ REG_ANZ=null; renderReg(); }
+  if(v==='act'&&AKT_ANZ){ AKT_ANZ=null; renderAct(); }
   /* Ayardan çıkış: kaydedilmemiş değişiklik varsa sor (kaydet / at) */
   const suan=((document.querySelector('.view.on')||{}).id||'').replace('v-','');
   if(suan==='set' && v!=='set'){
@@ -6847,7 +6913,7 @@ const BELGE_SURUM = '2026.09.18';
    yok ve bütünlüğü denetlenemeyen kod yüklenmesin — yalnız lib/'den (HSE/Kur/ocr_indir.ps1, npm
    paketi SHA-512 doğrulamalı). Sunucu .mjs'i text/javascript türüyle sunmalı (.claude/serve.ps1). */
 let LIB_KOK = null;
-const PDF_SURUM    = '6.4.299';
+const PDF_SURUM    = '6.5.438';   /* 03.11.2026: otomatik güncelleme sınavından geçen sürüm (lib/bilesen_kurulu.json) */
 /* wasmUrl (20.10.2026): taramalarda sik gorulen JPEG 2000 (openjpeg), JBIG2 ve renk profili (qcms) cozuculeri lib/wasm/ altinda; verilmezse bu goruntuler BOS cizilir ve OCR bos metin doner. */
 let PDF_WASM = '';
 const OCR_CDN      = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js';
@@ -7320,6 +7386,8 @@ function aksiyonEtkinlik(){
    SÖKÜLÜR: oturum yokken arka planda veri okunmasın. */
 function ogrBaslat(){
   ogrDurdur();
+  setTimeout(()=>{ if(SES) motorAcilis(); }, 4000);
+  setTimeout(()=>{ if(SES) guncellendiGoster(); }, 2500);   /* yayın notu: sürüm değişince bir kez */   /* her açılışta motor denetimi + okuma motoru güncelleme denetimi */
   setTimeout(()=>{ const d=ogrBayatMi(); if(d.bayat) ogrYenile(true,'açılış · '+d.sebep); }, 1500);
   OGR_PERIYOT=setInterval(()=>{ const d=ogrBayatMi(); if(d.bayat) ogrYenile(true,'periyodik · '+d.sebep); }, 900000);
 }
@@ -7555,7 +7623,7 @@ function bellekIsle(kapsam, bulgular, say){
    zayıflatan kayıtlar.
    DİKKAT: buradaki eşikler anEkBoyut()/aiRapor() içindekilerin AYNISI olmalı;
    ayrışırlarsa bu ekran yalan söyler. Eşik değiştirilirse ikisi de değişir. */
-const AN_MOTOR_SURUM = '2026.09.14';
+const AN_MOTOR_SURUM = '2026.11.03';   /* 03.11.2026: derin çapraz kurallar (anDerin) */
 
 /* Aksiyon etkinliği paneli + gözlem süresi ayarı. */
 function etkinlikPanelHTML(){
@@ -7789,8 +7857,13 @@ function aiRapor(){
         +`"süreç uygulanmamış" diye sorgulanmalı.`;
     }
   }catch(e){}
+  /* DERİN ÇAPRAZ KURALLAR (motor 2026.11.03): kaynak×ciddiyet, gün, 30 gün tekrar, lokasyon termini, bulgu→kök */
+  const _D=anDerin(V, V.flatMap(r=>(r.aksiyonlar||[]).map(a=>Object.assign({},a,{_lok:r.lokasyon})))
+    .concat(anFiltre&&anFiltre.boyut!=='lok'?[]:SACT.filter(sactGorebilir).filter(a=>!_fl||a.lokasyon===_fl).map(a=>Object.assign({},a,{_lok:a.lokasyon}))));
+  B.push(..._D.B);
   /* ÖNERİLER = iyileştirme (saha + sistem/metodoloji) */
   const O=[]; // öneriler
+  O.push(..._D.O);
   if(_BELGE_ONERI){ O.push(_BELGE_ONERI); _BELGE_ONERI=''; }
   if(topKok) O.push(AI_ONERI[topKok.ad]||AI_ONERI['Diğer']);
   if(topKay) O.push(`<b>${esc(topKay.ad)}</b> kaynaklı olaylar için hedefli kontrol/eğitim kampanyası planlayın; kontrol tedbirlerini öncelikle bu mekanizmaya yönlendirin.`);
@@ -7853,6 +7926,646 @@ function aiRapor(){
        lokasyon filtresine tabi değildir. */
     +aiAcilanHTML(aiAcilanAks(), true)
     +`<div class="dip"><b>Bulgular</b> yalnızca girilen olay/aksiyon verisinden türetildi; <b>öneriler</b> iyileştirme amaçlıdır. Kural tabanlı, dış AI servisi kullanılmadı; filtre değiştikçe güncellenir.</div>`;
+}
+
+/* ── GRAFİK PENCERESİ + GRAFİĞE ÖZEL AI (03.11.2026, kullanıcı isteği) ──
+   Analizde bir grafik kartına tıklanınca yumuşak bir pencere açılır: grafiğin büyük hâli,
+   tam dağılım ve altında YALNIZ O GRAFİĞİN verisinden türeyen AI bulguları + önerileri.
+   • Dilime/çubuğa tıklama çapraz süzgeci eskisi gibi kurar; pencere o değere ODAKLANIR.
+     Kartın boş yerine/başlığına tıklama grafiğin tamamını değerlendirir (odak = en sık değer).
+   • Küme = grafiğin kendi kümesi (anGuncelle'deki setFor ile aynı): kendi boyutunda süzgeç
+     varsa süzgeçsiz taban, başka boyutta süzgeç varsa süzülmüş küme.
+   • Kural tabanlı, internetsiz; bulgu yalnız veriden, öneri metinleri AI_ONERI/ESIK tablolarından.
+     Sağlık grafikleri (yaralanma, vücut bölgesi) yalnız can('saglik') ile açılır; kişi adı yazılmaz. */
+const GP_BOYUT={'c-tur':'tur','c-yara':'yara','c-vucut':'bolge','c-lok':'lok','c-kaynak':'kaynak','c-bulgu':'bulgu','c-kok':'kok','c-koktek':'kokTek'};
+function gpSayim(boyut, V){
+  switch(boyut){
+    case 'tur':    return sayimla(V.map(turAd));
+    case 'kaynak': return sayimla(V.map(r=>kaynakAd(r)).filter(x=>x&&x!=='—'));
+    case 'kok':    return sayimla(V.flatMap(r=>(r.kokSebep||[]).map(katOf)));
+    case 'kokTek': return sayimla(V.flatMap(r=>(r.kokSebep||[]).map(kokTekAd)));
+    case 'bulgu':  return sayimla(V.flatMap(r=>listeAd(r.bulgular,r.bulgularDiger)));
+    case 'lok':    return sayimla(V.map(r=>lokAd(r.lokasyon)));
+    case 'yara':   return kisiSayim(V,'yara',['Yaralanma Yok']);
+    case 'bolge':  return kisiSayim(V,'bolge');
+  } return [];
+}
+const gpKisiBoyut = b => b==='yara'||b==='bolge';
+function gpKume(boyut){
+  const fl=$('anLok')?$('anLok').value:'';
+  const base=gorunurKayitlar().filter(r=>!fl||r.lokasyon===fl);
+  return (anFiltre&&anFiltre.boyut!==boyut) ? base.filter(r=>anMatch(r,anFiltre)) : base;
+}
+function gpKayitlari(boyut, V, ad){ return V.filter(r=>anMatch(r,{boyut, deger: boyut==='lok'?[ad]:ad})); }
+function gpAI(boyut, V, rows, odakAd){
+  const B=[], O=[], AD=(AN_AD[boyut]||boyut).toLocaleLowerCase('tr'), kisi=gpKisiBoyut(boyut);
+  const toplam=rows.reduce((s,x)=>s+x.n,0), pay=x=>toplam?Math.round(x/toplam*100):0;
+  if(!rows.length) return {B:[`Bu kümede ${esc(AD)} verisi yok.`], O:[], F:null};
+  const F=(odakAd&&rows.find(x=>esitTR(x.ad,odakAd)))||enSik(rows)||rows[0];
+  B.push(`${V.length} olay kapsamında <b>${rows.length}</b> farklı ${esc(AD)}; toplam <b>${toplam}</b> ${kisi?'kişi kaydı':(toplam>V.length?'işaretleme (bir olayda birden fazla olabilir)':'olay')}.`);
+  B.push('En sık: '+rows.slice(0,3).map(x=>`<b>${esc(x.ad)}</b> ${x.n} (%${pay(x.n)})`).join(', ')+'.');
+  /* Yoğunlaşma: toplamın %80'ine kaç değerde ulaşılıyor (aiRapor'daki pareto mantığı) */
+  let k80=0, yogun=false;
+  if(rows.length>=4){ let s=0; for(const x of rows){ s+=x.n; k80++; if(s>=toplam*0.8) break; }
+    yogun = k80<=Math.ceil(rows.length*0.4);
+    B.push(yogun ? `Yoğunlaşma: ${rows.length} değerden yalnız <b>${k80}</b> tanesi kayıtların %80'ini oluşturuyor.`
+                 : `Dağılım dağınık: %80'e ulaşmak için ${rows.length} değerden <b>${k80}</b> tanesi gerekiyor — tek baskın değer yok.`); }
+  /* ODAK DEĞER: o değeri taşıyan olaylar */
+  const R=gpKayitlari(boyut, V, F.ad), ciddiR=R.filter(r=>ciddiAnaliz(r.sonuc)).length, ciddiV=V.filter(r=>ciddiAnaliz(r.sonuc)).length;
+  const oR=R.length?Math.round(ciddiR/R.length*100):0, oV=V.length?Math.round(ciddiV/V.length*100):0;
+  if(boyut==='tur'){
+    if(ciddiV) B.push(`Kümedeki ${V.length} olayın <b>${ciddiV}</b> tanesi ciddi (%${oV}).`);
+  } else if(R.length){
+    B.push(`<b>${esc(F.ad)}</b> içeren ${R.length} olayın <b>${ciddiR}</b> tanesi ciddi (%${oR}); kümenin genelinde bu oran %${oV}.`);
+  }
+  if(boyut==='lok'){
+    const l=LOK.find(x=>esitTR(lokAd(x.kod),F.ad));
+    if(l&&l.calisan>0) B.push(`<b>${esc(F.ad)}</b>: 100 çalışan başına <b>${(R.length/l.calisan*100).toFixed(1)}</b> olay (${R.length} olay / ${l.calisan} çalışan).`);
+  } else {
+    const lk=sayimla(R.map(r=>lokAd(r.lokasyon)));
+    if(lk.length>1) B.push(`<b>${esc(F.ad)}</b> en çok <b>${esc(lk[0].ad)}</b> lokasyonunda (${lk[0].n} olay; ${lk.length} lokasyona dağılıyor).`);
+    else if(lk.length===1) B.push(`<b>${esc(F.ad)}</b> olaylarının tamamı <b>${esc(lk[0].ad)}</b> lokasyonunda.`);
+  }
+  let topKok=null, topKay=null, kokYok=0;
+  if(boyut!=='kok'&&boyut!=='kokTek'){
+    topKok=enSik(sayimla(R.flatMap(r=>(r.kokSebep||[]).map(katOf))));
+    kokYok=R.filter(r=>r.durum!=='taslak'&&r.durum!=='bildirildi'&&!(r.kokSebep||[]).length).length;
+    if(topKok) B.push(`Bu olaylarda en sık kök sebep alanı <b>${esc(topKok.ad)}</b> (${topKok.n}).`);
+    if(kokYok) B.push(`Raporu tamamlanmış <b>${kokYok}</b> olayda kök sebep girilmemiş.`);
+  } else {
+    topKay=enSik(sayimla(R.map(r=>kaynakAd(r)).filter(x=>x&&x!=='—')));
+    if(topKay) B.push(`<b>${esc(F.ad)}</b> en çok <b>${esc(topKay.ad)}</b> kaynaklı olaylarda görülüyor (${topKay.n}).`);
+  }
+  if(kisi && can('saglik')){
+    const P=R.flatMap(r=>r.kisiler||[]).filter(p=>esitTR(p[boyut],F.ad)), kg=P.reduce((s,p)=>s+(parseFloat(p.kayipGun)||0),0);
+    if(kg>0) B.push(`<b>${esc(F.ad)}</b> yaralanmalarında toplam <b>${kg}</b> kayıp gün.`);
+  }
+  const mt=hseMetrikler(R);
+  if(mt.trend) B.push(`Zaman eğilimi (<b>${esc(F.ad)}</b>): ${esc(mt.trend)}.`);
+  const st=aksStat(R.flatMap(r=>r.aksiyonlar||[]));
+  if(st.toplam) B.push(`Bu olaylara bağlı <b>${st.toplam}</b> aksiyon: ${st.acik} açık, <b>${st.gecikti}</b> gecikmiş; kapatma oranı ${st.oran==null?'—':'%'+st.oran}.`);
+  else if(R.length) B.push(`Bu olaylara bağlı aksiyon tanımlanmamış.`);
+  /* ÖNERİLER — yalnız bulgu oluştuysa */
+  if(boyut==='kok'&&AI_ONERI[F.ad]) O.push(AI_ONERI[F.ad]);
+  if(topKok) O.push(AI_ONERI[topKok.ad]||AI_ONERI['Diğer']);
+  if(yogun) O.push(`Kayıtların %80'i ${k80} değerde toplanıyor (${rows.slice(0,k80).map(x=>'<b>'+esc(x.ad)+'</b>').join(', ')}) — kontrol programını bu değerlere odaklamak en yüksek getiriyi verir.`);
+  if(boyut!=='tur' && R.length>=3 && ciddiR && oR>=oV+10) O.push(`<b>${esc(F.ad)}</b> için ciddi olay oranı genelden yüksek (%${oR} / %${oV}) — risk değerlendirmesini öncelikle bu alanda güncelleyin.`);
+  if(boyut==='bolge') O.push(`<b>${esc(F.ad)}</b> yaralanmalarını azaltmak için ilgili KKD ve iş yöntemini gözden geçirin.`);
+  if(boyut==='kaynak') O.push(`<b>${esc(F.ad)}</b> kaynaklı olaylar için hedefli kontrol/eğitim kampanyası planlayın.`);
+  if(boyut==='bulgu') O.push(`<b>${esc(F.ad)}</b> bulgusunu kalıcı kapatan bir saha denetim/kontrol maddesi tanımlayın.`);
+  if(boyut==='lok') O.push(`<b>${esc(F.ad)}</b> lokasyonunda saha denetim sıklığını ve yönetim ziyaretlerini artırın.`);
+  if(st.gecikti>0) O.push(`Geciken <b>${st.gecikti}</b> aksiyon için sorumlulara hatırlatma gönderin ve termini gözden geçirin.`);
+  else if(R.length && !st.toplam) O.push(`<b>${esc(F.ad)}</b> olayları için sorumlu ve terminli en az bir düzeltici aksiyon açın.`);
+  if(kokYok) O.push(`Kök sebebi girilmemiş <b>${kokYok}</b> olayın incelemesini tamamlayın.`);
+  if(mt.trendYon==='artis') O.push(`<b>${esc(F.ad)}</b> olaylarında son dönemde artış var — tetikleyen değişimi (yeni faaliyet, taşeron, mevsim) araştırın.`);
+  if(!O.length) O.push('Belirgin bir yoğunlaşma yok; mevcut önleyici tedbirleri sürdürün.');
+  return {B, O:[...new Set(O)], F};
+}
+function grafikPencere(w){
+  const boyut=GP_BOYUT[w]; if(!boyut) return;
+  if(gpKisiBoyut(boyut) && !can('saglik')) return;
+  const kart=document.querySelector(`#anCharts .anCard[data-w="${w}"]`); if(!kart) return;
+  const baslik=(kart.querySelector('h3')||{}).textContent||AN_AD[boyut]||'';
+  const V=gpKume(boyut), rows=gpSayim(boyut,V);
+  const odak=(anFiltre&&anFiltre.boyut===boyut) ? (Array.isArray(anFiltre.deger)?anFiltre.deger[anFiltre.deger.length-1]:anFiltre.deger) : null;
+  const ai=gpAI(boyut,V,rows,odak), F=ai.F;
+  const fl=$('anLok')?$('anLok').value:'';
+  const kapsam=[fl?lokAd(fl):'Tüm lokasyonlar'].concat(anFiltre&&anFiltre.boyut!==boyut?[`${AN_AD[anFiltre.boyut]}: ${anFiltreMetin(anFiltre)}`]:[]).join(' · ');
+  const toplam=rows.reduce((s,x)=>s+x.n,0), enCok=rows.length?rows[0].n:1;
+  const tablo=rows.slice(0,15).map(x=>`<tr class="${F&&esitTR(x.ad,F.ad)?'on':''}"><td>${esc(x.ad)}</td><td class="gpBar"><i style="width:${Math.max(3,Math.round(x.n/enCok*100))}%"></i></td><td class="n">${x.n}</td><td class="p">%${toplam?Math.round(x.n/toplam*100):0}</td></tr>`).join('')
+    +(rows.length>15?`<tr><td colspan="4" class="gpDaha">+ ${rows.length-15} değer daha</td></tr>`:'');
+  const cb=kart.querySelector('.anCb');
+  $('gpBaslik').textContent=baslik;
+  $('gpGovde').innerHTML=
+     `<div class="gpKapsam">${esc(kapsam)}${F?` · <b>${odak?'Seçili':'En sık'}: ${esc(F.ad)}</b>`:''}</div>`
+    +`<div class="gpUst"><div class="gpGrafik">${cb?cb.innerHTML:''}</div>`
+    +`<table class="gpTablo"><tbody>${tablo||'<tr><td>Veri yok</td></tr>'}</tbody></table></div>`
+    +`<div class="anAI gpAI"><h4><span class="rob">${ICO_AI}</span> AI Analiz — ${esc(baslik)}</h4><div class="body">`
+    +`<div class="ozet"><span class="aiBadge">${ICO_AI} AI</span>${esc(kapsam)} kapsamında ${V.length} olay${F?`; odak <b>${esc(F.ad)}</b>`:''}.</div>`
+    +aiGrupHTML('Bulgular', aiBekleyenLi(ai.B, t=>t, i=>`gpOneriAksiyon('B',${i})`, null))
+    +aiGrupHTML('Öneriler', aiBekleyenLi(ai.O, t=>t, i=>`gpOneriAksiyon('O',${i})`, null))
+    +`<div class="dip"><b>Bulgular</b> yalnız bu grafiğin verisinden türetildi; <b>öneriler</b> iyileştirme amaçlıdır. Kural tabanlı, dış AI servisi kullanılmadı.</div></div></div>`;
+  GP_SON={B:ai.B, O:ai.O, lok:fl, etiket:'Grafik: '+baslik+' · '+kapsam+(F?' · '+F.ad:'')};
+  ovAc('ovGrafik');
+}
+/* Penceredeki AI maddesi → bağımsız aksiyon (ana AI kutusunun yolu: aksiyonFormAcAnaliz). Kaynak etiketi
+   grafiği ve odak değeri söyler; alınan madde sonraki açılışta listeden düşer (aiAlindiMi). */
+let GP_SON=null;
+function gpOneriAksiyon(grp,i){
+  const t=GP_SON&&(GP_SON[grp]||[])[i]; if(t==null) return;
+  const eski=AN_AI_SON; AN_AI_SON=Object.assign({}, eski||{}, {lok:GP_SON.lok, etiket:GP_SON.etiket});
+  closeOv('ovGrafik');
+  try{ aksiyonFormAcAnaliz(t); } finally { AN_AI_SON=eski; }
+}
+/* Yakalama evresi: tıklanan kart, dilimin onclick'i (anSec → yeniden çizim) hedefi DOM'dan
+   koparmadan ÖNCE belirlenir; pencere süzgeç uygulandıktan SONRA açılır. */
+document.addEventListener('click', e=>{
+  if(document.body.classList.contains('wDuzen')) return;   /* telefon widget düzenlemesi */
+  const kart=e.target.closest && e.target.closest('#anCharts .anCard'); if(!kart) return;
+  if(e.target.closest('button')) return;
+  const w=kart.dataset.w; if(!GP_BOYUT[w] || kart.querySelector('.anEmpty')) return;   /* KVKK maskeli kart açılmaz */
+  setTimeout(()=>grafikPencere(w),0);
+}, true);
+
+/* ═══ KVKK DIŞ ÇIKIŞ MOTORU (03.11.2026) — çevrimiçi (API) analize giden veri ═══
+   Kural (kullanıcı kararı + KVKK maskeleme kuralı): dışarı yalnız bu motorun ürettiği PAKET gider.
+   1. ALAN SEÇİMİ (beyaz liste): kişi, tanık, bildiren, oluşturan, sorumlu, alıcı, ek, sicil, e-posta,
+      SAĞLIK (yaralanma, vücut bölgesi, tıbbi müdahale, kayıp gün) pakete HİÇ girmez.
+   2. TAKMA AD: olay no → O1, O2…; lokasyon kodu/adı → L1, L2… (proje ve lokasyon da çıkar);
+      tarih yalnız ay (yyyy-aa), saat yalnız 6 saatlik dilim.
+   3. SERBEST METİN (açıklama, acil önlem, kök sebep notu, dersler, faaliyet, yer, aksiyon tanımı):
+      kvkkAyikla (TCKN, telefon, e-posta, IBAN, plaka, etiketli isim) + sistemdeki TÜM bilinen isimler
+      (kullanıcılar, SAP personeli, kazazede/tanık/bildiren/sorumlu) → [kişi]; şirket ve lokasyon adları,
+      olay/aksiyon numaraları → takma ad. Metin 600 karakterle sınırlanır.
+   4. SON DENETİM (kapalı-kapı): paketin tamamı yeniden taranır; desen, bilinen isim, lokasyon/şirket
+      adı ya da numara kalmışsa paket GÖNDERİLMEZ (ok:false + sebep).
+   Paket ve denetim sonucu yalnız bellekte; gönderim günlüğüne içerik değil yalnız sayılar yazılır. */
+const KVKK_DIS_SURUM='2026.11.03';
+/* Görev / yer kelimeleri ad parçası sayılmaz (örnek kullanıcı adları "Saha Şefi", "Depo Sorumlusu" gibi
+   görev adları olabiliyor; bunları tek kelime olarak maskelemek "saha", "depo" geçen her metni bozardı). */
+const KVKK_GOREV_KELIME=new Set(['saha','depo','şube','sube','şef','şefi','sefi','usta','ustası','operatör','operatörü','müdür','müdürü','sorumlu','sorumlusu',
+  'uzman','uzmanı','isg','iş','güvenliği','yönetici','yöneticisi','admin','genel','merkez','ana','bakım','atölye','servis','lead','dış','ic','iç','hekim','hekimi',
+  'koordinatör','koordinatörü','teknisyen','teknisyeni','mühendis','mühendisi','şoför','şoförü','personel','kalite','satış','muhasebe','idari','ege','marmara']);
+function kvkkBilinenIsimler(tamAd){
+  const kisi=new Set(), tam=new Set(), ekle=(v,parcala)=>{ v=String(v||'').replace(/\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
+    if(v.length<3 || !/\p{L}/u.test(v)) return; tam.add(v); if(parcala) kisi.add(v); };
+  USR.forEach(u=>ekle(u.ad,false));                      /* kullanıcı adları: tam ad olarak */
+  (PERS||[]).forEach(p=>ekle(p.ad||p.adSoyad,true));     /* gerçek kişiler: tam ad + parçalar */
+  RECS.forEach(r=>{ ekle(r.bildiren,true); ekle(r.olusturanAd,false);
+    (r.kisiler||[]).forEach(k=>ekle(k.ad,true)); (r.taniklar||[]).forEach(t=>ekle(t&&t.ad,true));
+    (r.aksiyonlar||[]).forEach(a=>ekle(a.sorumlu,true)); });
+  (typeof SACT!=='undefined'?SACT:[]).forEach(a=>ekle(a.sorumlu,true));
+  if(tamAd) return [...tam].filter(v=>/\s/.test(v));    /* son denetim: yalnız tam adlar */
+  /* Maskeleme: tam adlar + gerçek kişi adlarının parçaları (en az 3 harf, görev kelimesi değil).
+     Uzundan kısaya: önce tam ad değişsin. Fazla maskelemek serbest, eksik maskelemek değil. */
+  const hepsi=new Set(tam);
+  kisi.forEach(ad=>ad.split(' ').forEach(p=>{ const k=p.replace(/[^\p{L}]/gu,''); if(k.length>=3 && !KVKK_GOREV_KELIME.has(k.toLocaleLowerCase('tr'))) hepsi.add(k); }));
+  return [...hepsi].sort((a,b)=>b.length-a.length);
+}
+const kvkkRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function kvkkDisSozluk(){
+  const lok={}; LOK.forEach((l,i)=>{ lok[l.kod]='L'+(i+1); });
+  const kurum=[GEN.ad, GEN.kod, GEN.merkezKod, GEN.grupKod, GEN.mailAlan].filter(x=>x&&String(x).length>=2);
+  return {lok, kurum, isim:kvkkBilinenIsimler()};
+}
+function kvkkDisMetin(t, S){
+  if(t==null||t==='') return '';
+  let x=kvkkAyikla(String(t)).t;
+  /* Olay / aksiyon numaraları (ŞİRKET-LOK-INC-YIL-SIRA) */
+  x=x.replace(/\b[A-ZÇĞİÖŞÜ]{2,6}-[A-ZÇĞİÖŞÜ0-9]{2,8}-(?:INC|ACT)-\d{4}-\d+(?:-A\d+)?\b/g,'[no]');
+  LOK.forEach(l=>{ [l.ad,l.kod,l.sehir].filter(v=>v&&String(v).length>=2).forEach(v=>{
+    x=x.replace(new RegExp('(^|[^\\p{L}0-9])'+kvkkRe(v)+'(?=$|[^\\p{L}0-9])','giu'),'$1'+(S.lok[l.kod]||'[lokasyon]')); }); });
+  S.kurum.forEach(v=>{ x=x.replace(new RegExp('(^|[^\\p{L}0-9])'+kvkkRe(v)+'(?=$|[^\\p{L}0-9])','giu'),'$1[kurum]'); });
+  S.isim.forEach(v=>{ x=x.replace(new RegExp('(^|[^\\p{L}])'+kvkkRe(v)+'(?=$|[^\\p{L}])','gu'),'$1[kişi]'); });
+  return x.length>600 ? x.slice(0,600)+'…' : x;
+}
+const kvkkSaatDilim = s => { const h=parseInt(String(s||'').split(':')[0],10); return isNaN(h)?'':(['00-06','06-12','12-18','18-24'][Math.min(3,Math.floor(h/6))]); };
+function kvkkDisPaket(V, amac){
+  const S=kvkkDisSozluk(), M=t=>kvkkDisMetin(t,S);
+  const olaylar=(V||[]).map((r,i)=>{
+    const ak=(r.aksiyonlar||[]).map(a=>{ const d=aksTerminDurum(a); return {durum:d.ad, gecikti:!!d.gecikti, tanim:M(a.tanim)}; });
+    return { k:'O'+(i+1), ay:String(r.tarih||'').slice(0,7), saat:kvkkSaatDilim(r.saat), lokasyon:S.lok[r.lokasyon]||'L?',
+      tur:turAd(r), ciddiyet:cidOf(r.sonuc).ad, ciddi:ciddiAnaliz(r.sonuc), kaynak:M(kaynakAd(r)), faaliyet:M(r.faaliyet), yer:M(r.yer),
+      isDurdu:r.isDurdu||'', durum:r.durum, aciklama:M(r.aciklama), acilOnlem:M(r.acil),
+      bulgular:listeAd(r.bulgular,r.bulgularDiger).map(M), kokSebep:(r.kokSebep||[]).map(M), kokNot:M(r.kokNot), dersler:M(r.dersler),
+      aksiyonlar:ak };
+  });
+  return { surum:KVKK_DIS_SURUM, amac:amac||'İSG olay analizi', olusturma:new Date().toISOString().slice(0,10),
+    not:'Kişisel ve sağlık verisi içermez; lokasyon ve olaylar takma adlıdır.', olaySayisi:olaylar.length, olaylar };
+}
+/* Kapalı kapı: paket metninde hâlâ kişisel/kurumsal iz varsa gönderim DURUR */
+function kvkkDisDenetim(paket){
+  const J=JSON.stringify(paket), sorun=[];
+  const k=kvkkAyikla(J); if(k.toplam) sorun.push('desen: '+Object.keys(k.say).join(', '));
+  kvkkBilinenIsimler(true).forEach(v=>{ if(new RegExp('(^|[^\\p{L}])'+kvkkRe(v)+'(?=$|[^\\p{L}])','u').test(J)) sorun.push('isim'); });
+  LOK.forEach(l=>{ [l.ad,l.kod].filter(v=>v&&String(v).length>=3).forEach(v=>{ if(new RegExp('(^|[^\\p{L}0-9])'+kvkkRe(v)+'(?=$|[^\\p{L}0-9])','iu').test(J)) sorun.push('lokasyon'); }); });
+  [GEN.ad].filter(v=>v&&v.length>=3).forEach(v=>{ if(J.toLocaleLowerCase('tr').includes(String(v).toLocaleLowerCase('tr'))) sorun.push('kurum adı'); });
+  if(/-(?:INC|ACT)-\d{4}-\d+/.test(J)) sorun.push('kayıt numarası');
+  if(/"(ad|sicil|mail|eposta|yara|bolge|tibbi|kayipGun|kisiler|taniklar|bildiren|sorumlu)"\s*:/.test(J)) sorun.push('yasak alan');
+  return {ok:!sorun.length, sorunlar:[...new Set(sorun)], boyut:J.length};
+}
+/* Çevrimiçi analiz paketi önizlemesi: tam olarak ne gideceği gösterilir (bağlantı henüz kurulmadı). */
+function disAnalizOnizle(){
+  if(!can('ayar')) return;
+  const V=anKume(), p=kvkkDisPaket(V), d=kvkkDisDenetim(p);
+  $('gpBaslik').textContent='Çevrimiçi analiz — gönderilecek veri (önizleme)';
+  $('gpGovde').innerHTML=`<div class="gpKapsam">${V.length} olay · ${Math.round(d.boyut/1024)} KB · KVKK son denetimi: ${d.ok?'<b style="color:var(--green)">temiz</b>':'<b style="color:var(--red)">DURDURULDU — '+esc(d.sorunlar.join(', '))+'</b>'}</div>`
+    +`<div class="hint" style="margin-bottom:8px">Kişi, tanık, bildiren, sorumlu, sicil, e-posta ve sağlık alanları pakete hiç girmez; lokasyonlar ve olaylar takma adlıdır; serbest metinlerdeki isim, telefon, kimlik no, e-posta, plaka, lokasyon ve şirket adları maskelenir. Çevrimiçi analiz bağlantısı henüz kurulmadı — bu ekran yalnız önizlemedir, hiçbir şey gönderilmedi.</div>`
+    +`<pre class="gpPaket">${esc(JSON.stringify(p,null,1))}</pre>`;
+  ovAc('ovGrafik');
+}
+
+/* ═══ DERİN ANALİZ — ÇAPRAZ KURALLAR (motor 2026.11.03) ═══
+   aiRapor'a eklenen, yalnız veriden türeyen çapraz bulgular (eşikler ESIK_DERIN'de, metin veriden):
+   1. Kaynak × ciddiyet  2. Haftanın günü yoğunlaşması  3. Aynı lokasyon + aynı kaynakta 30 gün içinde tekrar
+   4. Lokasyon bazında termin performansı  5. En sık bulgunun ardındaki kök sebep alanı.
+   Yeni kural eklenince AN_MOTOR_SURUM yükseltilir (motor denetimi ve güncelleme denetimi bunu okur). */
+const ESIK_DERIN={ caprazEnAz:3, ciddiFark:15, gunEnAz:8, gunPay:30, tekrarGun:30, aksEnAz:3, gecikmePay:50 };
+const GUN_AD=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+function anDerin(V, aksBul){
+  const B=[], O=[], n=V.length; if(n<ESIK_DERIN.caprazEnAz) return {B,O};
+  const ciddiOran=a=>a.length?Math.round(a.filter(r=>ciddiAnaliz(r.sonuc)).length/a.length*100):0, genel=ciddiOran(V);
+  /* 1. Kaynak × ciddiyet */
+  const kay={}; V.forEach(r=>{ const k=kaynakAd(r); if(k&&k!=='—') (kay[k]=kay[k]||[]).push(r); });
+  const kayEn=Object.keys(kay).filter(k=>kay[k].length>=ESIK_DERIN.caprazEnAz).map(k=>({ad:k,n:kay[k].length,o:ciddiOran(kay[k])})).sort((a,b)=>b.o-a.o||b.n-a.n)[0];
+  if(kayEn && kayEn.o>0 && kayEn.o>=genel+ESIK_DERIN.ciddiFark){
+    B.push(`Çapraz: <b>${esc(kayEn.ad)}</b> kaynaklı ${kayEn.n} olayın <b>%${kayEn.o}</b>'i ciddi — kümenin genelinde %${genel}.`);
+    O.push(`<b>${esc(kayEn.ad)}</b> kaynağı sayıca değil ağırlıkça öne çıkıyor — risk değerlendirmesinde bu mekanizmanın şiddet puanını yeniden ele alın.`); }
+  /* 2. Haftanın günü */
+  const gunlu=V.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.tarih||''));
+  if(gunlu.length>=ESIK_DERIN.gunEnAz){
+    const g=[0,0,0,0,0,0,0]; gunlu.forEach(r=>g[new Date(r.tarih+'T12:00:00').getDay()]++);
+    const en=g.indexOf(Math.max(...g)), pay=Math.round(g[en]/gunlu.length*100);
+    if(pay>=ESIK_DERIN.gunPay){ B.push(`Gün yoğunlaşması: olayların <b>%${pay}</b>'i (${g[en]}/${gunlu.length}) <b>${GUN_AD[en]}</b> günü.`);
+      O.push(`<b>${GUN_AD[en]}</b> günkü yoğunlaşmanın sebebini (vardiya devri, hafta başı/sonu iş yükü, taşeron girişi) araştırın; o gün saha denetimi planlayın.`); } }
+  /* 3. Tekrar: aynı lokasyon + aynı kaynak, 30 gün içinde */
+  let tekrar=0, ornek=null; const grp={};
+  V.filter(r=>r.tarih&&kaynakAd(r)&&kaynakAd(r)!=='—').forEach(r=>{ const k=r.lokasyon+'|'+kaynakAd(r); (grp[k]=grp[k]||[]).push(r.tarih); });
+  Object.keys(grp).forEach(k=>{ const t=grp[k].sort(); for(let i=1;i<t.length;i++){ const d=(new Date(t[i])-new Date(t[i-1]))/86400000;
+    if(d>=0 && d<=ESIK_DERIN.tekrarGun){ tekrar++; if(!ornek) ornek=k.split('|')[1]; } } });
+  if(tekrar){ B.push(`Tekrar: <b>${tekrar}</b> olay, aynı lokasyonda aynı kaynaktan ${ESIK_DERIN.tekrarGun} gün içinde yeniden yaşandı${ornek?` (ör. <b>${esc(ornek)}</b>)`:''}.`);
+    O.push(`${ESIK_DERIN.tekrarGun} gün içinde tekrar eden olaylarda ilk olayın aksiyonları etkisiz kalmış olabilir — kapatılan aksiyonları yerinde doğrulayın, gerekirse mühendislik önlemine yükseltin.`); }
+  /* 4. Lokasyon bazında termin performansı */
+  const lk={}; (aksBul||[]).forEach(a=>{ const l=a._lok||''; if(!l) return; (lk[l]=lk[l]||{t:0,g:0}); lk[l].t++; if(aksTerminDurum(a).gecikti) lk[l].g++; });
+  const lkEn=Object.keys(lk).filter(l=>lk[l].t>=ESIK_DERIN.aksEnAz).map(l=>({ad:lokAd(l),t:lk[l].t,g:lk[l].g,p:Math.round(lk[l].g/lk[l].t*100)})).sort((a,b)=>b.p-a.p)[0];
+  if(lkEn && lkEn.p>=ESIK_DERIN.gecikmePay){ B.push(`Termin performansı en zayıf lokasyon <b>${esc(lkEn.ad)}</b>: ${lkEn.t} aksiyonun ${lkEn.g} tanesi gecikmiş (%${lkEn.p}).`);
+    O.push(`<b>${esc(lkEn.ad)}</b> için haftalık aksiyon gözden geçirmesi ve sorumlu bazlı takip başlatın.`); }
+  /* 5. En sık bulgu → kök sebep alanı */
+  const tb=enSik(sayimla(V.flatMap(r=>listeAd(r.bulgular,r.bulgularDiger))));
+  if(tb && tb.n>=ESIK_DERIN.caprazEnAz){ const R=V.filter(r=>listeAd(r.bulgular,r.bulgularDiger).some(x=>esitTR(x,tb.ad)));
+    const kk=enSik(sayimla(R.flatMap(r=>(r.kokSebep||[]).map(katOf))));
+    if(kk) B.push(`<b>${esc(tb.ad)}</b> bulgusu görülen ${R.length} olayda kök sebep en çok <b>${esc(kk.ad)}</b> alanında (${kk.n}).`); }
+  return {B,O};
+}
+/* ═══ ANALİZ MOTORU GÜNCELLEME DENETİMİ (Ayarlar › Analiz Sağlığı) ═══
+   Sunucudaki (bilgisayarda yerel sunucu, telefonda yayın sitesi) en güncel uygulama dosyası önbelleksiz
+   okunur; içindeki motor sürümleri çalışan sürümle karşılaştırılır. Daha yeni varsa "Yenile" ile yeni
+   motor yüklenir. Ayar: açılışta otomatik denetim (bu cihaz). Veri gönderilmez, yalnız dosya okunur. */
+const K_MOTOR_GNC = K_ANAI.replace(/^hse::/,'cihaz::').replace(/an_ai$/,'motorGuncelleme');
+let MOTOR_GNC_SON=null;
+function motorGncAyar(){ try{ return Object.assign({acilista:true}, JSON.parse(localStorage.getItem(K_MOTOR_GNC)||'null')||{}); }catch(e){ return {acilista:true}; } }
+const surumBuyuk=(a,b)=>String(a||'').localeCompare(String(b||''),undefined,{numeric:true})>0;
+async function motorGuncellemeDenetle(sessiz){
+  const calisan={'Uygulama':APP_SURUM,'Analiz motoru':AN_MOTOR_SURUM,'Öğrenme motoru':OGR_MOTOR_SURUM,'Belge okuma motoru':BELGE_SURUM,'KVKK dış çıkış motoru':KVKK_DIS_SURUM};
+  const ad={'Uygulama':'APP_SURUM','Analiz motoru':'AN_MOTOR_SURUM','Öğrenme motoru':'OGR_MOTOR_SURUM','Belge okuma motoru':'BELGE_SURUM','KVKK dış çıkış motoru':'KVKK_DIS_SURUM'};
+  let sonuc;
+  try{
+    const r=await fetch(location.pathname+'?denetim='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+    const t=await r.text(), satir=[];
+    Object.keys(ad).forEach(k=>{ const m=t.match(new RegExp('const '+ad[k]+'\\s*=\\s*\'([^\']+)\'')); const y=m?m[1]:null;
+      satir.push({ad:k, calisan:calisan[k], yayin:y, yeni:!!(y&&surumBuyuk(y,calisan[k]))}); });
+    sonuc={tarih:new Date().toISOString(), ok:true, satir, yeniVar:satir.some(s=>s.yeni)};
+  }catch(e){ sonuc={tarih:new Date().toISOString(), ok:false, hata:(e&&e.message)||String(e), satir:[]}; }
+  MOTOR_GNC_SON=sonuc; motorGncKartYaz();
+  if(!sessiz && sonuc.ok && !sonuc.yeniVar) toast('Analiz motorları güncel.');
+  if(sonuc.yeniVar && can('ayar')) toast('Yeni analiz motoru yayınlandı — Ayarlar › Analiz Sağlığı › Yenile');
+  return sonuc;
+}
+
+/* ═══ AYARLAR › AI VE API (03.11.2026, kullanıcı isteği) ═══
+   AI modu: Çevrimdışı (kural tabanlı — varsayılan, internet yok) · Çevrimiçi (API) · Karma (kural tabanlı
+   analiz + çevrimiçi yorum). Çevrimiçi yollarda dışarı YALNIZ KVKK dış çıkış paketi gider (kvkkDisPaket +
+   kvkkDisDenetim; son denetim temiz değilse istek atılmaz).
+   API anahtarı yalnız BU CİHAZDA durur: anahtar 'cihaz::…' önekli kayıtta (hse:: değil) → yedeğe, dışa
+   aktarmaya, Airtable'a girmez; ekranda gösterilmez. Ortak cihazda girilmemeli (ekranda uyarı).
+   Sağlayıcılar: Claude (Anthropic API) ve Azure OpenAI (şirket aboneliği: uç + dağıtım adı). */
+const K_AI_API = K_ANAI.replace(/^hse::/,'cihaz::').replace(/an_ai$/,'aiApi');
+const AI_MODLAR = [['cevrimdisi','Çevrimdışı — kural tabanlı (internet yok)'],['cevrimici','Çevrimiçi — API ile (KVKK süzgeçli)'],['karma','Karma — kural tabanlı + çevrimiçi yorum']];
+const AI_SAGLAYICI = [['anthropic','Claude (Anthropic API)'],['azure','Azure OpenAI (şirket aboneliği)']];
+const AI_CLAUDE_MODEL = [['claude-opus-5-5','Claude Opus 5.5 (en kapsamlı)'],['claude-sonnet-5-5','Claude Sonnet 5.5 (hızlı, dengeli)'],['claude-haiku-5-5','Claude Haiku 5.5 (en hızlı, en ucuz)']];
+function aiApiAyar(){ let a=null; try{ a=JSON.parse(localStorage.getItem(K_AI_API)||'null'); }catch(e){}
+  return Object.assign({mod:'cevrimdisi', saglayici:'anthropic', model:'claude-opus-5-5', anahtar:'', azureUc:'', azureDagitim:'', sinandi:null}, a||{}); }
+function aiApiKaydetHam(a){ try{ localStorage.setItem(K_AI_API, JSON.stringify(a)); }catch(e){} }
+const aiCevrimiciMi = () => { const a=aiApiAyar(); return a.mod!=='cevrimdisi' && !!a.anahtar; };
+/* AI Modu ve API — Ayarlar › Analiz Sağlığı altında TEK SADE KART (balon alanlar; mod seçimi balon düğmeler) */
+function aiAyarYaz(){
+  if(!can('ayar')) return;
+  const g=document.getElementById('aiAyarGovde'); if(!g) return;
+  const a=aiApiAyar(), az=a.saglayici==='azure', acik=a.mod!=='cevrimdisi';
+  const sec=(arr,v)=>arr.map(([k,t])=>`<option value="${esc(k)}"${k===v?' selected':''}>${esc(t)}</option>`).join('');
+  const mod=AI_MODLAR.map(([k,t])=>{ const [bas,alt]=t.split(' — ');
+    return `<button type="button" class="aiSecenek${k===a.mod?' on':''}" onclick="aiModSec(${jsA(k)})"><b>${esc(bas)}</b><span>${esc(alt||'')}</span></button>`; }).join('');
+  const sinandi=a.sinandi?`<span class="pill ${a.sinandi.ok?'p-grn':'p-red'}">${a.sinandi.ok?'Bağlantı çalışıyor':'Bağlantı hatası'}</span> <span class="hint">${esc(new Date(a.sinandi.tarih).toLocaleString('tr-TR'))}${a.sinandi.not?' · '+esc(a.sinandi.not):''}</span>`
+    :(a.anahtar?'<span class="hint">Anahtar kayıtlı · henüz sınanmadı</span>':'');
+  g.innerHTML=`<div class="aiSecim">${mod}</div>`
+    +(acik?`<div class="aiAlanlar">
+        <div class="aiBalon"><label class="f">Sağlayıcı</label><select id="aiSag" onchange="aiAyarKaydet(true)">${sec(AI_SAGLAYICI,a.saglayici)}</select></div>
+        ${az?`<div class="aiBalon"><label class="f">Azure uç adresi</label><input type="text" id="aiAzUc" value="${esc(a.azureUc)}" placeholder="https://<kaynak>.openai.azure.com"></div>
+              <div class="aiBalon"><label class="f">Dağıtım (deployment) adı</label><input type="text" id="aiAzDag" value="${esc(a.azureDagitim)}"></div>`
+            :`<div class="aiBalon"><label class="f">Model</label><select id="aiModel" onchange="aiAyarKaydet(true)">${sec(AI_CLAUDE_MODEL,a.model)}</select></div>`}
+        <div class="aiBalon genis"><label class="f">API anahtarı</label><input type="password" id="aiAnahtar" autocomplete="off" placeholder="${a.anahtar?'kayıtlı — değiştirmek için yenisini yazın':'anahtarı yapıştırın'}"></div>
+      </div>
+      <div class="hint" style="margin:8px 2px">Anahtar yalnız bu cihazda saklanır; yedeğe ve dışa aktarmaya girmez. Dışarı yalnız KVKK süzgeçli paket gider: kişi ve sağlık verisi yok, lokasyon ve olaylar takma adlı.</div>
+      <div style="margin:6px 2px">${sinandi}</div>
+      <div class="bar" style="margin-top:8px">
+        <button class="btn pri sm" onclick="aiAyarKaydet()">Kaydet</button>
+        <button class="btn sm" onclick="aiBaglantiSina()">Bağlantıyı sına</button>
+        <button class="btn sm" onclick="disAnalizOnizle()">Gönderilecek veriyi önizle</button>
+        ${a.anahtar?'<button class="btn red sm" onclick="aiAnahtarSil()">Anahtarı sil</button>':''}
+      </div>`
+      :`<div class="hint" style="margin:10px 2px">Çevrimdışı: analiz bu cihazda kural tabanlı yapılır, hiçbir veri dışarı çıkmaz.</div>`);
+}
+function aiModSec(k){ const a=aiApiAyar(); a.mod=k; aiApiKaydetHam(a); aiAyarYaz(); try{ aiCevrimiciYerlestir(); }catch(e){} }
+function aiAyarKaydet(sessiz){
+  const a=aiApiAyar(), v=id=>{ const e=$(id); return e?e.value:null; }, yeni=(v('aiAnahtar')||'').trim();
+  if(v('aiSag')!=null) a.saglayici=v('aiSag');
+  if(v('aiModel')!=null) a.model=v('aiModel');
+  if(v('aiAzUc')!=null) a.azureUc=(v('aiAzUc')||'').trim().replace(/\/+$/,'');
+  if(v('aiAzDag')!=null) a.azureDagitim=(v('aiAzDag')||'').trim();
+  if(yeni){ a.anahtar=yeni; a.sinandi=null; }
+  if(a.azureUc && !/^https:\/\//i.test(a.azureUc)){ toast('Azure uç adresi https:// ile başlamalı.'); return null; }
+  aiApiKaydetHam(a); if(!sessiz) toast('AI ayarları kaydedildi.');
+  aiAyarYaz(); return a;
+}
+function aiAnahtarSil(){ const a=aiApiAyar(); a.anahtar=''; a.sinandi=null; aiApiKaydetHam(a); toast('API anahtarı bu cihazdan silindi.'); aiAyarYaz(); }
+/* Tek çağrı noktası: sistem + kullanıcı metni → yanıt metni. Kişisel veri buraya YALNIZ kvkkDisPaket'ten gelir. */
+async function aiApiCagir(sistem, kullanici, maxTok){
+  const a=aiApiAyar(); if(!a.anahtar) throw new Error('API anahtarı girilmemiş');
+  if(a.saglayici==='azure'){
+    if(!a.azureUc||!a.azureDagitim) throw new Error('Azure uç adresi ve dağıtım adı gerekli');
+    const r=await fetch(a.azureUc+'/openai/deployments/'+encodeURIComponent(a.azureDagitim)+'/chat/completions?api-version=2024-10-21',
+      {method:'POST', headers:{'Content-Type':'application/json','api-key':a.anahtar},
+       body:JSON.stringify({messages:[{role:'system',content:sistem},{role:'user',content:kullanici}], max_tokens:maxTok||4000})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+    return ((j.choices||[])[0]||{}).message?.content||'';
+  }
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':a.anahtar,'anthropic-version':'2026-10-21','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:a.model||'claude-opus-5-5', max_tokens:maxTok||16000, output_config:{effort:'medium'}, system:sistem,
+      messages:[{role:'user',content:kullanici}]})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(((j.error&&j.error.message)||('HTTP '+r.status))+(r.status===401?' — anahtar geçersiz':r.status===429?' — istek sınırı, biraz sonra deneyin':''));
+  if(j.stop_reason==='refusal') throw new Error('model isteği yanıtlamadı (güvenlik süzgeci)');
+  return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+}
+async function aiBaglantiSina(){
+  const a=aiAyarKaydet(true); if(!a) return;
+  if(!a.anahtar){ toast('Önce API anahtarını girin.'); return; }
+  let ok=false, not='';
+  try{ const t=await aiApiCagir('Kısa yanıt ver.','Bağlantı denemesi: yalnız TAMAM yaz.',1024); ok=/TAMAM/i.test(t); not=ok?'':'beklenmeyen yanıt'; }
+  catch(e){ not=(e&&e.message)||String(e); if(/Failed to fetch|NetworkError/i.test(not)) not='sunucuya ulaşılamadı (ağ / şirket güvenlik duvarı)'; }
+  const b=aiApiAyar(); b.sinandi={ok, not, tarih:new Date().toISOString()}; aiApiKaydetHam(b);
+  toast(ok?'Bağlantı çalışıyor.':'Bağlantı hatası: '+not); aiAyarYaz();
+}
+
+/* ═══ MOTOR DENETİMİ (03.11.2026, kullanıcı isteği — Hukuk motorDenetimi + QHSE otomatik bileşen güncellemesi) ═══
+   Her motor ÖRNEK (uydurma) girdiyle gerçekten çalıştırılır; sonuç beklenenle karşılaştırılır.
+   Gerçek kayıt / kişi verisi KULLANILMAZ, hiçbir şey kaydedilmez (öğrenme modeli yalnız bayatsa
+   kendi kuralıyla yenilenir). Sonuç: Ayarlar › Analiz Sağlığı › Motor Denetimi.
+   • Her AÇILIŞTA (oturum başlayınca) hafif denetim (OCR hariç) + bilgisayarda sunucudan okuma
+     motorlarının güncelleme denetimi (/__bilesen_oto: en yeni tesseract / pdf.js, jsDelivr özeti +
+     okuma sınavı geçerse kurulur). Bozuk motor varsa yöneticiye tek bir uyarı.
+   • "Motorları sına" düğmesi tam denetim (OCR dahil).
+   YENİ bir motor / okuyucu / analiz eklenince MOTOR_SINAV'a örnek-girdi sınaması ekle. */
+const MOTOR_PORTAL='sif';   /* sunucudaki bileşen grubu (STFA kopyasında 'obm') */
+let MOTOR_SON=null, MOTOR_OTO=null, MOTOR_CALISIYOR=false;
+function sinavPdf(metin){   /* tek sayfalık, metin içeren en küçük geçerli PDF (yalnız ASCII) */
+  const nes=['<</Type/Catalog/Pages 2 0 R>>','<</Type/Pages/Kids[3 0 R]/Count 1>>',
+    '<</Type/Page/Parent 2 0 R/MediaBox[0 0 420 120]/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>',
+    '<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>'];
+  const akis='BT /F1 24 Tf 20 60 Td ('+metin+') Tj ET';
+  nes.push('<</Length '+akis.length+'>>\nstream\n'+akis+'\nendstream');
+  let s='%PDF-1.4\n'; const ofs=[];
+  nes.forEach((o,i)=>{ ofs.push(s.length); s+=(i+1)+' 0 obj\n'+o+'\nendobj\n'; });
+  const x=s.length;
+  s+='xref\n0 '+(nes.length+1)+'\n0000000000 65535 f \n'+ofs.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')
+    +'trailer\n<</Size '+(nes.length+1)+'/Root 1 0 R>>\nstartxref\n'+x+'\n%%EOF';
+  return new TextEncoder().encode(s).buffer;
+}
+function sinavKayitlar(){   /* analiz motorları için uydurma küme — kişi yok, kaydedilmez */
+  const lok=(LOK[0]&&LOK[0].kod)||'SNV', k0=KOK_KAT[0], kok=k0.ad+' — '+k0.ops[0];
+  return Array.from({length:8},(_,i)=>({id:'sinav'+i, no:'SINAV-'+i, lokasyon:lok,
+    tarih:'2026-0'+(1+i%6)+'-1'+(i%9), saat:(8+i)+':00', olusturma:'2026-0'+(1+i%6)+'-1'+(i%9)+'T12:00:00',
+    sonuc:i<5?'nearmiss':'fac', kaynak:i<6?'Sınav Kaynağı A':'Sınav Kaynağı B', durum:'rapor',
+    kokSebep:[kok], bulgular:['Sınav Bulgusu'], kisiler:[], aksiyonlar:[], ekler:[]}));
+}
+const MOTOR_SINAV=[
+  {ad:'PDF okuma (pdf.js)', agir:false, f:async()=>{
+     const r=await pdfMetin(sinavPdf('SIF SINAV 2026'));
+     const pj=window.pdfjsLib||{};
+     if(!/SINAV/.test(r.metin||'')) throw new Error('örnek PDF okunamadı');
+     return 'örnek PDF okundu'+(pj.version?' · sürüm '+pj.version:''); }},
+  {ad:'OCR (taranmış belge / fotoğraf)', agir:true, f:async()=>{
+     const c=document.createElement('canvas'); c.width=760; c.height=150;
+     const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height);
+     g.fillStyle='#000'; g.font='bold 64px Arial'; g.fillText('PORTAL SINAV 2026',24,100);
+     const t=await ocrTani(c);
+     if(!/SINAV/i.test(t)) throw new Error('örnek görüntü okunamadı ('+String(t).trim().slice(0,30)+')');
+     return 'örnek görüntü okundu'; }},
+  {ad:'Belge sınıflandırma', agir:false, f:async()=>{
+     const bt=BELGE_TUR[0], s=belgeSinifla((bt.kelime||[]).slice(0,4).join(' ve ')+' formu');
+     if(s.tur!==bt.kod) throw new Error('örnek metin '+belgeTurAd(s.tur)+' sanıldı');
+     return 'örnek metin doğru türde ('+bt.ad+') · motor '+BELGE_SURUM; }},
+  {ad:'KVKK ayıklama', agir:false, f:async()=>{
+     const r=kvkkAyikla('Tel 0532 111 22 33, posta ornek@ornek.com, kimlik 12345678901');
+     if(/0532|ornek@|12345678901/.test(r.t)) throw new Error('kişisel veri maskelenmedi');
+     return r.toplam+' örnek kişisel veri maskelendi'; }},
+  {ad:'Analiz motoru (bulgular)', agir:false, f:async()=>{
+     const V=sinavKayitlar(), E=anEkBoyut(V), m=hseMetrikler(V);
+     if(!E || !m) throw new Error('ek boyutlar hesaplanamadı');
+     const top=enSik(sayimla(V.map(r=>kaynakAd(r))));
+     if(!top || top.ad!=='Sınav Kaynağı A' || top.n!==6) throw new Error('örnek kümede en sık kaynak yanlış');
+     const D=anDerin(V,[]); if(!Array.isArray(D.B)||!Array.isArray(D.O)) throw new Error('derin çapraz kurallar çalışmadı');
+     if(!/Sınav Bulgusu/.test(D.B.join(' '))) throw new Error('bulgu→kök kuralı sonuç üretmedi');
+     return 'örnek kümede dağılım doğru · motor '+AN_MOTOR_SURUM; }},
+  {ad:'Grafik AI (pencere)', agir:false, f:async()=>{
+     const V=sinavKayitlar(), a=gpAI('kaynak', V, gpSayim('kaynak',V), null);
+     if(!a.F || a.F.ad!=='Sınav Kaynağı A' || a.B.length<3 || !a.O.length) throw new Error('bulgu/öneri üretilmedi');
+     return a.B.length+' bulgu, '+a.O.length+' öneri üretildi'; }},
+  {ad:'KVKK dış çıkış süzgeci (çevrimiçi analiz)', agir:false, f:async()=>{
+     const isim=(USR.find(u=>/\s/.test(u.ad||''))||{}).ad||'', l=LOK[0]||{};
+     const V=sinavKayitlar().slice(0,2).map((r,i)=>Object.assign(r,{lokasyon:l.kod||r.lokasyon, no:(GEN.kod||'X')+'-'+(l.kod||'L')+'-INC-2026-00'+(i+1),
+       bildiren:isim, kisiler:[{ad:isim||'Örnek Kişi', sicil:'99999', yara:'Kesik', bolge:'El / Parmak', kayipGun:3}],
+       aciklama:(isim||'Örnek')+' 0532 111 22 33 numarasından aradı, ornek@ornek.com; '+(l.ad||'')+' sahasında, kimlik 12345678901, '+(GEN.kod||'X')+'-'+(l.kod||'L')+'-INC-2026-001.'}));
+     const p=kvkkDisPaket(V,'motor denetimi'), J=JSON.stringify(p), d=kvkkDisDenetim(p);
+     const sizan=[['telefon',/0532/],['e-posta',/ornek@/],['kimlik no',/12345678901/],['sağlık',/Kesik|kayipGun|El \/ Parmak/],['sicil',/99999/]]
+       .concat(isim?[['isim',new RegExp(kvkkRe(isim))]]:[]).concat(l.ad?[['lokasyon',new RegExp(kvkkRe(l.ad),'i')]]:[]).filter(([,re])=>re.test(J)).map(([a])=>a);
+     if(sizan.length) throw new Error('dışarı sızan: '+sizan.join(', '));
+     if(!d.ok) throw new Error('son denetim durdurdu: '+d.sorunlar.join(', '));
+     return 'örnek pakette kişisel/sağlık verisi yok · son denetim temiz · motor '+KVKK_DIS_SURUM; }},  {ad:'Öğrenme motoru', agir:false, f:async()=>{
+     const d=ogrBayatMi(); if(d.bayat) ogrYenile(true,'motor denetimi · '+d.sebep);
+     const m=store.get(K_MODEL,null);
+     if(gorunurKayitlar().length && !m) throw new Error('model kurulamadı');
+     if(m && m.surum!==OGR_MOTOR_SURUM) throw new Error('model eski motor sürümüyle ('+(m.surum||'?')+')');
+     return m ? ('model güncel · '+((m.kapsam&&m.kapsam.olay)||0)+' olay · motor '+OGR_MOTOR_SURUM) : 'henüz kayıt yok · motor '+OGR_MOTOR_SURUM; }}
+];
+async function motorDenetimi(tam){
+  if(MOTOR_CALISIYOR) return MOTOR_SON; MOTOR_CALISIYOR=true;
+  const sonuc=[];
+  try{
+    for(const s of MOTOR_SINAV){
+      if(s.agir && !tam){ sonuc.push({ad:s.ad, d:'atla', not:'açılışta sınanmaz — "Motorları sına" ile'}); continue; }
+      try{ const not=await Promise.race([s.f(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('zaman aşımı')), s.agir?90000:20000))]);
+           sonuc.push({ad:s.ad, d:'ok', not}); }
+      catch(e){ sonuc.push({ad:s.ad, d:'hata', not:(e&&e.message)||String(e)}); }
+    }
+  } finally { MOTOR_CALISIYOR=false; }
+  MOTOR_SON={tarih:new Date().toISOString(), tam:!!tam, sonuc};
+  motorKartYaz();
+  return MOTOR_SON;
+}
+/* Bilgisayarda (yerel sunucu): her açılışta okuma motorlarının güncelleme denetimi sunucuya bırakılır
+   (arka planda; yeni sürüm sınavdan geçerse kurulur). Telefonda (GitHub) sunucu yok → atlanır. */
+function motorOtoIste(){
+  if(!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return Promise.resolve(null);
+  return fetch('/__bilesen_oto?portal='+encodeURIComponent(MOTOR_PORTAL),{cache:'no-store'})
+    .then(r=>r.ok?r.json():null).then(j=>{ MOTOR_OTO=j; motorKartYaz(); return j; }).catch(()=>null);
+}
+function motorAcilis(){
+  motorOtoIste();
+  if(motorGncAyar().acilista) motorGuncellemeDenetle(true);
+  motorDenetimi(false).then(s=>{
+    const bozuk=(s&&s.sonuc||[]).filter(x=>x.d==='hata');
+    if(bozuk.length && can('ayar')) toast('Motor denetimi: '+bozuk.map(x=>x.ad).join(', ')+' çalışmıyor — Ayarlar › Analiz Sağlığı');
+  });
+}
+
+/* ═══ MOTORLAR VE GÜNCELLEMELER — TEK KART (03.11.2026, Hukuk Portalı düzeni) ═══
+   Her motor TEK satır: kurulu sürüm · yayındaki / en yeni sürüm · durum (örnek girdiyle sınandı mı).
+   Tek düğme "Güncellemeleri denetle": okuma motorlarının internetteki son sürümü (sunucu, ?kontrol=1),
+   kendi motorlarımızın yayındaki sürümü (motorGuncellemeDenetle), tam motor denetimi (OCR dahil) ve
+   sunucunun otomatik güncellemesi (motorOtoIste) birlikte çalışır. Kart açılışında internete çıkılmaz. */
+let BIL_VERI=null, BIL_CALISIYOR=false;
+const yerelSunucu = () => /^http/.test(location.protocol) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+function bilYukle(kontrol){
+  if(!yerelSunucu()) return Promise.resolve(null);
+  return fetch('/__bilesen?portal='+encodeURIComponent(MOTOR_PORTAL)+(kontrol?'&kontrol=1':''),{cache:'no-store'})
+    .then(r=>r.ok?r.json():null).then(j=>{ if(j&&j.ok) BIL_VERI=j; motorBirlesikCiz(); return j; }).catch(()=>null);
+}
+async function guncellemeleriDenetle(){
+  if(BIL_CALISIYOR) return; BIL_CALISIYOR=true; motorBirlesikCiz();
+  try{ await Promise.allSettled([bilYukle(true), motorGuncellemeDenetle(true), motorDenetimi(true), motorOtoIste()]); }
+  finally{ BIL_CALISIYOR=false; motorBirlesikCiz(); }
+  const bozuk=(MOTOR_SON&&MOTOR_SON.sonuc||[]).filter(x=>x.d==='hata').length, yeni=(MOTOR_GNC_SON&&MOTOR_GNC_SON.yeniVar);
+  toast(bozuk?bozuk+' motor çalışmıyor — listeye bakın':yeni?'Yeni motor yayınlandı — Yenile ile yükleyin':'Denetim bitti — motorlar güncel ve çalışıyor.');
+}
+function bilOnar(id){
+  fetch('/__bilesen_guncelle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({portal:MOTOR_PORTAL,idler:[id]})})
+    .then(r=>r.json()).then(j=>{ if(!j.ok) throw new Error(j.hata||'hata'); const bekle=()=>fetch('/__bilesen_is',{cache:'no-store'}).then(r=>r.json())
+      .then(x=>{ if(x.is&&x.is.durum==='suruyor') setTimeout(bekle,3000); else bilYukle(false).then(()=>motorDenetimi(false)); }); bekle(); })
+    .catch(e=>toast('Onarılamadı: '+((e&&e.message)||e)));
+  if(BIL_VERI) BIL_VERI.is={durum:'suruyor'}; motorBirlesikCiz();
+}
+function motorBirlesikCiz(){
+  const g=document.getElementById('motorBirlesikGovde'); if(!g) return;
+  const T=MOTOR_SON&&MOTOR_SON.sonuc||[], test=ad=>T.find(x=>x.ad===ad)||null;
+  const G=MOTOR_GNC_SON&&MOTOR_GNC_SON.satir||[], yayin=ad=>(G.find(x=>x.ad===ad)||null);
+  const rz=(m,t)=>`<span class="pill ${t}">${esc(m)}</span>`;
+  const durumH=(s,ek)=> s ? (s.d==='ok'?rz('Çalışıyor','p-grn'):s.d==='hata'?rz('Hata','p-red')+`<div class="alt">${esc(s.not)}</div>`:rz('Sınanmadı','p-gry')) : (ek||rz('—','p-gry'));
+  const satir=(ad,kurulu,ust,durum)=>`<tr><td><b>${esc(ad)}</b></td><td>${esc(kurulu||'—')}</td><td>${ust||'<span class="hint">—</span>'}</td><td>${durum}</td></tr>`;
+  const suruyor=BIL_VERI&&BIL_VERI.is&&BIL_VERI.is.durum==='suruyor';
+  let ok='';
+  /* 1. Okuma motorları (kitaplıklar) — sunucudan; telefonda sunucu yok → bilinen sürümler */
+  if(BIL_VERI){
+    (BIL_VERI.bilesenler||[]).forEach(b=>{
+      const s = b.id==='pdfjs'?test('PDF okuma (pdf.js)') : b.id==='tesseract'?test('OCR (taranmış belge / fotoğraf)') : null;
+      /* MSAL: uygulama 2.39.0 ile yazıldı ve sınandı (MSAL_CDN); onaylı listedeki yeni ana sürüm girişi bozabilir → Onar sunulmaz */
+      const msal = b.id==='msal';
+      const kur = b.durum==='tam'||b.durum==='cdn'||b.durum==='yerel' ? null
+        : msal ? rz('2.39.0 kullanılıyor','p-gry')+'<div class="alt">giriş bu sürümle sınandı; yükseltme ayrıca denenmeli</div>'
+        : rz(b.durum==='eksik'?'Eksik dosya':'Değişmiş dosya','p-red')+(suruyor?'':` <button class="btn sm" onclick="bilOnar(${jsA(b.id)})">Onar</button>`);
+      const ust = !b.npm ? '' : !b.yukari ? '<span class="hint">bilinmiyor</span>' : b.yeniVar ? rz('yeni: '+b.yukari,'p-amb')+'<div class="alt">sınavdan geçerse otomatik kurulur</div>' : esc(b.yukari)+' <span class="hint">· güncel</span>';
+      ok+=satir(b.ad, b.durum==='cdn'?'internetten':msal&&b.durum!=='tam'?'2.39.0':(b.onayli||''), msal&&b.durum!=='tam'?'':ust, kur||durumH(s, b.durum==='cdn'?rz('İnternetten','p-gry'):rz('Kurulu','p-grn')));
+    });
+  } else {
+    ok+=satir('PDF okuma (pdf.js)', (window.pdfjsLib&&window.pdfjsLib.version)||PDF_SURUM, '', durumH(test('PDF okuma (pdf.js)')));
+    ok+=satir('OCR (Tesseract)', yerelSunucu()?'—':'5.0.4 (internetten)', '', durumH(test('OCR (taranmış belge / fotoğraf)')));
+  }
+  /* 2. Kendi motorlarımız — sayfayla birlikte güncellenir */
+  const yy=ad=>{ const y=yayin(ad); return !y?'':y.yeni?rz('yeni: '+y.yayin,'p-amb'):esc(y.yayin||'')+' <span class="hint">· güncel</span>'; };
+  const ic=[['Derin analiz motoru',AN_MOTOR_SURUM,'Analiz motoru (bulgular)','Analiz motoru'],['Grafik AI',AN_MOTOR_SURUM,'Grafik AI (pencere)','Analiz motoru'],
+    ['Öğrenme motoru',OGR_MOTOR_SURUM,'Öğrenme motoru','Öğrenme motoru'],['Belge sınıflandırma',BELGE_SURUM,'Belge sınıflandırma','Belge okuma motoru'],
+    ['KVKK ayıklama',BELGE_SURUM,'KVKK ayıklama','Belge okuma motoru'],['KVKK dış çıkış',KVKK_DIS_SURUM,'KVKK dış çıkış süzgeci (çevrimiçi analiz)','KVKK dış çıkış motoru'],
+    ['Uygulama',APP_SURUM,null,'Uygulama']];
+  const icH=ic.map(([ad,s,t,y])=>satir(ad,s,yy(y), t?durumH(test(t)):rz('Çalışıyor','p-grn'))).join('');
+  /* Son denetim = en yeni zaman */
+  const zam=[MOTOR_SON&&MOTOR_SON.tarih, MOTOR_GNC_SON&&MOTOR_GNC_SON.tarih, BIL_VERI&&BIL_VERI.kontrolTarih].filter(Boolean).sort().pop();
+  const oto=MOTOR_OTO&&MOTOR_OTO.oto, otoP=oto&&(oto.portallar||[]).find(p=>p.portal===MOTOR_PORTAL);
+  const a=motorGncAyar(), yeniVar=MOTOR_GNC_SON&&MOTOR_GNC_SON.yeniVar;
+  g.innerHTML=`<div class="bar" style="align-items:center;gap:10px;flex-wrap:wrap">
+      <button class="btn sm pri" ${BIL_CALISIYOR||suruyor?'disabled':''} onclick="guncellemeleriDenetle()">${BIL_CALISIYOR?'Denetleniyor…':'Güncellemeleri denetle'}</button>
+      ${yeniVar?'<button class="btn sm" onclick="location.reload()">Yenile (yeni motoru yükle)</button>':''}
+      <span class="hint">${zam?'Son denetim: '+esc(new Date(zam).toLocaleString('tr-TR')):'Henüz denetlenmedi'}</span>
+      <label style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12.5px"><input type="checkbox" ${a.acilista?'checked':''} onchange="(function(c){const x=motorGncAyar();x.acilista=c.checked;try{localStorage.setItem(K_MOTOR_GNC,JSON.stringify(x));}catch(e){}})(this)"> Her açılışta denetle</label></div>`
+    +(otoP?`<div class="hint" style="margin-top:8px">Okuma motorları otomatik güncelleme: ${esc(new Date(oto.tarih).toLocaleString('tr-TR'))} — ${(otoP.kurulan||[]).length?'<b>kurulan: '+esc(otoP.kurulan.join(', '))+'</b>':otoP.gecti===false?'yeni sürüm sınavdan geçmedi, eskisi kullanılıyor':'güncel'}</div>`:'')
+    +(suruyor?'<div class="hint" style="margin-top:8px">Bileşen onarılıyor…</div>':'')
+    +`<div class="tw motorTablo" style="margin-top:10px"><table><thead><tr><th style="width:30%">Motor</th><th style="width:18%">Kurulu</th><th style="width:26%">Yayındaki / en yeni</th><th>Durum</th></tr></thead><tbody>`
+    +`<tr><td colspan="4" class="grpSatir">Okuma motorları</td></tr>`+ok+`<tr><td colspan="4" class="grpSatir">Analiz ve KVKK motorları</td></tr>`+icH+`</tbody></table></div>`;
+}
+/* Eski iki kartın çizicileri artık tek karta yönlenir */
+function motorKartYaz(){ motorBirlesikCiz(); }
+function motorGncKartYaz(){ motorBirlesikCiz(); }
+
+/* ═══ ÇEVRİMİÇİ ANALİZ (AI kutusu) ═══
+   Çevrimiçi / karma modda, AI düğmesiyle yapılan analizde KVKK dış çıkış paketi API'ye gider ve yanıt kutunun
+   başına yazılır. Çevrimiçi mod: yalnız çevrimiçi sonuç görünür; karma: çevrimiçi + kural tabanlı birlikte.
+   Paket son denetimden geçmezse istek ATILMAZ. Sonuç kapsama bağlıdır; kapsam değişince kendiliğinden yeni
+   istek atılmaz (maliyet), "yenile" düğmesi çıkar. Öneriler "+ Aksiyon" ile aksiyona dönüşür. */
+let AI_CEVR={imza:null, durum:'yok', sonuc:null, hata:'', model:''}, AIC_SON=null;
+const aiPaketImza = p => { const s=JSON.stringify(p.olaylar); let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return s.length+':'+h; };
+const AI_SISTEM='Sen kıdemli bir İSG (iş sağlığı ve güvenliği) analistisin. Sana kişisel veri içermeyen, lokasyonları ve olayları takma adlı (L1, O1 …) bir olay veri paketi JSON olarak verilecek. '
+  +'Yalnız paketteki verilere dayan; veride olmayan sayı, kişi, yer ya da olay uydurma. Türkçe, kısa ve somut yaz. '
+  +'Yanıtı YALNIZ şu JSON biçiminde ver, başka metin ekleme: {"ozet":"2-3 cümle","bulgular":["..."],"oneriler":["..."]}. '
+  +'En fazla 8 bulgu ve 8 öneri; öneriler uygulanabilir olsun (bir sorumluya terminle verilebilecek iş).';
+async function aiCevrimiciCalistir(){
+  if(!aiCevrimiciMi()) return;
+  const p=kvkkDisPaket(anKume(),'İSG olay analizi'), d=kvkkDisDenetim(p), imza=aiPaketImza(p);
+  AI_CEVR={imza, durum:'calisiyor', sonuc:null, hata:'', model:''}; aiCevrimiciYerlestir();
+  if(!d.ok){ AI_CEVR.durum='hata'; AI_CEVR.hata='KVKK son denetimi gönderimi durdurdu ('+d.sorunlar.join(', ')+'); hiçbir veri gönderilmedi.'; aiCevrimiciYerlestir(); return; }
+  try{
+    const a=aiApiAyar(), t=await aiApiCagir(AI_SISTEM, 'Olay veri paketi (kişisel veri içermez):\n'+JSON.stringify(p), 8000);
+    let j=null; try{ const i=t.indexOf('{'), k=t.lastIndexOf('}'); j=JSON.parse(t.slice(i,k+1)); }catch(e){}
+    if(!j||typeof j!=='object') j={ozet:t, bulgular:[], oneriler:[]};
+    AI_CEVR={imza, durum:'tamam', sonuc:{ozet:String(j.ozet||''), B:(j.bulgular||[]).map(String).slice(0,10), O:(j.oneriler||[]).map(String).slice(0,10)}, hata:'', model:a.saglayici==='azure'?'Azure OpenAI':a.model};
+  }catch(e){ AI_CEVR.durum='hata'; AI_CEVR.hata=(e&&e.message)||String(e); }
+  aiCevrimiciYerlestir();
+}
+function aiCevrimiciYerlestir(){
+  const box=$('anAI'), b=box&&box.querySelector('.body'); if(!b) return;
+  let el=b.querySelector(':scope > .aiCevr'); const a=aiApiAyar();
+  if(a.mod==='cevrimdisi'){ if(el) el.remove(); b.classList.remove('yalnizCevr'); return; }
+  b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && AI_CEVR.durum==='tamam');
+  if(!el){ el=document.createElement('div'); el.className='aiCevr'; b.prepend(el); }
+  let imzaSimdi=null; try{ imzaSimdi=aiPaketImza(kvkkDisPaket(anKume())); }catch(e){}
+  const bas=`<div class="grp">Çevrimiçi AI${AI_CEVR.model?' · '+esc(AI_CEVR.model):''}</div>`;
+  if(!a.anahtar){ el.innerHTML=bas+'<div class="hint">Çevrimiçi analiz için Ayarlar › Analiz Sağlığı › AI Modu ve API bölümünde API anahtarı girin.</div>'; return; }
+  if(AI_CEVR.durum==='calisiyor'){ el.innerHTML=bas+AI_SPIN; return; }
+  if(AI_CEVR.durum==='hata'){ el.innerHTML=bas+`<div class="hint" style="color:var(--red)">Çevrimiçi analiz yapılamadı: ${esc(AI_CEVR.hata)}</div><button class="btn sm" style="margin-top:6px" onclick="aiCevrimiciCalistir()">Yeniden dene</button>`; return; }
+  if(AI_CEVR.durum!=='tamam' || AI_CEVR.imza!==imzaSimdi){
+    el.innerHTML=bas+`<div class="hint">${AI_CEVR.durum==='tamam'?'Kapsam ya da veri değişti — ':''}çevrimiçi analiz için düğmeye basın (yalnız KVKK süzgeçli paket gider).</div><button class="btn sm" style="margin-top:6px" onclick="aiCevrimiciCalistir()">Çevrimiçi analiz et</button>`;
+    b.classList.remove('yalnizCevr'); return; }
+  const S=AI_CEVR.sonuc; AIC_SON={B:S.B, O:S.O, lok:($('anLok')&&$('anLok').value)||'', etiket:'Çevrimiçi AI · '+(AI_CEVR.model||'')};
+  el.innerHTML=bas+(S.ozet?`<div class="ozet">${esc(S.ozet)}</div>`:'')
+    +aiGrupHTML('Bulgular', aiBekleyenLi(S.B, t=>esc(t), i=>`aicOneriAksiyon('B',${i})`, null))
+    +aiGrupHTML('Öneriler', aiBekleyenLi(S.O, t=>esc(t), i=>`aicOneriAksiyon('O',${i})`, null))
+    +`<div class="dip">Dışarı yalnız KVKK dış çıkış paketi gönderildi (kişi ve sağlık verisi yok, lokasyon ve olaylar takma adlı). ${a.mod==='karma'?'Altta kural tabanlı analiz.':''}</div>`;
+}
+function aicOneriAksiyon(grp,i){
+  const t=AIC_SON&&(AIC_SON[grp]||[])[i]; if(t==null) return;
+  const eski=AN_AI_SON; AN_AI_SON=Object.assign({}, eski||{}, {lok:AIC_SON.lok, etiket:AIC_SON.etiket});
+  try{ aksiyonFormAcAnaliz(t); } finally { AN_AI_SON=eski; }
+}
+/* AI kutusu her çizildiğinde çevrimiçi bölüm yerine konur; AI düğmesiyle açılışta istek atılır. */
+const _anAIYazOrj=anAIYaz;
+anAIYaz=function(){ const r=_anAIYazOrj.apply(this, arguments); try{ aiCevrimiciYerlestir(); }catch(e){} return r; };
+const _aiAnalizOrj=aiAnaliz;
+aiAnaliz=function(){ const acikti=($('anAI')||{dataset:{}}).dataset.open==='1'; _aiAnalizOrj(); if(!acikti && aiCevrimiciMi()) setTimeout(aiCevrimiciCalistir, 3100); };
+
+/* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
+const SURUM_NOTU={'1.9.0':['Analizde grafiğe tıklayınca yumuşak pencere: büyük grafik, tam dağılım ve grafiğe özel AI; önerilerden doğrudan aksiyon',
+  'Derin analiz motoru: kaynak × ciddiyet, gün yoğunlaşması, 30 gün içinde tekrar, lokasyon termin performansı',
+  'Motorlar ve güncellemeler tek ekranda; her açılışta denetim',
+  'AI modu: çevrimdışı, çevrimiçi (API) ya da karma — dışarı yalnız KVKK süzgeçli veri gider',
+  'Olay ve aksiyon formlarında balon alanlar; listelerde arama paneli ekrana sığar']};
+const K_GORULEN_SURUM = K_ANAI.replace(/^hse::/,'cihaz::').replace(/an_ai$/,'gorulenSurum');
+function guncellendiGoster(){
+  let g=null; try{ g=localStorage.getItem(K_GORULEN_SURUM); }catch(e){}
+  if(g===APP_SURUM || !SURUM_NOTU[APP_SURUM]) return;
+  try{ localStorage.setItem(K_GORULEN_SURUM, APP_SURUM); }catch(e){}
+  $('gpBaslik').textContent='Uygulama güncellendi — Sürüm '+APP_SURUM;
+  $('gpGovde').innerHTML='<ul class="surumNot">'+SURUM_NOTU[APP_SURUM].map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>';
+  ovAc('ovGrafik');
 }
 
 /* radar 3'ten az eksende bozulur → o durumda basit çubuk (nadir; yalnız kapsam tek lokasyona düşerse) */
@@ -8230,14 +8943,12 @@ function anKpiTik(w){
   const ids=K.sel.filter(uy).map(r=>r.id);
   go('reg'); REG_ANZ=Object.assign(et(ids.length),{ids:ids}); renderReg();
 }
-/* Listenin üstündeki "Analizden" etiketi (kutu yoksa oluşturulur) */
-function anzCipYaz(kapId, s, temizle){
+/* "Analizden" etiketi KALDIRILDI (03.11.2026, kullanıcı isteği): listenin üstüne bant yazılmaz; eski bir
+   bant kalmışsa silinir. Süzgeç yine çalışır (balondaki sayı = listedeki satır); listeye başka yoldan
+   (alt sekme vb.) gelinince go() süzgeci kendiliğinden kaldırır, Temizle de kaldırır. */
+function anzCipYaz(kapId){
   const kap=$(kapId); if(!kap) return;
-  let c=kap.querySelector(':scope > .anzCip');
-  if(!s){ if(c) c.remove(); return; }
-  if(!c){ c=document.createElement('div'); c.className='anzCip'; const h=kap.querySelector('h2'); if(h) h.after(c); else kap.prepend(c); }
-  c.innerHTML=`<span class="aiBadge" style="background:var(--ink);color:var(--jcb)">Analizden</span><b>${esc(s.ad)}</b> · ${esc(s.kapsam)} · ${s.n} kayıt`
-    +`<button type="button" class="anzKapat" onclick="${temizle}" aria-label="Süzgeci kaldır" title="Süzgeci kaldır">×</button>`;
+  const c=kap.querySelector(':scope > .anzCip'); if(c) c.remove();
 }
 /* 100 çalışan başına olay: hedef Ayarlar → Genel'den (üst sınır). Hedefte ya da
    altında yeşil, üstünde kırmızı; hedef girilmemişse RENKSİZ (uydurma eşik yok). */
