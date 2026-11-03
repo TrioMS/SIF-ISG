@@ -185,9 +185,16 @@ main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
 /* Analiz sekmesi — bulgular (03.11.2026) */
 #v-bulgu > .anAI{display:none!important}
 .bgOzet{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:6px}
-.bgOzet div{background:var(--surface2,#f3f4f6);border-radius:12px;padding:8px 10px;text-align:center}
+.bgOzet button{background:var(--surface2,#f3f4f6);border:1px solid transparent;border-radius:12px;padding:8px 10px;text-align:center;cursor:pointer;font:inherit;color:inherit;transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+.bgOzet button:hover{border-color:var(--border);transform:translateY(-1px)}
+.bgOzet button.on{background:#fff;border-color:var(--jcb);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.bgAcilir{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .38s ease,opacity .3s ease,margin .38s ease}
+.bgAcilir>div{overflow:hidden;min-height:0}
+.bgAcilir.acik{grid-template-rows:1fr;opacity:1;margin:8px 0 6px}
 .bgOzet b{display:block;font-size:18px}.bgOzet b.kirmizi{color:var(--red)}
 .bgOzet span{font-size:11px;color:var(--text2)}
+.bgNeden{margin:0;padding-left:18px;font-size:13px;line-height:1.55}
+.bgNeden li{margin:2px 0}
 .bgKendi{display:flex;gap:8px;align-items:flex-start}
 .bgKendi textarea{flex:1;border:1px solid var(--border);border-radius:12px;padding:8px 10px;font:inherit;font-size:13px}
 .bgPlanTablo input,.bgPlanTablo select{width:100%;min-width:110px;border:1px solid var(--border);border-radius:10px;padding:6px 8px;font:inherit;font-size:12.5px;background:#fff}
@@ -252,6 +259,7 @@ main{max-width:1760px;margin:0 auto;padding:20px 18px 70px}
    3.56 kontrast veriyor (AA eşiği 4.5) — koyu temada açık maviye çevrilir. */
 .sagKayit{color:var(--blue);text-decoration:underline}
 body.dark .sagKayit{color:#8ab4f8}
+.anAI li .aksiyonda,.gpAI li .aksiyonda{margin-left:8px;font-size:10.5px;vertical-align:1px}
 .anAI li .oneriAks,.bgOneri li .oneriAks{margin-left:8px;padding:1px 9px;font-size:11px;font-weight:700;border:1px solid var(--jcb-600);background:#fff;color:var(--jcb-600);border-radius:20px;cursor:pointer;white-space:nowrap;vertical-align:1px}
 .anAI li .oneriAks:hover,.bgOneri li .oneriAks:hover{background:var(--jcb);color:#141414;border-color:var(--jcb)}
 .anAI li .oneriAlindi{margin-left:8px;padding:1px 9px;font-size:11px;font-weight:800;border-radius:20px;background:var(--green-light);color:var(--green-700);border:1px solid var(--green);white-space:nowrap}
@@ -1630,7 +1638,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.3';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.4';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -4837,19 +4845,20 @@ function aiAksGecmisHTML(a, olay){
    arr HAM metinlerdir (analizde HTML'li, olay kartında düz); satır içeriğini
    yaz(t) üretir. Orijinal dizi indeksi korunur — "+ Aksiyon" düğmesi doğru
    maddeyi açar (filtreleme sonrası indeks kaymaz). */
-function aiBekleyenLi(arr, yaz, tikla, olayId){
+function aiBekleyenLi(arr, yaz, tikla, olayId, goster, uyar){
   const kalan=[];
   (arr||[]).forEach((t,i)=>{
-    const ham=aiDumTag(t);
-    if(aiAlindiMi(ham, olayId||null)) return;                 /* aksiyona alındı → alt bölümde */
-    kalan.push({t:t, i:i, ham:ham});
+    const ham=aiDumTag(t), n=aiAksBulTum(ham, olayId||null).filter(x=>!uyar||uyar(x.a)).length;   /* uyar: yalnız bu kaynaktan açılanlar (grafik penceresi) */
+    if(n && !goster) return;                 /* aksiyona alındı → alt bölümde */
+    kalan.push({t:t, i:i, ham:ham, n:n});
   });
   /* Sıralamaya karışılmaz: öne çıkarma işi analiz belleğinin "Israrlı tespit"
      satırında — o zaten listenin başında ve kaç analizdir tekrar ettiğini
      sayıyla söylüyor. İkinci bir sıralama kurmak aynı işi iki yerden yönetmek
      olurdu. */
   return kalan.map(s=>'<li><span class="aiBadge">'+ICO_AI+' AI</span>'+yaz(s.t)
-      +(can('aksiyon')?'<button class="oneriAks" title="Bu maddeyi aksiyona dönüştür" onclick="'+tikla(s.i)+'">+ Aksiyon</button>':'')
+      +(s.n?'<span class="pill p-grn aksiyonda" title="Bu maddeden açılmış aksiyon var">Aksiyonda'+(s.n>1?' ('+s.n+')':'')+'</span>':'')
+      +(can('aksiyon')&&!s.n?'<button class="oneriAks" title="Bu maddeyi aksiyona dönüştür" onclick="'+tikla(s.i)+'">+ Aksiyon</button>':'')
       +'</li>').join('');
 }
 
@@ -8130,6 +8139,8 @@ function gpAI(boyut, V, rows, odakAd){
   if(!O.length) O.push('Belirgin bir yoğunlaşma yok; mevcut önleyici tedbirleri sürdürün.');
   return {B, O:[...new Set(O)], F};
 }
+/* Grafik penceresinde "Aksiyonda": yalnız BU grafikten açılan aksiyonlar (kaynak etiketi "Grafik: X" / "Grafik AI+: X") */
+const gpKaynakUyar = baslik => a => { const r=String(a.kaynakRef||''); return r.includes('Grafik: '+baslik) || r.includes('Grafik AI+: '+baslik); };
 function grafikPencere(w){
   const boyut=GP_BOYUT[w]; if(!boyut) return;
   if(gpKisiBoyut(boyut) && !can('saglik')) return;
@@ -8151,8 +8162,8 @@ function grafikPencere(w){
     +`<table class="gpTablo"><tbody>${tablo||'<tr><td>Veri yok</td></tr>'}</tbody></table></div>`
     +`<div class="anAI gpAI"><h4><span class="rob">${ICO_AI}</span> AI Analiz — ${esc(baslik)}</h4><div class="body">`
     +`<div class="ozet"><span class="aiBadge">${ICO_AI} AI</span>${esc(kapsam)} kapsamında ${V.length} olay${F?`; odak <b>${esc(F.ad)}</b>`:''}.</div>`
-    +aiGrupHTML('Bulgular', aiBekleyenLi(ai.B, t=>t, i=>`gpOneriAksiyon('B',${i})`, null))
-    +aiGrupHTML('Öneriler', aiBekleyenLi(ai.O, t=>t, i=>`gpOneriAksiyon('O',${i})`, null))
+    +aiGrupHTML('Bulgular', aiBekleyenLi(ai.B, t=>t, i=>`gpOneriAksiyon('B',${i})`, null, true, gpKaynakUyar(baslik)))
+    +aiGrupHTML('Öneriler', aiBekleyenLi(ai.O, t=>t, i=>`gpOneriAksiyon('O',${i})`, null, true, gpKaynakUyar(baslik)))
     +`<div class="dip"><b>Bulgular</b> yalnız bu grafiğin verisinden türetildi; <b>öneriler</b> iyileştirme amaçlıdır. Kural tabanlı, dış AI servisi kullanılmadı.</div></div></div>`;
   GP_SON={B:ai.B, O:ai.O, lok:fl, etiket:'Grafik: '+baslik+' · '+kapsam+(F?' · '+F.ad:'')};
   ovAc('ovGrafik');
@@ -8799,8 +8810,8 @@ function gpCevrYerlestir(){
   if(R.durum==='hata'){ el.innerHTML=aiArtiBas('')+`<div class="hint" style="color:var(--red)">Çevrimiçi analiz yapılamadı: ${esc(R.hata)}</div><button class="btn sm" style="margin-top:6px" onclick="gpCevrCalistir()">Yeniden dene</button>`; return; }
   GPC_SON={B:R.B, O:R.O, lok:g.lok, etiket:'Grafik AI+: '+g.baslik+' · '+g.kapsam+(g.F?' · '+g.F.ad:'')};
   el.innerHTML=aiArtiBas(R.model).replace('Çevrimiçi analiz', a.mod==='cevrimdisi'?'Önceki çevrimiçi analiz':'Çevrimiçi analiz')+(R.ozet?`<div class="ozet">${esc(R.ozet)}</div>`:'')
-    +aiGrupHTML('Bulgular', aiArtiRozet(aiBekleyenLi(R.B, t=>esc(t), i=>`gpcOneriAksiyon('B',${i})`, null)))
-    +aiGrupHTML('Öneriler', aiArtiRozet(aiBekleyenLi(R.O, t=>esc(t), i=>`gpcOneriAksiyon('O',${i})`, null)))
+    +aiGrupHTML('Bulgular', aiArtiRozet(aiBekleyenLi(R.B, t=>esc(t), i=>`gpcOneriAksiyon('B',${i})`, null, true, gpKaynakUyar(g.baslik))))
+    +aiGrupHTML('Öneriler', aiArtiRozet(aiBekleyenLi(R.O, t=>esc(t), i=>`gpcOneriAksiyon('O',${i})`, null, true, gpKaynakUyar(g.baslik))))
     +`<div class="dip">Dışarı yalnız KVKK süzgeçli paket gönderildi (kişi ve sağlık verisi yok, lokasyon ve olaylar takma adlı). ${a.mod==='karma'?'Altta kural tabanlı analiz.':''}</div>`;
 }
 function gpcOneriAksiyon(grp,i){
@@ -8853,13 +8864,14 @@ aiAnaliz=function(){
    Yeni Aksiyon formuna geçilir. Kaydedilen aksiyon plan satırına bağlanır (aiKaynak.plan) ve satırda
    aksiyonun güncel durumu görünür. Aksiyon kaynağı bulgu metniyle damgalanır → bulgu "aksiyona alındı". */
 const K_BULGU = K_ANAI.replace(/an_ai$/,'an_bulgu');
-let BG_LISTE=[], BG_SEC=null, BG_SUZ='acik', BG_KAY='';
+let BG_LISTE=[], BG_SEC=null, BG_SUZ='acik', BG_KAY='', BG_ONERI=[], BG_ACIK=null;
 function bgDepo(){ let d=store.get(K_BULGU,null); if(!d||typeof d!=='object') d={};
   if(!Array.isArray(d.plan)) d.plan=[]; if(!d.kat||typeof d.kat!=='object') d.kat={}; return {plan:d.plan, kat:d.kat}; }
 const bgDepoYaz = d => store.set(K_BULGU, d);
 function bulguTopla(){
   const L=[], ekle=(html, ham, kaynak, ai, oneriler, baglam)=>{ if(!ham) return; const k=aiAnahtar(ham)+'|'+kaynak+'|'+ai;
-    if(L.some(x=>x.k===k)) return; L.push({k, html, ham, kaynak, ai, oneriler:oneriler||[], baglam}); };
+    const ah=aiDumTag(ham).toLocaleLowerCase('tr'); if(L.some(x=>x.k===k || aiDumTag(x.ham).toLocaleLowerCase('tr')===ah)) return;   /* grafik ve genel analizde aynı bulgu bir kez */
+    L.push({k, html, ham, kaynak, ai, oneriler:oneriler||[], baglam}); };
   const off = arr => (arr||[]).map(t=>({html:t, ham:aiDumTag(t)}));
   const arti = arr => (arr||[]).map(t=>({html:esc(t), ham:String(t)}));
   const genV=anKume(), genLok=($('anLok')&&$('anLok').value)||'';
@@ -8874,7 +8886,13 @@ function bulguTopla(){
     if((cevrimici || GP_CEVR.size) && !g.saglik){ try{ gpImzala(g); const R=GP_CEVR.get(g.imza);
       if(R && R.durum==='tamam'){ const O2=arti(R.O); R.B.forEach(t=>ekle(esc(t), String(t), kay, 'AI+', O2, bag)); } }catch(e){} }
   });
-  L.forEach(f=>{ f.aks=aiAksBulTum(f.ham,null); });
+  const P=bgDepo().plan;
+  /* Kaynak tutarlılığı: grafik bulgusu yalnız o grafikten, genel bulgu yalnız grafik dışı açılan aksiyonla eşleşir
+     (aynı genel metin — "Dağılım dağınık…" — birden çok grafikte geçebiliyor) */
+  const kaynakUyar=(f,a)=>{ const r=String(a.kaynakRef||''); return f.kaynak.startsWith('Grafik: ') ? (r.includes(f.kaynak) || r.includes(f.kaynak.replace('Grafik: ','Grafik AI+: '))) : !r.includes('Grafik'); };
+  L.forEach(f=>{ const A=aiAksBulTum(f.ham,null).filter(x=>kaynakUyar(f,x.a)), ids=new Set(A.map(x=>x.a.id));
+    P.filter(p=>p.bk===f.k).forEach(p=>bgPlanAks(p).forEach(a=>{ if(!ids.has(a.id)){ ids.add(a.id); A.push({a, r:null}); } }));
+    f.aks=A; });
   return L;
 }
 /* Bulgunun dayandığı olaylar: metindeki <b>…</b> değerleri (AI) ya da metinde geçen bilinen değerler (AI+),
@@ -8890,11 +8908,137 @@ function bgOlaylar(f){
   (f.ham.match(/\bL\d+\b/g)||[]).forEach(p=>{ const l=LOK[parseInt(p.slice(1),10)-1]; if(l) T.add(lokAd(l.kod)); });
   if(f.ai==='AI+'){ const m=f.ham.toLocaleLowerCase('tr'), tum=new Set(); V.forEach(r=>bgDegerler(r).forEach(d=>tum.add(d)));
     tum.forEach(d=>{ if(String(d).length>=4 && m.includes(String(d).toLocaleLowerCase('tr'))) T.add(d); }); }
-  if(!T.size) return {genel:true, terim:[], liste:[], n:V.length};
-  const t=[...T], P=V.map(r=>{ const d=bgDegerler(r); return {r, n:t.filter(x=>d.some(y=>esitTR(y,x))).length}; }).filter(x=>x.n>0);
+  const eslestir = T => { const t=[...T]; return {t, P:V.map(r=>{ const d=bgDegerler(r); return {r, n:t.filter(x=>d.some(y=>esitTR(y,x))).length}; }).filter(x=>x.n>0)}; };
+  let E=eslestir(T);
+  if(!E.P.length){ const K=bgKonular(f).map(k=>k.ad); if(K.length) E=eslestir(new Set(K)); }   /* kalın terim yoksa / eşleşmediyse metindeki konular */
+  if(!E.t.length) return {genel:true, terim:[], liste:[], n:V.length};
+  const t=E.t, P=E.P;
   const en=Math.max(0,...P.map(x=>x.n));
   if(!en) return {genel:true, terim:t, liste:[], n:V.length};
   return {genel:false, terim:t, liste:P.filter(x=>x.n===en).map(x=>x.r).sort((a,b)=>String(b.tarih||'').localeCompare(String(a.tarih||''))), n:V.length};
+}
+/* ═══ BULGUYA ÖZEL ÖNERİ MOTORU (03.11.2026, kullanıcı isteği) ═══
+   Pencerede genel raporun ortak öneri listesi yerine, bulgunun KONUSUNA ve VERİSİNE göre öneri üretilir:
+   1. Konu: bulgu metninde geçen değerler (bulgu türü, olay kaynağı, kök sebep, lokasyon, gün) veriyle eşleşir.
+   2. Konuya özel önlem: KONU_ONERI tablosundan (kontrol hiyerarşisi sırasıyla: önce mühendislik, sonra idari).
+   3. Neden kapanmıyor: konunun olaylarına bağlı aksiyonlar veriden okunur — hiç yok / açık / gecikmiş /
+      sorumlusuz / terminsiz / kapatıldıktan sonra olay tekrar etmiş (etkisiz) / hepsi eğitim-talimat türü.
+   Öneri yalnız bir bulgu oluştuysa yazılır; metindeki sayılar veriden. */
+const KONU_ONERI={
+  'kkd yok / uygun değil':['İşe özgü KKD matrisini çıkarın; eksik ve uygun olmayan KKD’yi tedarik edip sahada teslim tutanağıyla dağıtın.','Kullanımı iş başlamadan önce kontrol eden bir KKD kontrol noktası (giriş / iş izni adımı) kurun.'],
+  'koruyucu tertibat devre dışı':['Devre dışı bırakılabilen koruyucuları kilitli / kilitlemeli (interlock) tipe çevirin; söküldüğünde makine çalışmasın.','Koruyucu sökme izni ve geri takma kontrolünü bakım iş emrine bağlayın.'],
+  'loto uygulanmamış':['Her ekipman için enerji izolasyon noktalarını gösteren LOTO prosedürü ve kişisel kilit-etiket setleri sağlayın.','LOTO’yu bakım iş izninin zorunlu adımı yapın; sıfır enerji doğrulamasını imzayla kayda alın.'],
+  'iş izni alınmamış':['İş izni gerektiren işleri (sıcak iş, yüksekte, kapalı alan, elektrik) listeleyip saha girişinde görünür yapın.','İzinsiz başlayan işleri durdurma yetkisini sorumlu şeflere yazılı verin; izinleri günlük denetleyin.'],
+  'risk değerlendirmesi bu işi kapsamıyor':['Bu işi risk değerlendirmesine ekleyin; iş başlamadan önce iş güvenliği analizi (JSA) yapılmasını zorunlu kılın.','Yeni ya da değişen işlerde risk değerlendirmesi güncellemesini değişim yönetimine bağlayın.'],
+  'talimat / prosedür mevcut değil':['Bu iş için adım adım çalışma talimatı hazırlayın; sahada görünür yerde bulunsun.','Talimatı uygulayanlarla birlikte gözden geçirip eğitimini kayıt altına alın.'],
+  'eğitim kaydı yok / güncel değil':['Görev bazlı eğitim matrisini çıkarın; süresi dolan eğitimleri planlayın, eğitimsiz kişiyi işe başlatmayın.','Eğitim etkinliğini saha gözlemiyle doğrulayın (yalnız katılım imzası yetmez).'],
+  'periyodik kontrol / kalibrasyon eksik':['Ekipman envanterini periyodik kontrol takvimine bağlayın; süresi geçen ekipmanı etiketleyip kullanımdan çekin.','Kontrol raporlarını ekipman üzerinde ya da sahada erişilebilir tutun.'],
+  'uygun olmayan alet-ekipman kullanımı':['İşe uygun alet-ekipmanı sahada hazır bulundurun; uygun olmayanları toplayıp kullanım dışı bırakın.','İş başı konuşmalarında doğru alet seçimini işleyin; alet kontrol listesi kullanın.'],
+  'emniyetsiz istifleme / depolama':['İstif alanlarını işaretleyin, raf / istif yüksekliği ve yük sınırlarını belirleyip etiketleyin.','Haftalık istif-depolama denetimi yapın; uygunsuzlukları fotoğraflı kayda alın.'],
+  'yetersiz aydınlatma / havalandırma':['Çalışma alanlarında aydınlatma (lüks) ve havalandırma ölçümü yaptırın; yetersiz noktalara kalıcı armatür / fan / havalandırma tesisatı kurun (mühendislik önlemi).','Gece vardiyası ve kapalı alan işlerinde portatif aydınlatma ve havalandırma ekipmanını iş izninin şartı yapın.','Arızalı lamba / fanların bildirilip onarıldığı bir bakım döngüsü kurun; ölçümleri belirli aralıkla tekrarlayın.'],
+  'housekeeping yetersiz':['Alanlara sorumlu atayın ve günlük düzen-temizlik (5S) kontrol listesi uygulayın.','Atık ve malzeme için sabit, işaretli yerler belirleyin; haftalık 5S denetimi puanlayın.'],
+  'taşeron gözetimi eksik':['Taşeronlar için işe giriş İSG oryantasyonu, yetkinlik ve evrak kontrolünü zorunlu kılın.','Taşeron işlerinde sorumlu gözetimci atayın; ortak saha denetimi ve performans değerlendirmesi yapın.'],
+  'araç-iş makinesi trafiği yönetilmemiş':['Yaya ve araç yollarını fiziksel bariyerle ayırın; trafik akış planı ve hız sınırı belirleyin.','Geri manevra için işaretçi, kamera / geri vites uyarısı ve kör nokta işaretlemesi sağlayın.'],
+  'acil durum müdahalesi yetersiz':['Acil durum ekiplerini ve ekipmanını (ilk yardım, yangın) kontrol edin; tatbikat takvimi oluşturun.','Acil durum iletişim ve tahliye planını sahaya asın; tatbikat sonrası eksikleri aksiyona bağlayın.'],
+  'işe uygun olmayan görevlendirme':['Görevlendirmeden önce yetkinlik, sağlık uygunluğu ve belge kontrolünü yapın.','Kritik işler için yetkin personel listesi tutun; listede olmayanı görevlendirmeyin.'],
+  'iş makinesi / ağır ekipman':['İş makinelerinin çalışma alanını bariyerle sınırlayın; operatör belgesi ve günlük makine kontrolünü zorunlu kılın.','Kör nokta, geri manevra ve yükleme alanlarında işaretçi kullanın.'],
+  'kaldırma ekipmanı (vinç, forklift)':['Kaldırma planı, yük tablosu ve periyodik kontrol belgesi olmadan kaldırma yapılmasın.','Sapan-aparat kontrolü ve yük altına girme yasağını sahada denetleyin.'],
+  'el aletleri':['Hasarlı el aletlerini toplama ve değiştirme düzeni kurun; işe uygun alet setini hazır bulundurun.','El aleti kontrolünü iş başı kontrol listesine ekleyin.'],
+  'elektrikli / pnömatik alet':['Elektrikli aletleri kaçak akım rölesine bağlı prizden kullanın; kablo ve fiş kontrolünü periyodik yapın.','Pnömatik hortum bağlantılarına emniyet kelepçesi takın.'],
+  'araç / iş makinesi trafiği':['Yaya-araç ayrımı, hız sınırı ve trafik akış planı uygulayın; geri manevrada işaretçi kullanın.','Sürücü / operatör yetkinliklerini ve araç günlük kontrolünü denetleyin.'],
+  'yüksekten düşme':['Kenar korkuluğu, platform ve güvenli erişim gibi toplu koruma önlemlerini öncelikle kurun.','Yüksekte çalışmayı iş iznine bağlayın; emniyet kemeri ankraj noktalarını belirleyin ve kontrol edin.'],
+  'aynı seviyede düşme / kayma-takılma':['Zemin bozukluklarını onarın, kaygan yüzeylere kaymaz kaplama uygulayın, yolları engelsiz tutun.','Kablo ve hortumları yürüyüş yollarından kaldırın; dökülmeleri anında temizleme düzeni kurun.'],
+  'malzeme / cisim düşmesi':['Yüksekteki malzemeyi sabitleyin; topuk levhası ve düşen cisim ağı kullanın.','Altında çalışma olan alanları işaretleyip girişini sınırlayın.'],
+  'elle taşıma / kaldırma':['Taşıma işlerinde mekanik yardımcı (transpalet, vinç, kaldırma aparatı) sağlayın.','Ağır yükleri ekip işi yapın; ergonomik risk değerlendirmesi ve doğru kaldırma eğitimi verin.'],
+  'sıkışma / ezilme (makine)':['Hareketli parçalara sabit koruyucu ve kilitlemeli kapak takın; acil durdurma butonlarını erişilebilir yapın.','Bakım ve sıkışma giderme işlerinde LOTO uygulayın.'],
+  'kaynak / kesim / taşlama':['Sıcak iş iznini, yangın gözcüsünü ve çevredeki yanıcıların uzaklaştırılmasını zorunlu kılın.','Taşlama disklerini makineye uygun seçin; koruyucu siper ve yüz siperi kullanımını denetleyin.'],
+  'elektrik':['Elektrik panolarını kilitli tutun, kaçak akım korumasını ve topraklamayı ölçtürün.','Elektrik işlerini yalnız yetkili kişilere ve iş iznine bağlayın; enerji izolasyonu (LOTO) uygulayın.'],
+  'kimyasal / tehlikeli madde':['Kimyasal envanteri ve güvenlik bilgi formlarını sahada bulundurun; uygun depolama ve dökülme kiti sağlayın.','Kimyasalla çalışanlar için uygun KKD, göz duşu ve maruziyet ölçümü planlayın.'],
+  'yangın / patlama':['Yanıcı malzeme depolamasını ve sıcak iş iznini gözden geçirin; yangın söndürücülerin yerini ve kontrolünü denetleyin.','Patlayıcı ortam riski olan alanlarda ekipman uygunluğunu ve gaz ölçümünü kontrol edin.'],
+  'sıcak yüzey / termal':['Sıcak yüzeyleri yalıtın ya da koruyucu kapakla kapatın; uyarı işaretlemesi yapın.','Sıcak işlerde ısıya dayanıklı eldiven ve uygun KKD kullanımını sağlayın.'],
+  'basınçlı sistem (hidrolik / pnömatik)':['Basınçlı hat ve hortumların periyodik kontrolünü yapın; emniyet valfi ve hortum kelepçesi kullanın.','Bakımdan önce basıncı boşaltmayı LOTO adımına ekleyin.'],
+  'toz / gürültü / titreşim':['Kaynağında azaltma önlemlerini (yerel emiş, sulama, susturucu, titreşim sönümleyici) uygulayın.','Maruziyet ölçümü yaptırın; ölçüme göre kulak koruyucu / toz maskesi ve sağlık gözetimi planlayın.'],
+  'biyolojik / çevresel':['Biyolojik riskler için hijyen, aşılama ve uygun KKD planlayın; çevresel koşullar için çalışma-dinlenme düzeni kurun.','Aşırı sıcak / soğuk havada çalışma saatlerini ve içme suyu, gölgelik gibi önlemleri düzenleyin.']
+};
+/* Bulgu metninde geçen ve veride karşılığı olan konular (boyutuyla) */
+function bgKonular(f){
+  const V=(f.baglam&&f.baglam.V)||[], m=f.ham.toLocaleLowerCase('tr'), K=[], gor=new Set();
+  const ekle=(boyut,ad)=>{ const k=boyut+'|'+String(ad).toLocaleLowerCase('tr'); if(gor.has(k)) return; gor.add(k); K.push({boyut,ad}); };
+  const var_=(boyut,ad)=>{ if(ad && String(ad).length>=4 && m.includes(String(ad).toLocaleLowerCase('tr'))) ekle(boyut,ad); };
+  V.forEach(r=>{ listeAd(r.bulgular,r.bulgularDiger).forEach(x=>var_('bulgu',x)); var_('kaynak',kaynakAd(r)); var_('tur',turAd(r));
+    (r.kokSebep||[]).forEach(s=>{ var_('kok',katOf(s)); var_('kokTek',kokTekAd(s)); }); var_('lok',lokAd(r.lokasyon)); });
+  (f.ham.match(/\bL\d+\b/g)||[]).forEach(p=>{ const l=LOK[parseInt(p.slice(1),10)-1]; if(l) ekle('lok',lokAd(l.kod)); });
+  GUN_AD.forEach(g=>{ if(new RegExp('(^|[^\\p{L}])'+g+'(?=$|[^\\p{L}])','iu').test(f.ham)) ekle('gun',g); });
+  /* kök sebep kategorisi metinde geçmese de alt maddesi geçtiyse kategori de konu sayılır */
+  K.filter(k=>k.boyut==='kokTek').forEach(k=>{ const c=KOK_KAT.find(c=>c.ops.some(o=>esitTR(o,k.ad))); if(c) ekle('kok',c.ad); });
+  return K;
+}
+const konuOneri = ad => KONU_ONERI[String(ad||'').toLocaleLowerCase('tr')] || null;
+const IDARI_RE=/eğitim|egitim|talimat|bilgilendir|uyar|toolbox|tebliğ|tebli|hatırlat|farkındalık|brifing|konuşma/i;
+function bgOneriUret(f, O){
+  const K=bgKonular(f), oneri=[], neden=[];
+  const konuAd=K.filter(k=>k.boyut==='bulgu'||k.boyut==='kaynak'||k.boyut==='kokTek').map(k=>k.ad);
+  /* 2. Konuya özel önlemler */
+  K.forEach(k=>{
+    if(k.boyut==='bulgu'||k.boyut==='kaynak'){ (konuOneri(k.ad)||[]).forEach(t=>oneri.push(t)); }
+    else if(k.boyut==='kok' && AI_ONERI[k.ad]) oneri.push(AI_ONERI[k.ad]);
+    else if(k.boyut==='lok') oneri.push(`${k.ad} lokasyonunda bu konu için yerinde inceleme ve yönetim saha ziyareti yapın; bulguları lokasyon sorumlusuyla aksiyona bağlayın.`);
+    else if(k.boyut==='gun') oneri.push(`${k.ad} günlerindeki iş yükünü, vardiya devrini ve taşeron girişlerini inceleyin; o gün için ek saha denetimi planlayın.`);
+  });
+  /* 3. Neden kapanmıyor: konunun olaylarının aksiyonları + bu bulgudan açılanlar */
+  const R=O.liste, A=[...R.flatMap(r=>r.aksiyonlar||[]), ...aiAksBulTum(f.ham,null).map(x=>x.a)].filter((a,i,s)=>s.indexOf(a)===i&&!a.iptal);
+  const D=A.map(a=>({a, d:aksTerminDurum(a)})), kapali=D.filter(x=>x.a.kapanis), acik=D.filter(x=>!x.a.kapanis&&!x.a.taslak);
+  const gec=D.filter(x=>x.d.gecikti), sorumsuz=acik.filter(x=>!(x.a.sorumlu||'').trim()), terminsiz=acik.filter(x=>!x.a.termin), taslak=D.filter(x=>x.a.taslak&&!x.a.kapanis);
+  const israrli=/ısrarlı tespit|analizdir tekrar|kapanmıyor/i.test(f.ham);
+  if(R.length){
+    if(!A.length){ neden.push(`Bu konudaki ${R.length} olayın hiçbirine düzeltici aksiyon bağlanmamış.`);
+      oneri.unshift(`Konunun ${R.length} olayı için kök sebebe yönelik, sorumlusu ve termini belli düzeltici aksiyon açın — şu an hiç aksiyon yok.`); }
+    else {
+      neden.push(`Bu konudaki ${R.length} olaya bağlı ${A.length} aksiyon: ${acik.length} açık, ${kapali.length} kapalı${taslak.length?', '+taslak.length+' taslak':''}.`);
+      if(gec.length){ const enEski=Math.max(...gec.map(x=>x.d.gun||0));
+        neden.push(`${gec.length} aksiyon termini geçmiş${enEski?` (en eskisi ${enEski} gün)`:''}.`);
+        oneri.unshift(`Geciken ${gec.length} aksiyonun sorumlularıyla termin gözden geçirmesi yapın; engel kaynak / bütçe ise üst yönetime taşıyın.`); }
+      if(sorumsuz.length||terminsiz.length){ neden.push(`${sorumsuz.length?sorumsuz.length+' açık aksiyonun sorumlusu':''}${sorumsuz.length&&terminsiz.length?', ':''}${terminsiz.length?terminsiz.length+' açık aksiyonun termini':''} yok.`);
+        oneri.unshift('Sorumlusu ya da termini olmayan aksiyonlara sorumlu ve termin atayın; sahipsiz aksiyon kapanmaz.'); }
+      if(taslak.length) oneri.push(`${taslak.length} aksiyon taslakta kalmış — gönderilmeden sorumluya ulaşmaz.`);
+      /* Kapatıldıktan sonra tekrar: en son kapanıştan sonra konu olayı olmuş mu */
+      const sonKap=kapali.map(x=>x.a.kapanis.tarih||'').filter(Boolean).sort().pop();
+      const sonra=sonKap?R.filter(r=>(r.tarih||'')>sonKap).length:0;
+      if(sonra){ neden.push(`Son aksiyon ${trDate(sonKap)} tarihinde kapatıldı; sonrasında ${sonra} olay daha oldu — kapatılan aksiyonlar etkisiz.`);
+        oneri.unshift('Kapatılan aksiyonların sahada etkinliğini yerinde doğrulayın; tekrar ediyorsa kontrol hiyerarşisinde üst basamağa (ortadan kaldırma / mühendislik önlemi) çıkın.'); }
+      const idari=A.filter(a=>IDARI_RE.test(a.tanim||'')).length;
+      if(A.length>=2 && idari===A.length){ neden.push(`Aksiyonların tamamı (${A.length}) eğitim / talimat / uyarı türünde — kalıcı (mühendislik) önlem yok.`);
+        oneri.unshift(`Eğitim ve talimat tek başına yetmiyor; ${konuAd[0]?konuAd[0].toLocaleLowerCase('tr')+' için ':''}fiziksel / mühendislik önlemi ekleyin.`); }
+    }
+    const kokYok=R.filter(r=>r.durum!=='taslak'&&r.durum!=='bildirildi'&&!(r.kokSebep||[]).length).length;
+    if(kokYok){ neden.push(`${kokYok} olayda kök sebep girilmemiş.`); oneri.push(`Kök sebebi girilmemiş ${kokYok} olayın incelemesini tamamlayın; aksiyon kök sebebe göre seçilmeli.`); }
+    if(israrli){   /* sayıma dayalı tespit: yeni olay mı geliyor, yoksa geçmiş olaylardan mı besleniyor */
+      const sinir=new Date(Date.now()-90*86400000).toISOString().slice(0,10), son=R.filter(r=>(r.tarih||'')>=sinir).length;
+      neden.push(son ? `Son 90 günde bu konuda ${son} yeni olay var — sorun sürüyor.`
+                     : `Son 90 günde bu konuda yeni olay yok; tespit geçmiş olaylardan geliyor — açık aksiyonlar kapanınca ve yeni olay olmadıkça düşer.`);
+    }
+  }
+  /* 4. Konu aksiyon performansıysa (gecikme / kapatma oranı): kümenin aksiyonları veriden çözümlenir */
+  if(!konuAd.length && /aksiyon|kapatma oran|termin|gecik/i.test(f.ham)){
+    const V=(f.baglam&&f.baglam.V)||[], lokSet=new Set(V.map(r=>r.lokasyon));
+    const T=[...V.flatMap(r=>(r.aksiyonlar||[]).map(a=>Object.assign({_lok:r.lokasyon},a))), ...SACT.filter(a=>lokSet.has(a.lokasyon)).map(a=>Object.assign({_lok:a.lokasyon},a))].filter(a=>!a.iptal);
+    const G=T.filter(a=>aksTerminDurum(a).gecikti);
+    if(G.length){
+      const grup=fn=>sayimla(G.map(fn).filter(Boolean)), lk=grup(a=>lokAd(a._lok)), sr=grup(a=>(a.sorumlu||'').trim()||'(sorumlu yok)');
+      const gun=G.map(a=>aksTerminDurum(a).gun||0).sort((a,b)=>a-b), ort=Math.round(gun.reduce((s,x)=>s+x,0)/gun.length), uzun=G.filter(a=>(aksTerminDurum(a).gun||0)>60).length;
+      neden.push(`${T.length} aksiyonun ${G.length} tanesi gecikmiş; ortalama gecikme ${ort} gün${uzun?`, ${uzun} tanesi 60 günü aşmış`:''}.`);
+      if(lk[0]) neden.push(`Gecikmelerin ${lk[0].n} tanesi (%${Math.round(lk[0].n/G.length*100)}) ${lk[0].ad} lokasyonunda.`);
+      if(sr[0] && sr[0].n>1) neden.push(`En çok geciken sorumlu: ${sr[0].ad} (${sr[0].n} aksiyon)${sr[1]&&sr[1].n>1?`, ardından ${sr[1].ad} (${sr[1].n})`:''}.`);
+      oneri.push(`Haftalık aksiyon gözden geçirme toplantısı başlatın; ${lk[0]?lk[0].ad+' lokasyonundan ':''}başlayarak geciken her aksiyon için yeni ve gerçekçi termin ya da engeli kayda alın.`);
+      if(sr[0] && sr[0].n>1) oneri.push(`${sr[0].ad} üzerindeki ${sr[0].n} geciken aksiyonun iş yükünü gözden geçirin; gerekiyorsa aksiyonları yeniden dağıtın.`);
+      if(uzun) oneri.push(`60 günü aşan ${uzun} aksiyonu bir üst yöneticiye taşıyın (eskalasyon); kaynak ya da bütçe engeli varsa karara bağlayın.`);
+      const sorumsuz=G.filter(a=>!(a.sorumlu||'').trim()).length, terminsiz=T.filter(a=>!a.kapanis&&!a.termin).length;
+      if(sorumsuz||terminsiz) oneri.push(`${sorumsuz?sorumsuz+' geciken aksiyonun sorumlusu':''}${sorumsuz&&terminsiz?', ':''}${terminsiz?terminsiz+' açık aksiyonun termini':''} yok — sahipsiz aksiyon kapanmaz; atayın.`);
+      oneri.push('Termin hatırlatmasını termin gelmeden (ör. 7 gün önce) gönderin; termini geçen aksiyonu sorumlunun yöneticisine bildirin.');
+    }
+  }
+  if(israrli && !neden.length) neden.push('Tespit tekrar ediyor; konusu veride bir olay ya da aksiyonla eşleşmedi — bulguyu ve ilgili olayları elle gözden geçirin.');
+  return {K, oneri:[...new Set(oneri)], neden, israrli};
 }
 function renderBulgu(){
   if(!$('bgListe')) return;
@@ -8910,11 +9054,11 @@ function bgListeYaz(){
   const kaynaklar=[...new Set(BG_LISTE.map(f=>f.kaynak))];
   if(BG_KAY && !kaynaklar.includes(BG_KAY)) BG_KAY='';
   const P=bgDepo().plan;
-  const L=BG_LISTE.filter(f=>(BG_SUZ==='tum'||(BG_SUZ==='acik'?!f.aks.length:f.aks.length>0)) && (!BG_KAY||f.kaynak===BG_KAY));
+  const L=BG_LISTE.filter(f=>(BG_SUZ==='tum'||(BG_SUZ==='acik'?!f.aks.length:f.aks.length>0)) && (!BG_KAY||f.kaynak===BG_KAY)).sort((a,b)=>(b.ai==='AI+')-(a.ai==='AI+'));   /* AI+ bulguları başta (sıralama kararlı: kendi içlerinde sıra korunur) */
   const acik=BG_LISTE.filter(f=>!f.aks.length).length;
   const cip=(k,t)=>`<button type="button" class="kchip${BG_SUZ===k?' on':''}" onclick="BG_SUZ='${k}';bgListeYaz()">${t}</button>`;
-  $('bgSay').textContent=BG_LISTE.length?`${acik} açık · ${BG_LISTE.length-acik} aksiyona alındı`:'';
-  $('bgSuz').innerHTML=cip('acik','Açık')+cip('alinan','Aksiyona alınan')+cip('tum','Tümü')
+  $('bgSay').textContent=BG_LISTE.length?`${acik} açık · ${BG_LISTE.length-acik} aksiyonda`:'';
+  $('bgSuz').innerHTML=cip('acik','Açık')+cip('alinan','Aksiyonda')+cip('tum','Tümü')
     +`<select class="bgKaySec" onchange="BG_KAY=this.value;bgListeYaz()"><option value="">Tüm kaynaklar</option>${kaynaklar.map(k=>`<option${k===BG_KAY?' selected':''}>${esc(k)}</option>`).join('')}</select>`;
   const genelVar=BG_LISTE.some(f=>f.kaynak==='Genel analiz');
   $('bgListe').innerHTML=(genelVar?'':`<div class="bgBos">Veri analizi henüz yapılmadı — sağ alttaki AI düğmesiyle analiz edin. <button class="btn sm" onclick="bgAI()">Analiz et</button></div>`)
@@ -8922,28 +9066,41 @@ function bgListeYaz(){
       return `<div class="bgSatir" onclick="bgSec(${jsA(f.k)})">
         <span class="aiBadge${f.ai==='AI+'?' aiArti':''}">${ICO_AI} ${f.ai}</span>
         <div class="m"><div class="t">${f.html}</div><div class="k">${esc(f.kaynak)}</div></div>
-        ${f.aks.length?`<span class="pill p-grn">${f.aks.length} aksiyon</span>`:np?`<span class="pill p-blu">${np} planda</span>`:'<span class="pill p-amb">Açık</span>'}</div>`; }).join('')
+        ${f.aks.length?`<span class="pill p-grn">Aksiyonda${f.aks.length>1?' ('+f.aks.length+')':''}</span>`:np?`<span class="pill p-blu">${np} planda</span>`:'<span class="pill p-amb">Açık</span>'}</div>`; }).join('')
       :'<div class="hint" style="padding:10px 4px">Bu süzgeçte bulgu yok.</div>');
 }
 /* ── BULGU PENCERESİ ── */
-function bgSec(k){ BG_SEC=BG_LISTE.find(x=>x.k===k)||null; if(!BG_SEC) return; GP_AKTIF=null; bgPencereYaz(); ovAc('ovGrafik'); }
+function bgSec(k){ BG_SEC=BG_LISTE.find(x=>x.k===k)||null; if(!BG_SEC) return; BG_ACIK=null; GP_AKTIF=null; bgPencereYaz(); ovAc('ovGrafik'); }
+function bgBalon(k){ BG_ACIK = BG_ACIK===k ? null : k;
+  document.querySelectorAll('#gpGovde .bgOzet button').forEach(b=>b.classList.toggle('on', b.dataset.k===BG_ACIK));
+  document.querySelectorAll('#gpGovde .bgAcilir').forEach(p=>p.classList.toggle('acik', p.dataset.p===BG_ACIK)); }
 function bgPencereYaz(){
   const f=BG_SEC; if(!f) return;
   const O=bgOlaylar(f), D=bgDepo(), K=D.kat[f.k]||{kat:[],ops:[]}, yetki=can('aksiyon');
   const R=O.liste, ciddi=R.filter(r=>ciddiAnaliz(r.sonuc)).length, kok=sayimla(R.flatMap(r=>(r.kokSebep||[]).map(katOf)));
   const st=aksStat(R.flatMap(r=>r.aksiyonlar||[]));
-  const olayRows=R.slice(0,20).map(r=>`<tr onclick="closeOv('ovGrafik');viewRec(${jsA(r.id)})"><td>${esc(r.no||'')}</td><td>${trDate(r.tarih)}</td><td>${esc(lokAd(r.lokasyon))}</td><td>${esc(turAd(r))}</td><td><span class="pill ${cidOf(r.sonuc).pil}">${esc(cidOf(r.sonuc).ad)}</span></td></tr>`).join('');
   const planda=D.plan.filter(p=>p.bk===f.k), plandaMi=t=>planda.some(p=>aiAnahtar(p.tanim)===aiAnahtar(t));
+  /* Özet balonları (03.11.2026, kullanıcı isteği): her balon kendi listesini altında yumuşakça açar */
+  const AK=R.flatMap(r=>(r.aksiyonlar||[]).filter(a=>!a.iptal).map(a=>({a,r}))), AKG=AK.filter(x=>aksTerminDurum(x.a).gecikti);
+  const olayTablo=L=>`<div class="tw bgOlayTablo"><table><thead><tr><th>Olay no</th><th>Tarih</th><th>Lokasyon</th><th>Tür</th><th>Ciddiyet</th></tr></thead><tbody>`
+    +(L.slice(0,25).map(r=>`<tr onclick="closeOv('ovGrafik');viewRec(${jsA(r.id)})"><td>${esc(r.no||'')}</td><td>${trDate(r.tarih)}</td><td>${esc(lokAd(r.lokasyon))}</td><td>${esc(turAd(r))}</td><td><span class="pill ${cidOf(r.sonuc).pil}">${esc(cidOf(r.sonuc).ad)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="hint">Kayıt yok.</td></tr>')
+    +`</tbody></table></div>${L.length>25?`<div class="hint">+ ${L.length-25} olay daha</div>`:''}`;
+  const aksTablo=L=>`<div class="tw bgOlayTablo"><table><thead><tr><th>Aksiyon</th><th>Sorumlu</th><th>Termin</th><th>Durum</th></tr></thead><tbody>`
+    +(L.map(({a,r})=>{ const d=aksTerminDurum(a); return `<tr onclick="closeOv('ovGrafik');openAct(${jsA(r.id)},${jsA(a.id)})"><td>${esc(a.tanim||'')}<div class="hint">${esc(r.no||'')}</div></td><td>${esc(a.sorumlu||'—')}</td><td>${trDate(a.termin)}</td><td><span class="pill ${d.pil}">${esc(d.etiket||d.ad)}</span>${d.gecikti&&d.gun?` <span class="hint">${d.gun} gün</span>`:''}</td></tr>`; }).join('')||'<tr><td colspan="4" class="hint">Aksiyon yok.</td></tr>')
+    +'</tbody></table></div>';
+  const PANEL={olay:olayTablo(R)+`<div class="hint" style="margin-top:4px">Eşleşen: ${O.terim.map(esc).join(', ')}</div>`,
+    ciddi:olayTablo(R.filter(r=>ciddiAnaliz(r.sonuc))), aks:aksTablo(AK), gec:aksTablo(AKG)};
+  const balon=(k,n,t,c)=>`<button type="button" data-k="${k}" class="${BG_ACIK===k?'on':''}" onclick="bgBalon('${k}')"><b class="${c||''}">${n}</b><span>${t}</span></button>`;
   const analiz = O.genel
     ? `<div class="hint">Bu bulgu kümenin geneline ilişkin (${O.n} olay); tek tek olaya bağlanmıyor.</div>`
-    : `<div class="bgOzet"><div><b>${R.length}</b><span>ilgili olay</span></div><div><b>${ciddi}</b><span>ciddi</span></div>
-        <div><b>${st.toplam}</b><span>bağlı aksiyon</span></div><div><b class="${st.gecikti?'kirmizi':''}">${st.gecikti}</b><span>geciken</span></div></div>
-       ${kok.length?`<div class="hint" style="margin:6px 0 8px">Kök sebep dağılımı: ${kok.slice(0,3).map(x=>`<b>${esc(x.ad)}</b> ${x.n}`).join(' · ')}</div>`:''}
-       <div class="tw bgOlayTablo"><table><thead><tr><th>Olay no</th><th>Tarih</th><th>Lokasyon</th><th>Tür</th><th>Ciddiyet</th></tr></thead><tbody>${olayRows}</tbody></table></div>
-       ${R.length>20?`<div class="hint">+ ${R.length-20} olay daha</div>`:''}<div class="hint" style="margin-top:4px">Eşleşen: ${O.terim.map(esc).join(', ')}</div>`;
-  const oneri=f.oneriler.map((o,i)=>`<li>${o.html} ${!yetki?'':plandaMi(o.ham)?'<span class="pill p-blu">Planda</span>':`<button type="button" class="oneriAks" onclick="bgPlanaEkle(${i})">+ Aksiyon planına ekle</button>`}</li>`).join('');
+    : `<div class="bgOzet">${balon('olay',R.length,'ilgili olay')}${balon('ciddi',ciddi,'ciddi')}${balon('aks',AK.length,'bağlı aksiyon')}${balon('gec',AKG.length,'geciken',AKG.length?'kirmizi':'')}</div>`
+      +Object.keys(PANEL).map(k=>`<div class="bgAcilir${BG_ACIK===k?' acik':''}" data-p="${k}"><div>${PANEL[k]}</div></div>`).join('')
+      +(kok.length?`<div class="hint" style="margin:6px 0 2px">Kök sebep dağılımı: ${kok.slice(0,3).map(x=>`<b>${esc(x.ad)}</b> ${x.n}`).join(' · ')}</div>`:'');
+  const U=bgOneriUret(f,O); BG_ONERI=U.oneri;
+  const oneri=U.oneri.map((t,i)=>`<li>${esc(t)} ${!yetki?'':plandaMi(t)?'<span class="pill p-blu">Planda</span>':`<button type="button" class="oneriAks" onclick="bgPlanaEkle(${i})">+ Aksiyon planına ekle</button>`}</li>`).join('');
+  const konu=U.K.filter(k=>k.boyut!=='tur').map(k=>`<b>${esc(k.ad)}</b> <span class="hint">(${({bulgu:'bulgu',kaynak:'olay kaynağı',kok:'kök sebep',kokTek:'kök sebep',lok:'lokasyon',gun:'gün'})[k.boyut]||''})</span>`).join(' · ');
   $('gpBaslik').textContent='Bulgu Analizi';
-  $('gpGovde').innerHTML=`<div class="bgUst"><span class="aiBadge${f.ai==='AI+'?' aiArti':''}">${ICO_AI} ${f.ai}</span><span class="pill p-gry">${esc(f.kaynak)}</span>${f.aks.length?`<span class="pill p-grn">${f.aks.length} aksiyon açıldı</span>`:'<span class="pill p-amb">Açık</span>'}</div>
+  $('gpGovde').innerHTML=`<div class="bgUst"><span class="aiBadge${f.ai==='AI+'?' aiArti':''}">${ICO_AI} ${f.ai}</span><span class="pill p-gry">${esc(f.kaynak)}</span>${f.aks.length?`<span class="pill p-grn">Aksiyonda${f.aks.length>1?' ('+f.aks.length+')':''}</span>`:'<span class="pill p-amb">Açık</span>'}</div>
     <div class="bgMetin">${f.html}</div>
     <div class="bgBas">Analiz</div>${analiz}
     <div class="bgBas">Kök sebep kategorileri <span class="hint">Kapsamlı Sebep Tablosu — birden fazla seçilebilir; plana eklenen aksiyonun kök sebep referansı olur</span></div>
@@ -8951,7 +9108,8 @@ function bgPencereYaz(){
       return `<button type="button" class="kchip${K.kat.includes(c.ad)?' on':''}" onclick="bgKatTik(${jsA(c.ad)})">${esc(c.ad)}${n?` <small>· olaylarda ${n}</small>`:''}</button>`; }).join('')}</div>
     ${K.kat.map(ad=>{ const c=KOK_KAT.find(x=>x.ad===ad); if(!c) return ''; return `<div class="bgOps"><b>${esc(ad)}</b>${c.ops.map(o=>{ const k=ad+' › '+o;
       return `<button type="button" class="kchip${K.ops.includes(k)?' on':''}" onclick="bgOpTik(${jsA(k)})">${esc(o)}</button>`; }).join('')}</div>`; }).join('')}
-    ${oneri?`<div class="bgBas">Öneriler</div><ul class="bgOneri">${oneri}</ul>`:''}
+    ${U.neden.length?`<div class="bgBas">${U.israrli?'Neden kapanmıyor?':'Aksiyon durumu'}</div><ul class="bgNeden">${U.neden.map(t=>'<li>'+esc(t)+'</li>').join('')}</ul>`:''}
+    ${oneri?`<div class="bgBas">Bu bulguya özel öneriler ${konu?'<span class="hint">konu: '+konu+'</span>':''}</div><ul class="bgOneri">${oneri}</ul>`:''}
     ${yetki?`<div class="bgBas">Kendi aksiyonunuz</div><div class="bgKendi"><textarea id="bgKendiMetin" rows="2" placeholder="Bu bulgu için yapılacak işi yazın"></textarea><button class="btn sm pri" onclick="bgPlanaEkle(-1)">+ Aksiyon planına ekle</button></div>`:''}
     ${(f.aks.length||planda.length)?`<div class="bgBas">Bu bulgunun aksiyonları</div><ul class="bgAcilan">`
       +f.aks.map(x=>`<li>${esc(x.a.no||'')} — ${esc(x.a.tanim||'')} ${aiDurumEt(x.a,x.r)}</li>`).join('')
@@ -8965,7 +9123,7 @@ function bgOpTik(k){ bgKatDegis(K=>{ K.ops=K.ops.includes(k)?K.ops.filter(x=>x!=
 /* Öneri (i) ya da yazılan metin (i=-1) → aksiyon planına satır */
 function bgPlanaEkle(i){
   const f=BG_SEC; if(!f || !can('aksiyon')) return;
-  const t = i<0 ? (($('bgKendiMetin')||{}).value||'').trim() : ((f.oneriler[i]||{}).ham||'');
+  const t = i<0 ? (($('bgKendiMetin')||{}).value||'').trim() : (BG_ONERI[i]||'');
   if(!t){ toast('Önce aksiyon metnini yazın.'); return; }
   const D=bgDepo(), K=D.kat[f.k]||{kat:[],ops:[]};
   if(D.plan.some(p=>p.bk===f.k && aiAnahtar(p.tanim)===aiAnahtar(t))){ toast('Bu aksiyon zaten planda.'); return; }
@@ -8974,17 +9132,38 @@ function bgPlanaEkle(i){
   bgDepoYaz(D); bgPencereYaz(); bgListeYaz(); bgPlanYaz(); toast('Aksiyon planına eklendi.');
 }
 /* ── AKSİYON PLANI (Analiz ekranının altı) ── */
+/* Kök sebep referansı seçenekleri: önce bulgu penceresinde seçilenler, sonra Kapsamlı Sebep Tablosunun tamamı
+   (kategori ve alt maddeleri). Aksiyon açılınca seçilen değer aksiyonun notuna "Kök sebep: …" olarak yazılır. */
+function bgKokSecenek(secilen, deger){
+  const op=v=>`<option value="${esc(v)}"${v===deger?' selected':''}>${esc(v.includes(' › ')?v.split(' › ')[1]:v)}</option>`;
+  const ust=secilen.length?`<optgroup label="Bu bulgu için seçilenler">${secilen.map(v=>`<option value="${esc(v)}"${v===deger?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`:'';
+  const S=new Set(secilen);
+  return `<option value="">— kök sebep seçin —</option>`+ust
+    +KOK_KAT.map(c=>`<optgroup label="${esc(c.ad)}">${[c.ad, ...c.ops.map(o=>c.ad+' › '+o)].filter(v=>!S.has(v)).map(v=>v===c.ad?`<option value="${esc(v)}"${v===deger?' selected':''}>${esc(c.ad)} (genel)</option>`:op(v)).join('')}</optgroup>`).join('');
+}
 function bgPlanYaz(){
   const el=$('bgPlan'); if(!el) return;
   const D=bgDepo(), yetki=can('aksiyon');
-  if(!D.plan.length){ el.innerHTML='<div class="hint">Plan boş. Bir bulguya tıklayın; penceredeki önerilerden ya da kendi yazdığınız aksiyondan “Aksiyon planına ekle” ile buraya ekleyin.</div>'; return; }
+  /* Plan dışından açılmış AI aksiyonları (AI kutusu / grafik penceresi "+ Aksiyon"): bulgudan ya da analiz önerisinden
+     geldiyse (aiOneri damgası, olay kartı AI'ı hariç) planda da görünür — salt okunur, durumuyla (03.11.2026, kullanıcı isteği) */
+  const bagli=new Set(D.plan.flatMap(p=>p.aks||[]));
+  const dis=SACT.filter(a=>a.aiOneri && a.aiTip!=='olay' && !a.iptal && !bagli.has(a.id) && (typeof lokGorebilir!=='function'||lokGorebilir(a.lokasyon)))
+    .sort((a,b)=>String(b.olusturma||'').localeCompare(String(a.olusturma||'')));
+  if(!BG_LISTE.length) try{ BG_LISTE=bulguTopla(); }catch(e){}
+  const disBulgu=a=>{ const ah=aiAnahtar(a.aiOneri), f=BG_LISTE.find(x=>aiAnahtar(x.ham)===ah)||BG_LISTE.find(x=>x.oneriler.some(o=>aiAnahtar(o.ham)===ah));
+    const ai=/AI\+|Çevrimiçi/i.test(a.kaynakRef||'')?'AI+':'AI', t=a.aiOneri.length>70?a.aiOneri.slice(0,70)+'…':a.aiOneri;
+    return `<span class="aiBadge${ai==='AI+'?' aiArti':''}">${ICO_AI} ${ai}</span> `+(f?`<a class="bgBulguBag" onclick="bgSecAnahtar(${jsA(f.k)})">${esc(t)}</a>`:esc(t))
+      +`<div class="hint">${esc((a.kaynakRef||'').replace(/^Analiz:\s*/,'')||'AI analizi')}</div>`; };
+  const disSatir=a=>`<tr><td>${esc(a.tanim||'')}</td><td>${disBulgu(a)}</td><td>${esc(((a.not||'').match(/Kök sebep:\s*([^\n]+)/)||[])[1]||'—')}</td>`
+    +`<td>${esc(a.sorumlu||'—')}</td><td>${trDate(a.termin)}</td><td>${aiDurumEt(a,null)} <a class="bgAksNo" onclick="openAct('',${jsA(a.id)},true)">aç</a></td><td></td></tr>`;
+  if(!D.plan.length && !dis.length){ el.innerHTML='<div class="hint">Plan boş. Bir bulguya tıklayın; penceredeki önerilerden ya da kendi yazdığınız aksiyondan “Aksiyon planına ekle” ile buraya ekleyin.</div>'; return; }
   const kokSec=p=>{ const K=D.kat[p.bk]||{kat:[],ops:[]}; return [...new Set([...K.ops, ...K.kat, ...(p.kok?[p.kok]:[])])]; };
   el.innerHTML=`<div class="tw bgPlanTablo"><table><thead><tr><th style="width:30%">Aksiyon</th><th style="width:22%">Bulgu</th><th>Kök sebep ref.</th><th>Sorumlu</th><th>Termin</th><th>Durum</th><th></th></tr></thead><tbody>`
     + D.plan.slice().reverse().map(p=>{ const A=bgPlanAks(p), acik=!A.length;
       const bulgu=`<span class="aiBadge${p.ai==='AI+'?' aiArti':''}">${ICO_AI} ${p.ai}</span> <a class="bgBulguBag" onclick="bgSecAnahtar(${jsA(p.bk)})">${esc(p.bham.length>70?p.bham.slice(0,70)+'…':p.bham)}</a><div class="hint">${esc(p.kaynak)}</div>`;
       return `<tr><td>${esc(p.tanim)}</td><td>${bulgu}</td>`
         +(acik&&yetki
-          ? `<td><select onchange="bgPlanAlan(${jsA(p.id)},'kok',this.value)"><option value="">—</option>${kokSec(p).map(k=>`<option${k===p.kok?' selected':''}>${esc(k)}</option>`).join('')}</select></td>
+          ? `<td><select title="Bu aksiyonun giderdiği kök sebep (Kapsamlı Sebep Tablosu) — aksiyonun notuna yazılır" onchange="bgPlanAlan(${jsA(p.id)},'kok',this.value)">${bgKokSecenek(kokSec(p), p.kok)}</select></td>
              <td><input type="text" list="dlAd" value="${esc(p.sorumlu||'')}" onchange="bgPlanAlan(${jsA(p.id)},'sorumlu',this.value)"></td>
              <td><input type="date" value="${esc(p.termin||'')}" onchange="bgPlanAlan(${jsA(p.id)},'termin',this.value)"></td>
              <td><span class="pill p-blu">Planda</span></td>
@@ -8992,6 +9171,7 @@ function bgPlanYaz(){
           : `<td>${esc(p.kok||'—')}</td><td>${esc(A[0]?A[0].sorumlu||'—':p.sorumlu||'—')}</td><td>${A[0]?trDate(A[0].termin):trDate(p.termin)}</td>
              <td>${acik?'<span class="pill p-blu">Planda</span>':A.map(a=>`${aiDurumEt(a,null)} <a class="bgAksNo" onclick="openAct('',${jsA(a.id)},true)">aç</a>`).join('<br>')}</td><td></td>`)
         +'</tr>'; }).join('')
+    + dis.map(disSatir).join('')
     + '</tbody></table></div>';
 }
 function bgSecAnahtar(k){ if(!BG_LISTE.length) BG_LISTE=bulguTopla(); if(BG_LISTE.some(x=>x.k===k)) bgSec(k); else toast('Bu bulgu güncel analizde yok (veri ya da kapsam değişti).'); }
@@ -9084,7 +9264,11 @@ const bgTazele = () => { try{ if(document.getElementById('v-bulgu').classList.co
 { const _y=anAIYaz; anAIYaz=function(){ const r=_y.apply(this, arguments); bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.3':['Analiz ekranı ikiye ayrıldı: Pano (KPI ve grafikler) ve Analiz (bulgular)',
+const SURUM_NOTU={'1.9.4':['Bulgu penceresinde bulguya özel öneriler ve “Neden kapanmıyor?” çözümlemesi',
+  'Bulgu penceresinde özet balonları tıklanınca olayları ve aksiyonları açar',
+  'Aksiyon Planı: AI bulgusundan açılan tüm aksiyonlar ve kök sebep listesinin tamamı',
+  'Bulgularda AI+ başta, mükerrer yok; aksiyon açılmış bulgular “Aksiyonda” olarak görünür'],
+  '1.9.3':['Analiz ekranı ikiye ayrıldı: Pano (KPI ve grafikler) ve Analiz (bulgular)',
   'Bulguya tıklayınca pencere: bulgunun analizi, kök sebep kategorileri ve öneriler; öneriyi Aksiyon Planına ekleyin',
   'Aksiyon Planı: sorumlu ve termin girip aksiyon açın; açılan aksiyonun durumu planda görünür',
   'Pano’daki AI düğmesi grafikleri, Analiz’deki AI düğmesi verileri analiz eder; analiz sırasında adım adım ne yapıldığı görünür',
