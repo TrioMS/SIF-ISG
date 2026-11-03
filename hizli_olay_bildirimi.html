@@ -1544,7 +1544,7 @@ body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)), body:not(.wDuzen) #anCh
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -8061,6 +8061,8 @@ function grafikPencere(w){
     +`<div class="dip"><b>Bulgular</b> yalnız bu grafiğin verisinden türetildi; <b>öneriler</b> iyileştirme amaçlıdır. Kural tabanlı, dış AI servisi kullanılmadı.</div></div></div>`;
   GP_SON={B:ai.B, O:ai.O, lok:fl, etiket:'Grafik: '+baslik+' · '+kapsam+(F?' · '+F.ad:'')};
   ovAc('ovGrafik');
+  GP_AKTIF={boyut, V, rows, baslik, F, lok:fl, kapsam, saglik:gpKisiBoyut(boyut), imza:null};
+  try{ gpCevrBaslat(); }catch(e){}
 }
 /* Penceredeki AI maddesi → bağımsız aksiyon (ana AI kutusunun yolu: aksiyonFormAcAnaliz). Kaynak etiketi
    grafiği ve odak değeri söyler; alınan madde sonraki açılışta listeden düşer (aiAlindiMi). */
@@ -8467,7 +8469,7 @@ function bilOnar(id){
 let OGR_DETAY=null; const MOTOR_ACIK=new Set();
 const MOTOR_ACIKLAMA={
   'Derin analiz motoru':'Analiz ekranındaki AI düğmesinin kural tabanlı raporu: bulgular yalnız veriden; çapraz kurallar (kaynak × ciddiyet, gün yoğunlaşması, 30 gün içinde tekrar, lokasyon termin performansı, bulgu → kök sebep).',
-  'Grafik AI':'Grafiğe tıklayınca açılan penceredeki bulgu ve öneriler; yalnız o grafiğin verisi.',
+  'Grafik AI':'Grafiğe tıklayınca açılan penceredeki bulgu ve öneriler; yalnız o grafiğin verisi. Çevrimiçi / karma modda pencerede AI+ (KVKK süzgeçli) analiz de yapılır; sağlık grafikleri dışarı çıkmaz.',
   'Belge sınıflandırma':'Eklenen belgelerin türünü (iş izni, tutanak, rapor…) terimlerden tanır; içerik saklanmaz.',
   'KVKK ayıklama':'Okunan belge metninden TCKN, telefon, e-posta, IBAN, plaka ve etiketli isimleri maskeler.',
   'KVKK dış çıkış':'Çevrimiçi (AI+) analize giden paketi üretir ve son denetimden geçirir; kişi ve sağlık verisi hiç girmez.',
@@ -8593,6 +8595,70 @@ function aicOneriAksiyon(grp,i){
   const eski=AN_AI_SON; AN_AI_SON=Object.assign({}, eski||{}, {lok:AIC_SON.lok, etiket:AIC_SON.etiket});
   try{ aksiyonFormAcAnaliz(t); } finally { AN_AI_SON=eski; }
 }
+/* ═══ GRAFİK PENCERESİNDE ÇEVRİMİÇİ ANALİZ (AI+) — 03.11.2026, kullanıcı isteği ═══
+   Çevrimiçi / karma modda grafik penceresi açılınca o grafiğin kümesi (KVKK dış çıkış paketi) ve grafiğin
+   dağılımı API'ye gider. Dağılımdaki değer adları da aynı süzgeçten geçer (lokasyon → L1…); paketin tamamı
+   son denetimden geçmezse istek atılmaz. Sağlık grafikleri (yaralanma türü, vücut bölgesi) DIŞARI ÇIKMAZ.
+   Aynı grafik + kapsam için sonuç oturum boyunca bellekte tutulur (yeniden açılışta yeni istek yok). */
+const GP_CEVR=new Map(); let GP_AKTIF=null, GPC_SON=null;
+const GP_SISTEM=AI_SISTEM+' Paketteki "grafik" alanı kullanıcının incelediği grafiği ve dağılımını verir; analizi bu grafiğin boyutuna ve odak değerine yoğunlaştır, olaylarla destekle.';
+const aiArtiBas = m => `<div class="aiArtiBas"><span class="aiArti">${ICO_AI} AI+</span><span>Çevrimiçi analiz${m?' · '+esc(m):''}</span></div>`;
+const aiArtiRozet = h => h.split('<span class="aiBadge">'+ICO_AI+' AI</span>').join('<span class="aiBadge aiArti">'+ICO_AI+' AI+</span>');
+function gpCevrPaket(g){
+  const p=kvkkDisPaket(g.V,'İSG grafik analizi'), S=kvkkDisSozluk(), M=t=>kvkkDisMetin(t,S);
+  const ad = g.boyut==='lok' ? (x=>{ const l=LOK.find(y=>esitTR(lokAd(y.kod),x)); return l&&S.lok[l.kod]||'L?'; }) : M;
+  p.grafik={baslik:M(g.baslik), boyut:AN_AD[g.boyut]||g.boyut, odak:g.F?ad(g.F.ad):null,
+    dagilim:g.rows.slice(0,30).map(x=>({deger:ad(x.ad), n:x.n}))};
+  return p;
+}
+function gpCevrBaslat(){
+  const g=GP_AKTIF, a=aiApiAyar(); if(!g || a.mod==='cevrimdisi') return;
+  if(!g.saglik && a.anahtar){
+    g.paket=gpCevrPaket(g); g.imza=g.boyut+'|'+aiPaketImza(g.paket)+'|'+JSON.stringify(g.paket.grafik);
+    if(!GP_CEVR.has(g.imza)){ gpCevrCalistir(); return; }
+  }
+  gpCevrYerlestir();
+}
+async function gpCevrCalistir(){
+  const g=GP_AKTIF; if(!g || g.saglik || !aiCevrimiciMi()) return;
+  if(!g.paket){ g.paket=gpCevrPaket(g); g.imza=g.boyut+'|'+aiPaketImza(g.paket)+'|'+JSON.stringify(g.paket.grafik); }
+  const imza=g.imza, d=kvkkDisDenetim(g.paket);
+  GP_CEVR.set(imza,{durum:'calisiyor'}); gpCevrYerlestir();
+  if(!d.ok){ GP_CEVR.set(imza,{durum:'hata', hata:'KVKK son denetimi gönderimi durdurdu ('+d.sorunlar.join(', ')+'); hiçbir veri gönderilmedi.'}); gpCevrYerlestir(); return; }
+  let R;
+  try{
+    const a=aiApiAyar(), t=await aiApiCagir(GP_SISTEM, 'Grafik ve olay veri paketi (kişisel veri içermez):\n'+JSON.stringify(g.paket), 8000);
+    let j=null; try{ const i=t.indexOf('{'), k=t.lastIndexOf('}'); j=JSON.parse(t.slice(i,k+1)); }catch(e){}
+    if(!j||typeof j!=='object') j={ozet:t, bulgular:[], oneriler:[]};
+    R={durum:'tamam', ozet:String(j.ozet||''), B:(j.bulgular||[]).map(String).slice(0,10), O:(j.oneriler||[]).map(String).slice(0,10), model:a.saglayici==='azure'?'Azure OpenAI':a.model};
+  }catch(e){ R={durum:'hata', hata:(e&&e.message)||String(e)}; }
+  GP_CEVR.set(imza,R);
+  if(GP_AKTIF && GP_AKTIF.imza===imza) gpCevrYerlestir();   /* pencere başka grafiğe geçtiyse sonuç yalnız saklanır */
+}
+function gpCevrYerlestir(){
+  const g=GP_AKTIF, b=document.querySelector('#gpGovde .gpAI .body'); if(!g || !b) return;
+  let el=b.querySelector(':scope > .aiCevr'); const a=aiApiAyar();
+  if(a.mod==='cevrimdisi'){ if(el) el.remove(); b.classList.remove('yalnizCevr'); return; }
+  if(!el){ el=document.createElement('div'); el.className='aiCevr'; b.prepend(el); }
+  const R=g.imza?GP_CEVR.get(g.imza):null;
+  b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && !!R && R.durum==='tamam');
+  if(g.saglik){ el.innerHTML=aiArtiBas('')+'<div class="hint">Sağlık verisi (yaralanma, vücut bölgesi) dışarı gönderilmez — bu grafik yalnız bu cihazda, kural tabanlı analiz edilir.</div>'; return; }
+  if(!a.anahtar){ el.innerHTML=aiArtiBas('')+'<div class="hint">Çevrimiçi analiz için Ayarlar › Analiz Sağlığı › AI Modu ve API bölümünde API anahtarı girin.</div>'; return; }
+  if(!R){ el.innerHTML=aiArtiBas('')+'<button class="btn sm" onclick="gpCevrCalistir()">Çevrimiçi analiz et</button>'; return; }
+  if(R.durum==='calisiyor'){ el.innerHTML=aiArtiBas('')+AI_SPIN; return; }
+  if(R.durum==='hata'){ el.innerHTML=aiArtiBas('')+`<div class="hint" style="color:var(--red)">Çevrimiçi analiz yapılamadı: ${esc(R.hata)}</div><button class="btn sm" style="margin-top:6px" onclick="gpCevrCalistir()">Yeniden dene</button>`; return; }
+  GPC_SON={B:R.B, O:R.O, lok:g.lok, etiket:'Grafik AI+: '+g.baslik+' · '+g.kapsam+(g.F?' · '+g.F.ad:'')};
+  el.innerHTML=aiArtiBas(R.model)+(R.ozet?`<div class="ozet">${esc(R.ozet)}</div>`:'')
+    +aiGrupHTML('Bulgular', aiArtiRozet(aiBekleyenLi(R.B, t=>esc(t), i=>`gpcOneriAksiyon('B',${i})`, null)))
+    +aiGrupHTML('Öneriler', aiArtiRozet(aiBekleyenLi(R.O, t=>esc(t), i=>`gpcOneriAksiyon('O',${i})`, null)))
+    +`<div class="dip">Dışarı yalnız KVKK süzgeçli paket gönderildi (kişi ve sağlık verisi yok, lokasyon ve olaylar takma adlı). ${a.mod==='karma'?'Altta kural tabanlı analiz.':''}</div>`;
+}
+function gpcOneriAksiyon(grp,i){
+  const t=GPC_SON&&(GPC_SON[grp]||[])[i]; if(t==null) return;
+  const eski=AN_AI_SON; AN_AI_SON=Object.assign({}, eski||{}, {lok:GPC_SON.lok, etiket:GPC_SON.etiket});
+  closeOv('ovGrafik');
+  try{ aksiyonFormAcAnaliz(t); } finally { AN_AI_SON=eski; }
+}
 /* AI kutusu her çizildiğinde çevrimiçi bölüm yerine konur; AI düğmesiyle açılışta istek atılır. */
 const _anAIYazOrj=anAIYaz;
 anAIYaz=function(){ const r=_anAIYazOrj.apply(this, arguments); try{ aiCevrimiciYerlestir(); }catch(e){} return r; };
@@ -8600,7 +8666,9 @@ const _aiAnalizOrj=aiAnaliz;
 aiAnaliz=function(){ const acikti=($('anAI')||{dataset:{}}).dataset.open==='1'; _aiAnalizOrj(); if(!acikti && aiCevrimiciMi()) setTimeout(aiCevrimiciCalistir, 3100); };
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.1':['Çevrimiçi analiz AI+ olarak ayrı (turuncu) gösterilir',
+const SURUM_NOTU={'1.9.2':['Grafik penceresinde de çevrimiçi (AI+) analiz: grafiğe özel, KVKK süzgeçli; önerilerden doğrudan aksiyon',
+  'Sağlık grafikleri (yaralanma, vücut bölgesi) dışarı gönderilmez'],
+  '1.9.1':['Çevrimiçi analiz AI+ olarak ayrı (turuncu) gösterilir',
   'Motorlar ve Güncellemeler: öğrenme motoru da tabloda; ayrıntı için motorun satırına tıklayın'],
   '1.9.0':['Analizde grafiğe tıklayınca yumuşak pencere: büyük grafik, tam dağılım ve grafiğe özel AI; önerilerden doğrudan aksiyon',
   'Derin analiz motoru: kaynak × ciddiyet, gün yoğunlaşması, 30 gün içinde tekrar, lokasyon termin performansı',
