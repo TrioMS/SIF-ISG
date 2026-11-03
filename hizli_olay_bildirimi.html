@@ -1638,7 +1638,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.4';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.5';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -8680,33 +8680,37 @@ const AI_SISTEM='Sen kıdemli bir İSG (iş sağlığı ve güvenliği) analisti
 async function aiCevrimiciCalistir(){
   if(!aiCevrimiciMi()) return;
   const p=kvkkDisPaket(anKume(),'İSG olay analizi'), d=kvkkDisDenetim(p), imza=aiPaketImza(p);
+  /* Önceki sonuç saklanır: yeni istek başarısız olursa eskisi yerinde kalır (03.11.2026, kullanıcı isteği) */
+  const onceki=AI_CEVR.durum==='tamam'?AI_CEVR:null, basarisiz=msg=>{ AI_CEVR=onceki?Object.assign({},onceki,{sonHata:msg}):{imza, durum:'hata', sonuc:null, hata:msg, model:''}; };
   AI_CEVR={imza, durum:'calisiyor', sonuc:null, hata:'', model:''}; aiCevrimiciYerlestir();
-  if(!d.ok){ AI_CEVR.durum='hata'; AI_CEVR.hata='KVKK son denetimi gönderimi durdurdu ('+d.sorunlar.join(', ')+'); hiçbir veri gönderilmedi.'; aiCevrimiciYerlestir(); return; }
+  if(!d.ok){ basarisiz('KVKK son denetimi gönderimi durdurdu ('+d.sorunlar.join(', ')+'); hiçbir veri gönderilmedi.'); aiCevrimiciYerlestir(); return; }
   try{
     const a=aiApiAyar(), t=await aiApiCagir(AI_SISTEM, 'Olay veri paketi (kişisel veri içermez):\n'+JSON.stringify(p), 8000);
     let j=null; try{ const i=t.indexOf('{'), k=t.lastIndexOf('}'); j=JSON.parse(t.slice(i,k+1)); }catch(e){}
     if(!j||typeof j!=='object') j={ozet:t, bulgular:[], oneriler:[]};
     AI_CEVR={imza, durum:'tamam', sonuc:{ozet:String(j.ozet||''), B:(j.bulgular||[]).map(String).slice(0,10), O:(j.oneriler||[]).map(String).slice(0,10)}, hata:'', model:a.saglayici==='azure'?'Azure OpenAI':a.model, at:new Date().toISOString()};
-  }catch(e){ AI_CEVR.durum='hata'; AI_CEVR.hata=(e&&e.message)||String(e); }
+  }catch(e){ basarisiz((e&&e.message)||String(e)); }
   aiCevrimiciYerlestir(); try{ aiCevrSakla(); }catch(e){}
 }
 function aiCevrimiciYerlestir(){
   const box=$('anAI'), b=box&&box.querySelector('.body'); if(!b) return;
   let el=b.querySelector(':scope > .aiCevr'); const a=aiApiAyar();
-  /* Çevrimdışına geçilince son AI+ sonucu, çevrimdışı analiz yapılana kadar korunur (03.11.2026, kullanıcı isteği) */
-  const eskiTut = a.mod==='cevrimdisi' && AI_CEVR.durum==='tamam';
-  if(a.mod==='cevrimdisi' && !eskiTut){ if(el) el.remove(); b.classList.remove('yalnizCevr'); return; }
-  b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && AI_CEVR.durum==='tamam');
+  /* Kayıtlı AI+ sonucu her zaman gösterilir (mod ya da veri değişse de); yeni çevrimiçi analiz yapılana kadar saklanır */
+  const tamam = AI_CEVR.durum==='tamam';
+  if(a.mod==='cevrimdisi' && !tamam){ if(el) el.remove(); b.classList.remove('yalnizCevr'); return; }
+  b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && tamam);
   if(!el){ el=document.createElement('div'); el.className='aiCevr'; b.prepend(el); }
-  let imzaSimdi=null; try{ imzaSimdi=eskiTut?AI_CEVR.imza:aiPaketImza(kvkkDisPaket(anKume())); }catch(e){}
+  let imzaSimdi=null; try{ if(tamam) imzaSimdi=aiPaketImza(kvkkDisPaket(anKume())); }catch(e){}
+  const degisti = tamam && imzaSimdi && AI_CEVR.imza!==imzaSimdi, eski = tamam && (degisti || a.mod==='cevrimdisi');
   /* AI+ (03.11.2026, kullanıcı isteği): çevrimiçi analiz koyu turuncu AI+ balonuyla ayrışır; maddelerdeki rozet de AI+ */
-  const bas=`<div class="aiArtiBas"><span class="aiArti">${ICO_AI} AI+</span><span>${eskiTut?'Önceki çevrimiçi analiz':'Çevrimiçi analiz'}${AI_CEVR.model?' · '+esc(AI_CEVR.model):''}${AI_CEVR.at?' · '+esc(anZaman(AI_CEVR.at)):''}</span></div>`
-    +(eskiTut?'<div class="hint" style="margin:-2px 0 8px">Çevrimdışı moddasınız — bu sonuç, AI düğmesiyle çevrimdışı analiz yapılana kadar korunur.</div>':'');
-  if(!a.anahtar && !eskiTut){ el.innerHTML=bas+'<div class="hint">Çevrimiçi analiz için Ayarlar › Analiz Sağlığı › AI Modu ve API bölümünde API anahtarı girin.</div>'; return; }
+  const bas=`<div class="aiArtiBas"><span class="aiArti">${ICO_AI} AI+</span><span>${eski?'Kayıtlı çevrimiçi analiz':'Çevrimiçi analiz'}${AI_CEVR.model?' · '+esc(AI_CEVR.model):''}${AI_CEVR.at?' · '+esc(anZaman(AI_CEVR.at)):''}</span></div>`
+    +(eski?`<div class="hint" style="margin:-2px 0 8px">Sonuç saklanıyor${degisti?'; veri bu analizden sonra değişti':''} — yenilemek için çevrimiçi ya da karma modda AI düğmesine basın.</div>`:'')
+    +(tamam&&AI_CEVR.sonHata?`<div class="hint" style="margin:-2px 0 8px;color:var(--red)">Son yenileme denemesi başarısız: ${esc(AI_CEVR.sonHata)}</div>`:'');
+  if(!a.anahtar && !tamam){ el.innerHTML=bas+'<div class="hint">Çevrimiçi analiz için Ayarlar › Analiz Sağlığı › AI Modu ve API bölümünde API anahtarı girin.</div>'; return; }
   if(AI_CEVR.durum==='calisiyor'){ el.innerHTML=bas+AI_SPIN; return; }
   if(AI_CEVR.durum==='hata'){ el.innerHTML=bas+`<div class="hint" style="color:var(--red)">Çevrimiçi analiz yapılamadı: ${esc(AI_CEVR.hata)}</div><button class="btn sm" style="margin-top:6px" onclick="aiCevrimiciCalistir()">Yeniden dene</button>`; return; }
-  if(AI_CEVR.durum!=='tamam' || AI_CEVR.imza!==imzaSimdi){
-    el.innerHTML=bas+`<div class="hint">${AI_CEVR.durum==='tamam'?'Kapsam ya da veri değişti — ':''}çevrimiçi analiz için düğmeye basın (yalnız KVKK süzgeçli paket gider).</div><button class="btn sm" style="margin-top:6px" onclick="aiCevrimiciCalistir()">Çevrimiçi analiz et</button>`;
+  if(!tamam){
+    el.innerHTML=bas+`<div class="hint">Çevrimiçi analiz için AI düğmesine basın (yalnız KVKK süzgeçli paket gider).</div><button class="btn sm" style="margin-top:6px" onclick="aiCevrimiciCalistir()">Çevrimiçi analiz et</button>`;
     b.classList.remove('yalnizCevr'); return; }
   const S=AI_CEVR.sonuc; AIC_SON={B:S.B, O:S.O, lok:($('anLok')&&$('anLok').value)||'', etiket:'Çevrimiçi AI · '+(AI_CEVR.model||'')};
   el.innerHTML=bas+(S.ozet?`<div class="ozet">${esc(S.ozet)}</div>`:'')
@@ -8776,7 +8780,7 @@ async function gpCevrTopluCalistir(){
     let j=null; try{ const i=t.indexOf('{'), k=t.lastIndexOf('}'); j=JSON.parse(t.slice(i,k+1)); }catch(e){}
     const model=a.saglayici==='azure'?'Azure OpenAI':a.model;
     yaz(g=>{ const x=j&&j[g.boyut]; return x&&typeof x==='object'
-      ? {durum:'tamam', ozet:String(x.ozet||''), B:(x.bulgular||[]).map(String).slice(0,10), O:(x.oneriler||[]).map(String).slice(0,10), model}
+      ? {durum:'tamam', ozet:String(x.ozet||''), B:(x.bulgular||[]).map(String).slice(0,10), O:(x.oneriler||[]).map(String).slice(0,10), model, boyut:g.boyut, kapsam:g.kapsam, at:new Date().toISOString()}
       : {durum:'hata', hata:'yanıtta bu grafiğin analizi yok'}; });
   }catch(e){ const h=(e&&e.message)||String(e); yaz(()=>({durum:'hata', hata:h})); }
 }
@@ -8791,15 +8795,25 @@ async function gpCevrCalistir(){
     const a=aiApiAyar(), t=await aiApiCagir(GP_SISTEM, 'Grafik ve olay veri paketi (kişisel veri içermez):\n'+JSON.stringify(g.paket), 8000);
     let j=null; try{ const i=t.indexOf('{'), k=t.lastIndexOf('}'); j=JSON.parse(t.slice(i,k+1)); }catch(e){}
     if(!j||typeof j!=='object') j={ozet:t, bulgular:[], oneriler:[]};
-    R={durum:'tamam', ozet:String(j.ozet||''), B:(j.bulgular||[]).map(String).slice(0,10), O:(j.oneriler||[]).map(String).slice(0,10), model:a.saglayici==='azure'?'Azure OpenAI':a.model};
+    R={durum:'tamam', ozet:String(j.ozet||''), B:(j.bulgular||[]).map(String).slice(0,10), O:(j.oneriler||[]).map(String).slice(0,10), model:a.saglayici==='azure'?'Azure OpenAI':a.model, boyut:g.boyut, kapsam:g.kapsam, at:new Date().toISOString()};
   }catch(e){ R={durum:'hata', hata:(e&&e.message)||String(e)}; }
   GP_CEVR.set(imza,R);
   if(GP_AKTIF && GP_AKTIF.imza===imza) gpCevrYerlestir();   /* pencere başka grafiğe geçtiyse sonuç yalnız saklanır */
 }
+/* Grafiğin kayıtlı AI+ sonucu: tam imza (aynı veri) yoksa aynı grafik + aynı kapsamın EN SON sonucu (eski:true).
+   Böylece veri değişince ya da uygulama güncellenince yeniden analiz gerekmez (03.11.2026, kullanıcı isteği). */
+function gpSonuc(g){
+  if(!g || !g.imza) return null;
+  const R=GP_CEVR.get(g.imza);
+  if(R && (R.durum==='tamam' || R.durum==='calisiyor')) return R;
+  let en=null; GP_CEVR.forEach((r,k)=>{ if(r.durum==='tamam' && (r.boyut||k.split('|')[0])===g.boyut && (!r.kapsam || r.kapsam===g.kapsam) && (!en || String(r.at||'')>String(en.at||''))) en=r; });
+  if(en) return Object.assign({}, en, {eski:true, sonHata:R&&R.durum==='hata'?R.hata:''});
+  return R||null;
+}
 function gpCevrYerlestir(){
   const g=GP_AKTIF, b=document.querySelector('#gpGovde .gpAI .body'); if(!g || !b) return;
   let el=b.querySelector(':scope > .aiCevr'); const a=aiApiAyar();
-  const R=g.imza?GP_CEVR.get(g.imza):null;
+  const R=gpSonuc(g);
   if(a.mod==='cevrimdisi' && !(R && R.durum==='tamam')){ if(el) el.remove(); b.classList.remove('yalnizCevr'); return; }   /* tamam sonuç çevrimdışı analize kadar korunur */
   if(!el){ el=document.createElement('div'); el.className='aiCevr'; b.prepend(el); }
   b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && !!R && R.durum==='tamam');
@@ -8809,7 +8823,10 @@ function gpCevrYerlestir(){
   if(R.durum==='calisiyor'){ el.innerHTML=aiArtiBas('')+AI_SPIN; return; }
   if(R.durum==='hata'){ el.innerHTML=aiArtiBas('')+`<div class="hint" style="color:var(--red)">Çevrimiçi analiz yapılamadı: ${esc(R.hata)}</div><button class="btn sm" style="margin-top:6px" onclick="gpCevrCalistir()">Yeniden dene</button>`; return; }
   GPC_SON={B:R.B, O:R.O, lok:g.lok, etiket:'Grafik AI+: '+g.baslik+' · '+g.kapsam+(g.F?' · '+g.F.ad:'')};
-  el.innerHTML=aiArtiBas(R.model).replace('Çevrimiçi analiz', a.mod==='cevrimdisi'?'Önceki çevrimiçi analiz':'Çevrimiçi analiz')+(R.ozet?`<div class="ozet">${esc(R.ozet)}</div>`:'')
+  el.innerHTML=aiArtiBas(R.model+(R.at?' · '+anZaman(R.at):'')).replace('Çevrimiçi analiz', (R.eski||a.mod==='cevrimdisi')?'Kayıtlı çevrimiçi analiz':'Çevrimiçi analiz')
+    +(R.eski?'<div class="hint" style="margin:-2px 0 8px">Sonuç saklanıyor; veri bu analizden sonra değişti — yenilemek için Pano’daki AI düğmesine basın.</div>':'')
+    +(R.sonHata?`<div class="hint" style="margin:-2px 0 8px;color:var(--red)">Son yenileme denemesi başarısız: ${esc(R.sonHata)}</div>`:'')+
+(R.ozet?`<div class="ozet">${esc(R.ozet)}</div>`:'')
     +aiGrupHTML('Bulgular', aiArtiRozet(aiBekleyenLi(R.B, t=>esc(t), i=>`gpcOneriAksiyon('B',${i})`, null, true, gpKaynakUyar(g.baslik))))
     +aiGrupHTML('Öneriler', aiArtiRozet(aiBekleyenLi(R.O, t=>esc(t), i=>`gpcOneriAksiyon('O',${i})`, null, true, gpKaynakUyar(g.baslik))))
     +`<div class="dip">Dışarı yalnız KVKK süzgeçli paket gönderildi (kişi ve sağlık verisi yok, lokasyon ve olaylar takma adlı). ${a.mod==='karma'?'Altta kural tabanlı analiz.':''}</div>`;
@@ -8834,11 +8851,7 @@ aiAnaliz=function(){
   const adim=[`Olay kümesi: ${V.length} olay`, 'Olay türleri ve ciddiyet dağılımı', `Lokasyonlar (${new Set(V.map(r=>r.lokasyon)).size})`, 'Olay kaynakları ve bulgular',
     'Kök sebepler', `Aksiyonlar ve terminler (${aks.length} aksiyon)`, 'Zaman eğilimi ve göstergeler', 'Çapraz kurallar (derin analiz motoru)'];
   adim.forEach((t,i)=>setTimeout(()=>aiAdim(t), 120+i*340));
-  if(!cevr){
-    if(AI_CEVR.durum==='tamam') setTimeout(()=>{ AI_CEVR={imza:null, durum:'yok', sonuc:null, hata:'', model:''};   /* grafiklerin AI+ sonucu Pano'daki analize kadar kalır */
-      try{ aiCevrSakla(); aiCevrimiciYerlestir(); }catch(e){} bgTazele(); }, 3050);
-    return;
-  }
+  if(!cevr) return;   /* kayıtlı AI+ sonucu çevrimdışı analizde silinmez (yeni AI+ analizine kadar saklanır) */
   setTimeout(async()=>{
     aiAdim('Kural tabanlı analiz tamamlandı');
     aiAdim('KVKK süzgeci: kişisel ve sağlık verisi ayıklanıyor, lokasyon ve olaylara takma ad veriliyor');
@@ -8883,7 +8896,7 @@ function bulguTopla(){
     let ai; try{ ai=gpAI(g.boyut, g.V, g.rows, g.F&&g.F.ad); }catch(e){ return; }
     const bag={V:g.V, boyut:g.boyut, lok:g.lok}, kay='Grafik: '+g.baslik, O=off(ai.O);
     ai.B.slice(2).forEach(t=>ekle(t, aiDumTag(t), kay, 'AI', O, bag));   /* ilk iki satır sayım / en sık: betimleyici */
-    if((cevrimici || GP_CEVR.size) && !g.saglik){ try{ gpImzala(g); const R=GP_CEVR.get(g.imza);
+    if((cevrimici || GP_CEVR.size) && !g.saglik){ try{ gpImzala(g); const R=gpSonuc(g);
       if(R && R.durum==='tamam'){ const O2=arti(R.O); R.B.forEach(t=>ekle(esc(t), String(t), kay, 'AI+', O2, bag)); } }catch(e){} }
   });
   const P=bgDepo().plan;
@@ -9203,7 +9216,10 @@ function bgAI(){ const b=$('anAI'); if(b && b.dataset.open==='1') b.dataset.open
    açılışta da durur; çevrimdışı analiz yapılınca bırakılır. */
 const K_AICEVR = K_ANAI.replace(/an_ai$/,'an_cevr');
 function aiCevrSakla(){
-  const gr=[...GP_CEVR.entries()].filter(([k,r])=>r.durum==='tamam');
+  const son={}; GP_CEVR.forEach((r,k)=>{ if(r.durum!=='tamam') return; const a=(r.boyut||k.split('|')[0])+'|'+(r.kapsam||'');
+    if(!son[a] || String(r.at||'')>String(son[a][1].at||'')) son[a]=[k,r]; });
+  GP_CEVR.forEach((r,k)=>{ if(r.durum==='tamam' && !Object.values(son).some(x=>x[0]===k)) GP_CEVR.delete(k); });
+  const gr=Object.values(son);
   if(AI_CEVR.durum!=='tamam' && !gr.length){ store.set(K_AICEVR,null); return; }
   store.set(K_AICEVR,{genel:AI_CEVR.durum==='tamam'?AI_CEVR:null, grafik:gr});
 }
@@ -9238,7 +9254,6 @@ async function panoGrafikAnaliz(){
   await new Promise(r=>setTimeout(r, 200+G.length*320));
   const fl=$('anLok')?$('anLok').value:'';
   if(!cevr){
-    if(GP_CEVR.size){ GP_CEVR.clear(); try{ aiCevrSakla(); }catch(e){} }
     aiAdim('Grafik analizi tamamlandı — sonucu görmek için grafiğe tıklayın');
     try{ anGecmisEkle({mod:'AI', hedef:'grafik', olay:gorunurKayitlar().filter(r=>!fl||r.lokasyon===fl).length, bulgu, oneri:0, grafik:G.length}); }catch(e){}
     bgTazele(); setTimeout(()=>aiOverlayKapat(true), 900); return;
@@ -9264,7 +9279,8 @@ const bgTazele = () => { try{ if(document.getElementById('v-bulgu').classList.co
 { const _y=anAIYaz; anAIYaz=function(){ const r=_y.apply(this, arguments); bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.4':['Bulgu penceresinde bulguya özel öneriler ve “Neden kapanmıyor?” çözümlemesi',
+const SURUM_NOTU={'1.9.5':['Çevrimiçi (AI+) analiz sonuçları saklanır: veri ya da uygulama güncellense de son sonuç görünür, yeni analiz yapılana kadar silinmez'],
+  '1.9.4':['Bulgu penceresinde bulguya özel öneriler ve “Neden kapanmıyor?” çözümlemesi',
   'Bulgu penceresinde özet balonları tıklanınca olayları ve aksiyonları açar',
   'Aksiyon Planı: AI bulgusundan açılan tüm aksiyonlar ve kök sebep listesinin tamamı',
   'Bulgularda AI+ başta, mükerrer yok; aksiyon açılmış bulgular “Aksiyonda” olarak görünür'],
