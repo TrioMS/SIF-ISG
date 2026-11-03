@@ -405,6 +405,7 @@ body.dark .sagKayit{color:#8ab4f8}
 /* animasyon YALNIZ sekme ilk açıldığında (.ani) — çapraz filtre tıklamasında
    grafikler yerinde/anlık güncellenir, kartlar tekrar "gidip gelmez" */
 .anCard.ani{animation:anFadeUp .35s ease both}
+.anCard.ani[data-w="c-lok"]{animation:none}   /* lokasyon radarı kaymaz; yalnız şekli yerinde değişir */
 svg.radar.ani{animation:anFadeUp .45s ease both}
 .pie path,.pie circle{transition:opacity .15s}
 .pie .sel{stroke:var(--ink);stroke-width:3}
@@ -799,7 +800,10 @@ body.dark :is(#v-form,#yaWrap) div:has(> label.f):not(.cb,:has(div > label.f)) :
 .gpPaket{max-height:52vh;overflow:auto;font-size:11.5px;line-height:1.45;background:var(--surface2);padding:12px 14px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
 html:has(#ovGrafik.on),body:has(#ovGrafik.on){overflow:hidden;overscroll-behavior:none}   /* pencere açıkken arka sayfa kaymaz */
 body:has(#ovGrafik.on) .aiFab{display:none}
-body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)), body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) *{cursor:pointer}   /* grafik penceresi açılır */   /* pencere açıkken sağ alttaki AI düğmesi üstte kalmasın */
+body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) h3, body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) h3 *{cursor:pointer}
+body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) h3::after{content:'⤢';font-size:14px;opacity:.55;margin-left:8px;transition:opacity .15s}
+body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) h3:hover::after{opacity:1}
+body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)) h3:hover{filter:brightness(1.15)}   /* grafik penceresi açılır */   /* pencere açıkken sağ alttaki AI düğmesi üstte kalmasın */
 @media(max-width:760px){ .gpUst{grid-template-columns:1fr} #ovGrafik .mod{margin:0;border-radius:20px 20px 0 0;position:fixed;left:0;right:0;bottom:0;max-height:92vh} #ovGrafik .mb{max-height:78vh} }
 /* MOTOR TABLOSU + AI KARTI + ÇEVRİMİÇİ AI (03.11.2026) */
 .motorTablo td{vertical-align:middle}
@@ -1651,7 +1655,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.7';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.8';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -8198,6 +8202,7 @@ document.addEventListener('click', e=>{
   if(document.body.classList.contains('wDuzen')) return;   /* telefon widget düzenlemesi */
   const kart=e.target.closest && e.target.closest('#anCharts .anCard'); if(!kart) return;
   if(e.target.closest('button')) return;
+  if(!e.target.closest('h3')) return;   /* pencere yalnız başlık barından açılır; grafiğin kendisine tıklamak süzgeç yapar (03.11.2026, kullanıcı isteği) */
   const w=kart.dataset.w; if(!GP_BOYUT[w] || kart.querySelector('.anEmpty')) return;   /* KVKK maskeli kart açılmaz */
   setTimeout(()=>grafikPencere(w),0);
 }, true);
@@ -8614,7 +8619,7 @@ function bilOnar(id){
 let OGR_DETAY=null; const MOTOR_ACIK=new Set();
 const MOTOR_ACIKLAMA={
   'Derin analiz motoru':'Analiz ekranındaki AI düğmesinin kural tabanlı raporu: bulgular yalnız veriden; çapraz kurallar (kaynak × ciddiyet, gün yoğunlaşması, 30 gün içinde tekrar, lokasyon termin performansı, bulgu → kök sebep).',
-  'Grafik AI':'Grafiğe tıklayınca açılan penceredeki bulgu ve öneriler; yalnız o grafiğin verisi. Çevrimiçi / karma modda pencerede AI+ (KVKK süzgeçli) analiz de yapılır; sağlık grafikleri dışarı çıkmaz.',
+  'Grafik AI':'Grafiğe tıklayınca açılan penceredeki bulgu ve öneriler; yalnız o grafiğin verisi. Çevrimiçi / karma modda pencerede AI+ (KVKK süzgeçli) analiz de yapılır; yaralanma türü ve vücut bölgesinden yalnız toplam dağılım gider.',
   'Belge sınıflandırma':'Eklenen belgelerin türünü (iş izni, tutanak, rapor…) terimlerden tanır; içerik saklanmaz.',
   'KVKK ayıklama':'Okunan belge metninden TCKN, telefon, e-posta, IBAN, plaka ve etiketli isimleri maskeler.',
   'KVKK dış çıkış':'Çevrimiçi (AI+) analize giden paketi üretir ve son denetimden geçirir; kişi ve sağlık verisi hiç girmez.',
@@ -8757,6 +8762,11 @@ const GP_CEVR=new Map(); let GP_AKTIF=null, GPC_SON=null;
 const GP_SISTEM=AI_SISTEM+' Paketteki "grafik" alanı kullanıcının incelediği grafiği ve dağılımını verir; analizi bu grafiğin boyutuna ve odak değerine yoğunlaştır, olaylarla destekle.';
 const aiArtiBas = m => `<div class="aiArtiBas"><span class="aiArti">${ICO_AI} AI+</span><span>Çevrimiçi analiz${m?' · '+esc(m):''}</span></div>`;
 const aiArtiRozet = h => h.split('<span class="aiBadge">'+ICO_AI+' AI</span>').join('<span class="aiBadge aiArti">'+ICO_AI+' AI+</span>');
+/* SAĞLIK GRAFİKLERİ DIŞ ÇIKIŞ (03.11.2026, kullanıcı kararı): yaralanma türü ve vücut bölgesi grafikleri çevrimiçi
+   analize YALNIZ TOPLAM DAĞILIM olarak gider (ör. "Kesik 6, Kırık 3"); olay bazında sağlık verisi pakete hiç girmez
+   (kvkkDisPaket olaylarında yaralanma / bölge alanı yok), kişi ve şirket adı yok. Kapatmak için false yapın. */
+const SAGLIK_DAGILIM_DIS = true;
+const gpDisIzin = g => !!g && (!g.saglik || SAGLIK_DAGILIM_DIS);
 /* Grafiğin o anki durumu (pencere ve toplu analiz aynı hesaptan geçer → aynı imza, aynı önbellek) */
 function gpBilgi(w){
   const boyut=GP_BOYUT[w]; if(!boyut) return null;
@@ -8779,7 +8789,7 @@ function gpImzala(g){ g.paket=gpCevrPaket(g); g.imza=g.boyut+'|'+aiPaketImza(g.p
    sağ alttaki AI düğmesiyle tüm grafikler için birlikte yapılır (gpCevrTopluCalistir). */
 function gpCevrBaslat(){
   const g=GP_AKTIF, a=aiApiAyar(), off=a.mod==='cevrimdisi'; if(!g || (off && !GP_CEVR.size)) return;   /* çevrimdışında yalnız korunan AI+ sonucu varsa */
-  if(!g.saglik && (a.anahtar || off)) gpImzala(g);
+  if(gpDisIzin(g) && (a.anahtar || off)) gpImzala(g);
   gpCevrYerlestir();
 }
 /* TOPLU: analiz kümesi bir kez + her grafiğin dağılımı TEK istekte gider; yanıt grafik kimliğine (boyut) göre
@@ -8791,7 +8801,7 @@ const GP_TOPLU_SISTEM='Sen kıdemli bir İSG (iş sağlığı ve güvenliği) an
   +'Her grafik için en fazla 5 bulgu ve 5 öneri; öneriler uygulanabilir olsun (bir sorumluya terminle verilebilecek iş).';
 async function gpCevrTopluCalistir(){
   if(!aiCevrimiciMi()) return;
-  const G=Object.keys(GP_BOYUT).map(gpBilgi).filter(g=>g && !g.saglik && g.rows.length).map(gpImzala)
+  const G=Object.keys(GP_BOYUT).map(gpBilgi).filter(g=>gpDisIzin(g) && g.rows.length).map(gpImzala)
     .filter(g=>{ const R=GP_CEVR.get(g.imza); return !R || R.durum==='hata'; });
   if(!G.length) return;
   const fl=$('anLok')?$('anLok').value:'', S=kvkkDisSozluk();
@@ -8810,7 +8820,7 @@ async function gpCevrTopluCalistir(){
   }catch(e){ const h=(e&&e.message)||String(e); yaz(()=>({durum:'hata', hata:h})); }
 }
 async function gpCevrCalistir(){
-  const g=GP_AKTIF; if(!g || g.saglik || !aiCevrimiciMi()) return;
+  const g=GP_AKTIF; if(!gpDisIzin(g) || !aiCevrimiciMi()) return;
   if(!g.paket){ g.paket=gpCevrPaket(g); g.imza=g.boyut+'|'+aiPaketImza(g.paket)+'|'+JSON.stringify(g.paket.grafik); }
   const imza=g.imza, d=kvkkDisDenetim(g.paket);
   GP_CEVR.set(imza,{durum:'calisiyor'}); gpCevrYerlestir();
@@ -8842,7 +8852,7 @@ function gpCevrYerlestir(){
   if(a.mod==='cevrimdisi' && !(R && R.durum==='tamam')){ if(el) el.remove(); b.classList.remove('yalnizCevr'); return; }   /* tamam sonuç çevrimdışı analize kadar korunur */
   if(!el){ el=document.createElement('div'); el.className='aiCevr'; b.prepend(el); }
   b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && !!R && R.durum==='tamam');
-  if(g.saglik){ el.innerHTML=aiArtiBas('')+'<div class="hint">Sağlık verisi (yaralanma, vücut bölgesi) dışarı gönderilmez — bu grafik yalnız bu cihazda, kural tabanlı analiz edilir.</div>'; return; }
+  if(!gpDisIzin(g)){ el.innerHTML=aiArtiBas('')+'<div class="hint">Sağlık verisi (yaralanma, vücut bölgesi) dışarı gönderilmez — bu grafik yalnız bu cihazda, kural tabanlı analiz edilir.</div>'; return; }
   if(!a.anahtar && !(R && R.durum==='tamam')){ el.innerHTML=aiArtiBas('')+'<div class="hint">Çevrimiçi analiz için Ayarlar › Analiz Sağlığı › AI Modu ve API bölümünde API anahtarı girin.</div>'; return; }
   if(!R){ el.innerHTML=aiArtiBas('')+'<div class="hint">Çevrimiçi analiz sağ alttaki AI düğmesiyle tüm veriyle birlikte yapılır.</div><button class="btn sm" style="margin-top:6px" onclick="gpCevrCalistir()">Yalnız bu grafiği analiz et</button>'; return; }
   if(R.durum==='calisiyor'){ el.innerHTML=aiArtiBas('')+AI_SPIN; return; }
@@ -8890,8 +8900,8 @@ aiAnaliz=function(){
     const a=aiApiAyar(); aiAdim('Çevrimiçine geçildi — AI+ · '+(a.saglayici==='azure'?'Azure OpenAI':a.model), 'arti');
     $('aiOvGizle').style.display='';
     { const k=document.querySelector('#aiOv .aiOvCard'); if(k){ k.classList.add('arti'); k.querySelector('.aiTxt').textContent='AI+'; } }
-    const dis=G.filter(g=>!g.saglik), sag=G.filter(g=>g.saglik);
-    if(sag.length) aiAdim('Dışarı gönderilmez (sağlık verisi): '+sag.map(g=>g.baslik).join(', '));
+    const dis=G.filter(gpDisIzin), sag=G.filter(g=>g.saglik);
+    if(sag.length) aiAdim((SAGLIK_DAGILIM_DIS?'Yalnız toplam dağılım gider (olay bazında sağlık verisi yok): ':'Dışarı gönderilmez (sağlık verisi): ')+sag.map(g=>g.baslik).join(', '));
     /* Veri değişmediyse kayıtlı genel AI+ güncel: yeniden istek yok */
     let imza=null; try{ imza=aiPaketImza(kvkkDisPaket(V,'İSG olay analizi',{bagimsiz:bag})); }catch(e){}
     const genelGuncel = AI_CEVR.durum==='tamam' && imza && AI_CEVR.imza===imza;
@@ -8936,7 +8946,7 @@ function bulguTopla(){
     let ai; try{ ai=gpAI(g.boyut, g.V, g.rows, g.F&&g.F.ad); }catch(e){ return; }
     const bag={V:g.V, boyut:g.boyut, lok:g.lok}, kay='Grafik: '+g.baslik, O=off(ai.O);
     ai.B.slice(2).forEach(t=>ekle(t, aiDumTag(t), kay, 'AI', O, bag));   /* ilk iki satır sayım / en sık: betimleyici */
-    if((cevrimici || GP_CEVR.size) && !g.saglik){ try{ gpImzala(g); const R=gpSonuc(g);
+    if((cevrimici || GP_CEVR.size) && gpDisIzin(g)){ try{ gpImzala(g); const R=gpSonuc(g);
       if(R && R.durum==='tamam'){ const O2=arti(R.O); R.B.forEach(t=>ekle(esc(t), String(t), kay, 'AI+', O2, bag)); } }catch(e){} }
   });
   const P=bgDepo().plan;
@@ -9327,8 +9337,8 @@ async function panoGrafikAnaliz(){
   const a=aiApiAyar(); aiAdim('Çevrimiçine geçildi — AI+ · '+(a.saglayici==='azure'?'Azure OpenAI':a.model), 'arti');
   $('aiOvGizle').style.display='';
   { const k=document.querySelector('#aiOv .aiOvCard'); if(k){ k.classList.add('arti'); k.querySelector('.aiTxt').textContent='AI+'; } }
-  const dis=G.filter(g=>!g.saglik), sag=G.filter(g=>g.saglik);
-  if(sag.length) aiAdim('Dışarı gönderilmez (sağlık verisi): '+sag.map(g=>g.baslik).join(', '));
+  const dis=G.filter(gpDisIzin), sag=G.filter(g=>g.saglik);
+  if(sag.length) aiAdim((SAGLIK_DAGILIM_DIS?'Yalnız toplam dağılım gider (olay bazında sağlık verisi yok): ':'Dışarı gönderilmez (sağlık verisi): ')+sag.map(g=>g.baslik).join(', '));
   aiAdim('AI+ grafikler: '+dis.map(g=>g.baslik).join(', '), 'arti');
   try{ await gpCevrTopluCalistir(); }catch(e){}
   const R=dis.map(g=>{ try{ gpImzala(g); return GP_CEVR.get(g.imza); }catch(e){ return null; } }), tamam=R.filter(r=>r&&r.durum==='tamam');
@@ -9349,7 +9359,10 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.7':['Aksiyon Planı sadeleşti: başta aksiyon no, durum etiketi; aksiyonun üzerine gelince ayrıntı penceresi, tıklayınca aksiyon açılır'],
+const SURUM_NOTU={'1.9.8':['Grafik penceresi başlık barına tıklayınca açılır; grafiğe tıklamak süzgeç yapar',
+  'Lokasyon radarı açılışta kaymaz, şekli yerinde değişir',
+  'Yaralanma türü ve vücut bölgesi grafikleri de çevrimiçi analize girer (yalnız toplam dağılım)'],
+  '1.9.7':['Aksiyon Planı sadeleşti: başta aksiyon no, durum etiketi; aksiyonun üzerine gelince ayrıntı penceresi, tıklayınca aksiyon açılır'],
   '1.9.6':['Tek AI düğmesi: Pano’da da Analiz’de de tüm veriyi (olaylar, bağlı ve bağımsız aksiyonlar) ve bütün grafikleri birlikte analiz eder',
   'Veri değişmediyse çevrimiçi analiz yeniden istek atmaz; son analiz saklanır, açılışta bulgular hazır gelir'],
   '1.9.5':['Çevrimiçi (AI+) analiz sonuçları saklanır: veri ya da uygulama güncellense de son sonuç görünür, yeni analiz yapılana kadar silinmez'],
@@ -9505,7 +9518,8 @@ function updRadar(vals,sec){
   dots.forEach((d,i)=>{ const on=onMu(i); d.setAttribute('fill',on?'#141414':'#f5c518'); d.setAttribute('r',on?'6.5':'5'); const ti=d.querySelector('title'); if(ti) ti.textContent=labels[i]+': '+vals[i]; });
   { const ip=svg.parentNode&&svg.parentNode.querySelector('.radIpucu');
     if(ip) ip.textContent = secL.length ? secL.length+' lokasyon seçili · kaldırmak için yeniden dokunun' : 'Birden çok lokasyon seçilebilir'; }
-  const target=geo(vals), start=_radVals?_radVals.slice():vals.map(()=>0);
+  /* önceki şekil aynı eksenlerle varsa ondan süzül; ilk çizimde ya da eksenler değiştiyse animasyonsuz yerine otur */
+  const target=geo(vals), start=(_radVals && _radVals.length===n) ? _radVals.slice() : vals.slice();
   _radVals=vals.slice();
   // hedefi hemen yaz (rAF çalışmazsa doğru kalsın), sonra tween
   poly.setAttribute('points', target.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '));
@@ -9621,7 +9635,7 @@ function renderAnaliz(animate){
     bulgu: sayimla(base.flatMap(r=>listeAd(r.bulgular,r.bulgularDiger))).slice(0,8).map(x=>x.ad),
     lok: sayimla(base.map(r=>lokAd(r.lokasyon))).map(x=>x.ad)
   };
-  _radVals=null;  // radar animasyonu 0'dan büyüsün
+  /* radar sıfırdan büyümez: önceki şekil korunur, yeni değerlere yerinde süzülür (03.11.2026, kullanıcı isteği) */
   /* w: kalıcı widget kimliği (telefon düzeni, bkz. W_VARSAYILAN). KVKK maskeli kart AYNI kimliği taşır. */
   const card=(w,t,body,ek)=>`<div class="anCard${animate?' ani':''}${ek?' '+ek:''}" data-w="${w}"><h3><span>${t}</span></h3><div class="anCb">${body}</div></div>`;
   const maskCard=(w,t)=>`<div class="anCard" data-w="${w}"><h3><span>${t}</span></h3><div class="anCb"><div class="anEmpty">Özel nitelikli sağlık verisi — görüntüleme yetkiniz yok (KVKK).</div></div></div>`;
