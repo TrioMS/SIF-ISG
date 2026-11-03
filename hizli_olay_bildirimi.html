@@ -743,7 +743,18 @@ body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)), body:not(.wDuzen) #anCh
 .aiCevr{margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed #e0d5a8}
 .body.yalnizCevr > :not(.aiCevr){display:none}
 .body.yalnizCevr > .aiCevr{border-bottom:0;margin-bottom:0}
-.surumNot{margin:4px 0 2px 18px;line-height:1.7;font-size:13.5px}</style>
+.surumNot{margin:4px 0 2px 18px;line-height:1.7;font-size:13.5px}
+.aiArti{display:inline-flex;align-items:center;gap:4px;background:#B4400E!important;color:#fff!important;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:800;letter-spacing:.3px;border:0}
+.aiArti svg{fill:#fff}
+.aiArtiBas{display:flex;align-items:center;gap:8px;margin:2px 0 8px;font-size:12px;font-weight:700;color:var(--text2)}
+.aiCevr .grp{color:#B4400E}
+.motorTablo tr.motorSatir{cursor:pointer}
+.motorTablo tr.motorSatir:hover td{background:var(--surface2)}
+.motorTablo tr.motorSatir .ok{display:inline-block;width:14px;color:var(--text3);font-weight:800;transition:transform .15s}
+.motorTablo tr.motorSatir.acik .ok{transform:rotate(90deg)}
+.motorTablo tr.motorDetay td{background:var(--surface2);font-size:12.5px;line-height:1.6;padding:10px 14px 12px 28px}
+.motorTablo tr.motorDetay .cb{padding:4px 0 0}
+</style>
 <link rel="stylesheet" href="uygulama.css">   <!-- telefon görünümü; kendi stillerinden SONRA yüklenmeli -->
 </head>
 <body>
@@ -1393,7 +1404,7 @@ body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)), body:not(.wDuzen) #anCh
     </div>
 
     <!-- öğrenme motoru — modelin kendisi (Analiz Sağlığı veriye, bu motora bakar) -->
-    <div class="card" style="max-width:860px;margin-top:14px">
+    <div class="card" id="ogrKart" style="max-width:860px;margin-top:14px">
       <h3>Öğrenme Motoru</h3>
       <div class="cb">
         <div class="note">Motor <b>çevrimdışı</b> çalışır: portaldaki olay, aksiyon, lokasyon ve ek belge
@@ -1533,7 +1544,7 @@ body:not(.wDuzen) #anCharts .anCard:not(:has(.anEmpty)), body:not(.wDuzen) #anCh
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2718,6 +2729,9 @@ function sifBilesenYaz(){
   var a = document.getElementById('aiAyarKart');
   if(!a){ a = document.createElement('div'); a.className = 'card'; a.id = 'aiAyarKart'; a.style.cssText = 'max-width:860px;margin-top:14px';
     a.innerHTML = '<h3>AI Modu ve API</h3><div class="cb"><div id="aiAyarGovde"></div></div>'; s.appendChild(a); }
+  /* Öğrenme Motoru kartı tabloya taşındı: içeriği 'Öğrenme motoru' satırının ayrıntısında (OGR_DETAY) */
+  var ok = document.getElementById('ogrKart');
+  if(ok){ OGR_DETAY = ok.querySelector(':scope > .cb'); if(OGR_DETAY) OGR_DETAY.remove(); ok.remove(); }
   motorBirlesikCiz(); aiAyarYaz();
   bilYukle(false);
   if(!MOTOR_SON) motorDenetimi(false);
@@ -8447,42 +8461,71 @@ function bilOnar(id){
     .catch(e=>toast('Onarılamadı: '+((e&&e.message)||e)));
   if(BIL_VERI) BIL_VERI.is={durum:'suruyor'}; motorBirlesikCiz();
 }
+/* Satıra tıklanınca ayrıntı açılır (03.11.2026, kullanıcı isteği). Öğrenme motorunun eski kartının içeriği
+   (model, yeniden kur, belge okuma) OGR_DETAY düğümünde saklanır ve yalnız o satır açıkken tabloya takılır;
+   tablo yeniden çizilirken önce sökülür (içerik ve kimlikleri korunur). */
+let OGR_DETAY=null; const MOTOR_ACIK=new Set();
+const MOTOR_ACIKLAMA={
+  'Derin analiz motoru':'Analiz ekranındaki AI düğmesinin kural tabanlı raporu: bulgular yalnız veriden; çapraz kurallar (kaynak × ciddiyet, gün yoğunlaşması, 30 gün içinde tekrar, lokasyon termin performansı, bulgu → kök sebep).',
+  'Grafik AI':'Grafiğe tıklayınca açılan penceredeki bulgu ve öneriler; yalnız o grafiğin verisi.',
+  'Belge sınıflandırma':'Eklenen belgelerin türünü (iş izni, tutanak, rapor…) terimlerden tanır; içerik saklanmaz.',
+  'KVKK ayıklama':'Okunan belge metninden TCKN, telefon, e-posta, IBAN, plaka ve etiketli isimleri maskeler.',
+  'KVKK dış çıkış':'Çevrimiçi (AI+) analize giden paketi üretir ve son denetimden geçirir; kişi ve sağlık verisi hiç girmez.',
+  'Uygulama':'Uygulamanın kendisi; motorlar sayfayla birlikte güncellenir.'
+};
+function motorSatirTik(k){ if(MOTOR_ACIK.has(k)) MOTOR_ACIK.delete(k); else MOTOR_ACIK.add(k); motorBirlesikCiz(); }
 function motorBirlesikCiz(){
   const g=document.getElementById('motorBirlesikGovde'); if(!g) return;
+  if(OGR_DETAY && OGR_DETAY.parentNode) OGR_DETAY.remove();      /* yeniden çizimden önce sök */
   const T=MOTOR_SON&&MOTOR_SON.sonuc||[], test=ad=>T.find(x=>x.ad===ad)||null;
   const G=MOTOR_GNC_SON&&MOTOR_GNC_SON.satir||[], yayin=ad=>(G.find(x=>x.ad===ad)||null);
   const rz=(m,t)=>`<span class="pill ${t}">${esc(m)}</span>`;
-  const durumH=(s,ek)=> s ? (s.d==='ok'?rz('Çalışıyor','p-grn'):s.d==='hata'?rz('Hata','p-red')+`<div class="alt">${esc(s.not)}</div>`:rz('Sınanmadı','p-gry')) : (ek||rz('—','p-gry'));
-  const satir=(ad,kurulu,ust,durum)=>`<tr><td><b>${esc(ad)}</b></td><td>${esc(kurulu||'—')}</td><td>${ust||'<span class="hint">—</span>'}</td><td>${durum}</td></tr>`;
+  const zaman=iso=>iso?esc(new Date(iso).toLocaleString('tr-TR')):'—';
+  const durumH=(s,ek)=> s ? (s.d==='ok'?rz('Çalışıyor','p-grn'):s.d==='hata'?rz('Hata','p-red'):rz('Sınanmadı','p-gry')) : (ek||rz('—','p-gry'));
+  const testDetay=s=> s ? `<div><b>Son sınama:</b> ${s.d==='ok'?'çalışıyor':s.d==='hata'?'HATA':'sınanmadı'} — ${esc(s.not||'')} <span class="hint">(${zaman(MOTOR_SON&&MOTOR_SON.tarih)}${MOTOR_SON&&MOTOR_SON.tam?', tam denetim':', açılış denetimi'})</span></div>` : '';
   const suruyor=BIL_VERI&&BIL_VERI.is&&BIL_VERI.is.durum==='suruyor';
-  let ok='';
-  /* 1. Okuma motorları (kitaplıklar) — sunucudan; telefonda sunucu yok → bilinen sürümler */
+  const satirlar=[];   /* {k, ad, kurulu, ust, durum, detay} */
   if(BIL_VERI){
     (BIL_VERI.bilesenler||[]).forEach(b=>{
       const s = b.id==='pdfjs'?test('PDF okuma (pdf.js)') : b.id==='tesseract'?test('OCR (taranmış belge / fotoğraf)') : null;
-      /* MSAL: uygulama 2.39.0 ile yazıldı ve sınandı (MSAL_CDN); onaylı listedeki yeni ana sürüm girişi bozabilir → Onar sunulmaz */
       const msal = b.id==='msal';
       const kur = b.durum==='tam'||b.durum==='cdn'||b.durum==='yerel' ? null
-        : msal ? rz('2.39.0 kullanılıyor','p-gry')+'<div class="alt">giriş bu sürümle sınandı; yükseltme ayrıca denenmeli</div>'
-        : rz(b.durum==='eksik'?'Eksik dosya':'Değişmiş dosya','p-red')+(suruyor?'':` <button class="btn sm" onclick="bilOnar(${jsA(b.id)})">Onar</button>`);
-      const ust = !b.npm ? '' : !b.yukari ? '<span class="hint">bilinmiyor</span>' : b.yeniVar ? rz('yeni: '+b.yukari,'p-amb')+'<div class="alt">sınavdan geçerse otomatik kurulur</div>' : esc(b.yukari)+' <span class="hint">· güncel</span>';
-      ok+=satir(b.ad, b.durum==='cdn'?'internetten':msal&&b.durum!=='tam'?'2.39.0':(b.onayli||''), msal&&b.durum!=='tam'?'':ust, kur||durumH(s, b.durum==='cdn'?rz('İnternetten','p-gry'):rz('Kurulu','p-grn')));
+        : msal ? rz('2.39.0 kullanılıyor','p-gry')
+        : rz(b.durum==='eksik'?'Eksik dosya':'Değişmiş dosya','p-red')+(suruyor?'':` <button class="btn sm" onclick="event.stopPropagation();bilOnar(${jsA(b.id)})">Onar</button>`);
+      const ust = msal&&b.durum!=='tam' ? '' : !b.npm ? '' : !b.yukari ? '<span class="hint">bilinmiyor</span>' : b.yeniVar ? rz('yeni: '+b.yukari,'p-amb') : esc(b.yukari)+' <span class="hint">· güncel</span>';
+      const dosya=(b.eksik||[]).concat(b.farkli||[]);
+      satirlar.push({k:'b:'+b.id, ad:b.ad, kurulu:b.durum==='cdn'?'internetten':msal&&b.durum!=='tam'?'2.39.0':(b.onayli||''), ust,
+        durum:kur||durumH(s, b.durum==='cdn'?rz('İnternetten','p-gry'):rz('Kurulu','p-grn')),
+        detay:`<div><b>Onaylı sürüm:</b> ${esc(b.onayli||'—')} · <b>İnternetteki son sürüm:</b> ${esc(b.yukari||'—')}${b.yeniVar?' — yeni sürüm okuma sınavından geçerse otomatik kurulur':''}</div>`
+          +(dosya.length?`<div><b>${b.durum==='eksik'?'Eksik':'Değişmiş'} dosyalar:</b> ${dosya.map(esc).join(', ')}</div>`:'')
+          +(msal&&b.durum!=='tam'?'<div>Uygulama Microsoft girişini 2.39.0 ile sınadı; onaylı listedeki ana sürüm ayrıca denenmeden kurulmamalı.</div>':'')
+          +testDetay(s)});
     });
   } else {
-    ok+=satir('PDF okuma (pdf.js)', (window.pdfjsLib&&window.pdfjsLib.version)||PDF_SURUM, '', durumH(test('PDF okuma (pdf.js)')));
-    ok+=satir('OCR (Tesseract)', yerelSunucu()?'—':'5.0.4 (internetten)', '', durumH(test('OCR (taranmış belge / fotoğraf)')));
+    satirlar.push({k:'b:pdfjs', ad:'PDF okuma (pdf.js)', kurulu:(window.pdfjsLib&&window.pdfjsLib.version)||PDF_SURUM, ust:'', durum:durumH(test('PDF okuma (pdf.js)')), detay:testDetay(test('PDF okuma (pdf.js)'))});
+    satirlar.push({k:'b:tesseract', ad:'OCR (Tesseract)', kurulu:yerelSunucu()?'—':'5.0.4 (internetten)', ust:'', durum:durumH(test('OCR (taranmış belge / fotoğraf)')), detay:testDetay(test('OCR (taranmış belge / fotoğraf)'))});
   }
-  /* 2. Kendi motorlarımız — sayfayla birlikte güncellenir */
+  const ayir=satirlar.length;
   const yy=ad=>{ const y=yayin(ad); return !y?'':y.yeni?rz('yeni: '+y.yayin,'p-amb'):esc(y.yayin||'')+' <span class="hint">· güncel</span>'; };
-  const ic=[['Derin analiz motoru',AN_MOTOR_SURUM,'Analiz motoru (bulgular)','Analiz motoru'],['Grafik AI',AN_MOTOR_SURUM,'Grafik AI (pencere)','Analiz motoru'],
-    ['Öğrenme motoru',OGR_MOTOR_SURUM,'Öğrenme motoru','Öğrenme motoru'],['Belge sınıflandırma',BELGE_SURUM,'Belge sınıflandırma','Belge okuma motoru'],
-    ['KVKK ayıklama',BELGE_SURUM,'KVKK ayıklama','Belge okuma motoru'],['KVKK dış çıkış',KVKK_DIS_SURUM,'KVKK dış çıkış süzgeci (çevrimiçi analiz)','KVKK dış çıkış motoru'],
-    ['Uygulama',APP_SURUM,null,'Uygulama']];
-  const icH=ic.map(([ad,s,t,y])=>satir(ad,s,yy(y), t?durumH(test(t)):rz('Çalışıyor','p-grn'))).join('');
-  /* Son denetim = en yeni zaman */
+  [['Derin analiz motoru',AN_MOTOR_SURUM,'Analiz motoru (bulgular)','Analiz motoru'],['Grafik AI',AN_MOTOR_SURUM,'Grafik AI (pencere)','Analiz motoru'],
+   ['Öğrenme motoru',OGR_MOTOR_SURUM,'Öğrenme motoru','Öğrenme motoru'],['Belge sınıflandırma',BELGE_SURUM,'Belge sınıflandırma','Belge okuma motoru'],
+   ['KVKK ayıklama',BELGE_SURUM,'KVKK ayıklama','Belge okuma motoru'],['KVKK dış çıkış',KVKK_DIS_SURUM,'KVKK dış çıkış süzgeci (çevrimiçi analiz)','KVKK dış çıkış motoru'],
+   ['Uygulama',APP_SURUM,null,'Uygulama']].forEach(([ad,s,t,y])=>{
+    const y1=yayin(y);
+    satirlar.push({k:'m:'+ad, ad, kurulu:s, ust:yy(y), durum:t?durumH(test(t)):rz('Çalışıyor','p-grn'),
+      detay: ad==='Öğrenme motoru' ? '<div class="ogrDetayYer"></div>'
+        : (MOTOR_ACIKLAMA[ad]?`<div>${esc(MOTOR_ACIKLAMA[ad])}</div>`:'')
+          +`<div><b>Çalışan sürüm:</b> ${esc(s)} · <b>Yayındaki:</b> ${esc(y1&&y1.yayin||'—')}${y1&&y1.yeni?' — <b>Yenile</b> ile yüklenir':''}</div>`
+          +(ad==='Uygulama'?`<div><b>Yüklenen dosya:</b> ${zaman(document.lastModified)}</div>`+(SURUM_NOTU[APP_SURUM]?'<div><b>Bu sürümdeki yenilikler:</b><ul class="surumNot">'+SURUM_NOTU[APP_SURUM].map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':''):'')
+          +(t?testDetay(test(t)):'')});
+  });
   const zam=[MOTOR_SON&&MOTOR_SON.tarih, MOTOR_GNC_SON&&MOTOR_GNC_SON.tarih, BIL_VERI&&BIL_VERI.kontrolTarih].filter(Boolean).sort().pop();
   const oto=MOTOR_OTO&&MOTOR_OTO.oto, otoP=oto&&(oto.portallar||[]).find(p=>p.portal===MOTOR_PORTAL);
   const a=motorGncAyar(), yeniVar=MOTOR_GNC_SON&&MOTOR_GNC_SON.yeniVar;
+  const tr=(x,i)=>{ const acik=MOTOR_ACIK.has(x.k);
+    return (i===0?'<tr><td colspan="4" class="grpSatir">Okuma motorları</td></tr>':i===ayir?'<tr><td colspan="4" class="grpSatir">Analiz, öğrenme ve KVKK motorları</td></tr>':'')
+      +`<tr class="motorSatir${acik?' acik':''}" onclick="motorSatirTik(${jsA(x.k)})"><td><span class="ok">›</span><b>${esc(x.ad)}</b></td><td>${esc(x.kurulu||'—')}</td><td>${x.ust||'<span class="hint">—</span>'}</td><td>${x.durum}</td></tr>`
+      +(acik?`<tr class="motorDetay"><td colspan="4">${x.detay||'<span class="hint">Ayrıntı yok.</span>'}</td></tr>`:''); };
   g.innerHTML=`<div class="bar" style="align-items:center;gap:10px;flex-wrap:wrap">
       <button class="btn sm pri" ${BIL_CALISIYOR||suruyor?'disabled':''} onclick="guncellemeleriDenetle()">${BIL_CALISIYOR?'Denetleniyor…':'Güncellemeleri denetle'}</button>
       ${yeniVar?'<button class="btn sm" onclick="location.reload()">Yenile (yeni motoru yükle)</button>':''}
@@ -8490,8 +8533,11 @@ function motorBirlesikCiz(){
       <label style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12.5px"><input type="checkbox" ${a.acilista?'checked':''} onchange="(function(c){const x=motorGncAyar();x.acilista=c.checked;try{localStorage.setItem(K_MOTOR_GNC,JSON.stringify(x));}catch(e){}})(this)"> Her açılışta denetle</label></div>`
     +(otoP?`<div class="hint" style="margin-top:8px">Okuma motorları otomatik güncelleme: ${esc(new Date(oto.tarih).toLocaleString('tr-TR'))} — ${(otoP.kurulan||[]).length?'<b>kurulan: '+esc(otoP.kurulan.join(', '))+'</b>':otoP.gecti===false?'yeni sürüm sınavdan geçmedi, eskisi kullanılıyor':'güncel'}</div>`:'')
     +(suruyor?'<div class="hint" style="margin-top:8px">Bileşen onarılıyor…</div>':'')
-    +`<div class="tw motorTablo" style="margin-top:10px"><table><thead><tr><th style="width:30%">Motor</th><th style="width:18%">Kurulu</th><th style="width:26%">Yayındaki / en yeni</th><th>Durum</th></tr></thead><tbody>`
-    +`<tr><td colspan="4" class="grpSatir">Okuma motorları</td></tr>`+ok+`<tr><td colspan="4" class="grpSatir">Analiz ve KVKK motorları</td></tr>`+icH+`</tbody></table></div>`;
+    +`<div class="tw motorTablo" style="margin-top:10px"><table><thead><tr><th style="width:32%">Motor</th><th style="width:16%">Kurulu</th><th style="width:26%">Yayındaki / en yeni</th><th>Durum</th></tr></thead><tbody>`
+    +satirlar.map(tr).join('')+`</tbody></table></div><div class="hint" style="margin-top:6px">Ayrıntı için motorun satırına tıklayın.</div>`;
+  const yer=g.querySelector('.ogrDetayYer');
+  if(yer && OGR_DETAY){ yer.appendChild(OGR_DETAY);
+    try{ ogrPanelYaz(); }catch(e){} try{ ocrDurumYaz(); }catch(e){} }
 }
 /* Eski iki kartın çizicileri artık tek karta yönlenir */
 function motorKartYaz(){ motorBirlesikCiz(); }
@@ -8528,7 +8574,8 @@ function aiCevrimiciYerlestir(){
   b.classList.toggle('yalnizCevr', a.mod==='cevrimici' && AI_CEVR.durum==='tamam');
   if(!el){ el=document.createElement('div'); el.className='aiCevr'; b.prepend(el); }
   let imzaSimdi=null; try{ imzaSimdi=aiPaketImza(kvkkDisPaket(anKume())); }catch(e){}
-  const bas=`<div class="grp">Çevrimiçi AI${AI_CEVR.model?' · '+esc(AI_CEVR.model):''}</div>`;
+  /* AI+ (03.11.2026, kullanıcı isteği): çevrimiçi analiz koyu turuncu AI+ balonuyla ayrışır; maddelerdeki rozet de AI+ */
+  const bas=`<div class="aiArtiBas"><span class="aiArti">${ICO_AI} AI+</span><span>Çevrimiçi analiz${AI_CEVR.model?' · '+esc(AI_CEVR.model):''}</span></div>`;
   if(!a.anahtar){ el.innerHTML=bas+'<div class="hint">Çevrimiçi analiz için Ayarlar › Analiz Sağlığı › AI Modu ve API bölümünde API anahtarı girin.</div>'; return; }
   if(AI_CEVR.durum==='calisiyor'){ el.innerHTML=bas+AI_SPIN; return; }
   if(AI_CEVR.durum==='hata'){ el.innerHTML=bas+`<div class="hint" style="color:var(--red)">Çevrimiçi analiz yapılamadı: ${esc(AI_CEVR.hata)}</div><button class="btn sm" style="margin-top:6px" onclick="aiCevrimiciCalistir()">Yeniden dene</button>`; return; }
@@ -8537,8 +8584,8 @@ function aiCevrimiciYerlestir(){
     b.classList.remove('yalnizCevr'); return; }
   const S=AI_CEVR.sonuc; AIC_SON={B:S.B, O:S.O, lok:($('anLok')&&$('anLok').value)||'', etiket:'Çevrimiçi AI · '+(AI_CEVR.model||'')};
   el.innerHTML=bas+(S.ozet?`<div class="ozet">${esc(S.ozet)}</div>`:'')
-    +aiGrupHTML('Bulgular', aiBekleyenLi(S.B, t=>esc(t), i=>`aicOneriAksiyon('B',${i})`, null))
-    +aiGrupHTML('Öneriler', aiBekleyenLi(S.O, t=>esc(t), i=>`aicOneriAksiyon('O',${i})`, null))
+    +aiGrupHTML('Bulgular', aiBekleyenLi(S.B, t=>esc(t), i=>`aicOneriAksiyon('B',${i})`, null).split('<span class="aiBadge">'+ICO_AI+' AI</span>').join('<span class="aiBadge aiArti">'+ICO_AI+' AI+</span>'))
+    +aiGrupHTML('Öneriler', aiBekleyenLi(S.O, t=>esc(t), i=>`aicOneriAksiyon('O',${i})`, null).split('<span class="aiBadge">'+ICO_AI+' AI</span>').join('<span class="aiBadge aiArti">'+ICO_AI+' AI+</span>'))
     +`<div class="dip">Dışarı yalnız KVKK dış çıkış paketi gönderildi (kişi ve sağlık verisi yok, lokasyon ve olaylar takma adlı). ${a.mod==='karma'?'Altta kural tabanlı analiz.':''}</div>`;
 }
 function aicOneriAksiyon(grp,i){
@@ -8553,7 +8600,9 @@ const _aiAnalizOrj=aiAnaliz;
 aiAnaliz=function(){ const acikti=($('anAI')||{dataset:{}}).dataset.open==='1'; _aiAnalizOrj(); if(!acikti && aiCevrimiciMi()) setTimeout(aiCevrimiciCalistir, 3100); };
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.0':['Analizde grafiğe tıklayınca yumuşak pencere: büyük grafik, tam dağılım ve grafiğe özel AI; önerilerden doğrudan aksiyon',
+const SURUM_NOTU={'1.9.1':['Çevrimiçi analiz AI+ olarak ayrı (turuncu) gösterilir',
+  'Motorlar ve Güncellemeler: öğrenme motoru da tabloda; ayrıntı için motorun satırına tıklayın'],
+  '1.9.0':['Analizde grafiğe tıklayınca yumuşak pencere: büyük grafik, tam dağılım ve grafiğe özel AI; önerilerden doğrudan aksiyon',
   'Derin analiz motoru: kaynak × ciddiyet, gün yoğunlaşması, 30 gün içinde tekrar, lokasyon termin performansı',
   'Motorlar ve güncellemeler tek ekranda; her açılışta denetim',
   'AI modu: çevrimdışı, çevrimiçi (API) ya da karma — dışarı yalnız KVKK süzgeçli veri gider',
