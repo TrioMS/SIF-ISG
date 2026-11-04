@@ -1672,7 +1672,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.10';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.11';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2639,8 +2639,9 @@ async function pwDurum(){
 }
 function pwDamgaOku(){ try{ const s=(msHatirla()?localStorage:sessionStorage).getItem(PW_DOGRULAMA_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 function pwOturumuSil(){ try{ localStorage.removeItem(PW_DOGRULAMA_KEY); sessionStorage.removeItem(PW_DOGRULAMA_KEY); }catch(e){} }
-function pwDamgaYaz(mail){ pwOturumuSil();
-  try{ (msHatirla()?localStorage:sessionStorage).setItem(PW_DOGRULAMA_KEY, JSON.stringify({mail:mail, t:Date.now()})); }catch(e){} }
+/* jeton (04.11.2026): sunucunun imzaladigi oturum belgesi; yerel /__mail ucu bunu ister (X-Qhse-Oturum) */
+function pwDamgaYaz(mail, jeton){ pwOturumuSil();
+  try{ (msHatirla()?localStorage:sessionStorage).setItem(PW_DOGRULAMA_KEY, JSON.stringify({mail:mail, t:Date.now(), jeton:String(jeton||'')})); }catch(e){} }
 /* Açılış: kayıtlı doğrulama taze ve AYNI Windows hesabınaysa parola sorulmadan girilir.
    Dönüş false = yerel parola girişi yok (GitHub / eski sunucu) → çağıran Microsoft girişine geçer. */
 async function pwBaslat(){
@@ -2668,7 +2669,7 @@ async function pwGirisDene(){
   { const k=$('gatePwHatirla'); try{ localStorage.setItem(MS_HATIRLA_KEY, k&&!k.checked?'0':'1'); }catch(e){} }
   PW_MESGUL=true; const b=$('gatePwBtn'); if(b){ b.disabled=true; b.textContent='Doğrulanıyor…'; }
   let j=null;
-  try{ j=await pwIstek({islem:'giris', parola:p}); }
+  try{ j=await pwIstek({islem:'giris', parola:p, hatirla:msHatirla()}); }   /* hatirla: sunucu oturum belgesini 14 gun verir (04.11.2026) */
   catch(e){ j={ok:false, hata:'Yerel sunucuya ulaşılamadı. Portalı "Olay Bildirimi Ac.bat" ile yeniden açın.'}; }
   if(i) i.value='';
   PW_MESGUL=false; if(b){ b.disabled=false; b.textContent='Giriş'; }
@@ -2678,7 +2679,7 @@ async function pwGirisDene(){
     pwHata(m); if(i) i.focus(); return;
   }
   const mail=String(j.eposta||'').trim().toLowerCase();
-  pwDamgaYaz(mail);
+  pwDamgaYaz(mail, j.oturum);
   try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
   sirketHesapGiris(mail, '', pwHata);
 }
@@ -3724,7 +3725,10 @@ async function mailGonder(p0){
   const toStr=to, ccStr=cc;
   if(mailKanal()==='webhook' && wh){
     try{
-      const res=await fetch(wh,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:toStr,cc:ccStr,subject:subject||'',body:body||''})});
+      /* Yerel /__mail (ayni koken) imzali oturum belgesi ister (04.11.2026); Power Automate gibi dis adrese baslik EKLENMEZ */
+      const bas={'Content-Type':'application/json'};
+      try{ if(new URL(wh, location.href).origin===location.origin){ const d=pwDamgaOku(); if(d && d.jeton) bas['X-Qhse-Oturum']=d.jeton; } }catch(e){}
+      const res=await fetch(wh,{method:'POST',headers:bas,body:JSON.stringify({to:toStr,cc:ccStr,subject:subject||'',body:body||''})});
       if(res.ok){
         /* GÜVENLİK/KVKK (SAST B7): yerel uç şirket Outlook'u yerine GEÇİCİ SMTP (kişisel hesap) ile
            gönderdiyse kullanıcı bunu bilmeli. */
@@ -3732,7 +3736,7 @@ async function mailGonder(p0){
         toast(y==='smtp-gecici' ? 'E-posta GEÇİCİ kanaldan (şirket dışı SMTP) gönderildi — Outlook açık değil ya da kullanılamıyor.'
             : y==='outlook' ? 'E-posta şirket Outlook hesabınızdan gönderildi.' : 'E-posta gönderildi (akış).');
         return true; }
-      toast('Akış hatası ('+res.status+') — Outlook taslağına düşülüyor.');
+      toast(res.status===401 ? 'Oturum doğrulanamadı — e-posta için çıkış yapıp şirket parolasıyla yeniden giriş yapın. Outlook taslağına düşülüyor.' : 'Akış hatası ('+res.status+') — Outlook taslağına düşülüyor.');
     }catch(e){ toast('Akışa ulaşılamadı (CORS/ağ) — Outlook taslağına düşülüyor.'); }
   }
   openMail(`mailto:${encodeURIComponent(toStr)}?`+(ccStr?`cc=${encodeURIComponent(ccStr)}&`:'')+`subject=${encodeURIComponent(subject||'')}&body=${encodeURIComponent(body||'')}`);
