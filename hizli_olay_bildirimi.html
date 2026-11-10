@@ -1941,7 +1941,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
         <div class="bar" style="margin-top:12px">
           <button class="btn sm" onclick="backup()">Yedek Al (JSON)</button>
           <button class="btn sm" onclick="document.getElementById('imp').click()">Yedeği Geri Yükle</button>
-          
+          <button class="btn sm" onclick="demoTumYukle()">Demo Veri Yükle</button>
           <div style="flex:1"></div>
           <button class="btn red sm" onclick="wipe()">Tüm Olay Kayıtlarını Sil</button>
         </div>
@@ -2125,7 +2125,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.13';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.14';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -9041,7 +9041,338 @@ function renderGen(){
    <dt>Dağıtım alıcısı</dt><dd>${DIST.length} (${DIST.filter(d=>d.aktif).length} aktif)</dd>
    <dt>SAP personel</dt><dd>${PERS.length}</dd>`;
 }
-
+/* G13 DEĞİŞTİ (10.11.2026, kullanıcı: "ayarlar altına demo veri yükle; tıklayınca her modüle veri yaratsın"): örnek veri
+   üreteçleri artık yayın kopyasında da var — deneme sitesinde KENDİLİĞİNDEN çalışmaz (denOrnekOto / ymOrnekOto DENEME_GIRIS'te
+   durur), yalnız Ayarlar › Genel › "Demo Veri Yükle" ile. Üretilen kişi / kayıt adları uydurmadır. (20.10.2026'dan beri yayından
+   ayıklanıyordu.) */
+function demoTumYukle(){
+  if(!can('ayar')) return;
+  if(!LOK.some(l=>l.aktif!==false)){ toast('Önce lokasyon tanımlayın'); return; }
+  if(!confirm('Tüm modüllere ÖRNEK (uydurma) kayıt yüklenecek: olaylar ve aksiyonlar, saha inceleme ve denetimler, personel, makine-ekipman, eğitimler.\n\n'
+    +(RECS.length?'Mevcut '+RECS.length+' olay kaydı silinip örnekleriyle değiştirilir. ':'')
+    +'Personel, makine, eğitim ve denetimde yalnız önceki örnekler yenilenir; gerçek kayıtlara dokunulmaz.\n\nDevam edilsin mi?')) return;
+  demoVeriYukle(true); denOrnekKur(true); ymOrnekKur();
+  ['den_ornek_kuruldu_v2','ym_ornek_v5'].forEach(s=>store.set(K.rec.replace(/records$/,s),true));
+  renderAll(); toast('Demo veri yüklendi — tüm modüllerde örnek kayıtlar var');
+}
+/* ── ÖRNEK (DUMMY) VERİ — 14 olay türünü kapsar ───────────────────────────
+   Tür + sonuç birleşmesinden sonra listeyi ve tüm grafikleri dolduran örnek
+   kayıtlar üretir. MEVCUT olay kayıtlarını siler (iki kez onay ister). */
+function demoVeriYukle(sessiz){
+  if(!can('ayar')) return;
+  if(!sessiz && !confirm('DİKKAT: Mevcut '+RECS.length+' olay kaydı silinecek ve 14 olay türünü kapsayan ÖRNEK (dummy) kayıtlar oluşturulacak.\n\nLokasyon / kullanıcı / dağıtım ayarları KALIR. Devam edilsin mi?')) return;
+  if(!sessiz && !confirm('Son onay: bu işlem geri alınamaz. Örnek veri kurulsun mu?')) return;
+  const loklar=LOK.filter(l=>l.aktif!==false).map(l=>l.kod); if(!loklar.length){ toast('Önce lokasyon tanımlayın'); return; }
+  const kis=(a)=>a[Math.floor(Math.random()*a.length)];
+  /* kategorisiyle TUTARLI kök sebep: aynı kategorinin kendi listesinden seçer */
+  const kokKis=()=>{ const k=kis(KOK_KAT); return k.ad+' — '+kis(k.ops); };
+  const yil=new Date().getFullYear();
+  const gun=(n)=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+  /* tür → kaç kayıt (gerçekçi piramit: ucuz atlatma çok, ölümlü az) */
+  /* 50 kayıt — TEPE AĞIRLIKLI: ilk 6 tür baskın (toplam 40), kalan 8 tür seyrek (10).
+     Böylece Olay Türü grafiğinde "top 6" net okunur, kuyruk dilimler onu bastırmaz. */
+  const dagilim={'Ucuz Atlatma (NM)':10,'İlk Yardım (FAC)':8,'Maddi Hasar (PD)':7,'Tıbbi Müdahaleli Olay (MTC)':6,
+    'Kısıtlı İş Göremezlik (RWC)':5,'Kayıp Günlü Olay (LTI)':3,'Araç Kazası':2,'Yangın':2,'Güvenlik Olayı':2,
+    'Meslek Hastalığı':1,'İş Dışı Hastalık':1,'Fiziksel Engel':1,'Kaza Dışı Ölüm':1,'Ölümlü Kaza':1};
+  const sorumlular=['Vardiya Amiri','Servis Şefi','Depo Sorumlusu','İSG Uzmanı','Saha Şefi'];
+  const durumlar=['rapor','rapor','rapor','inceleme','bildirildi','draft'];
+  const yaralilar=['Kesik','Ezilme / Sıkışma','Kırık','Burkulma / İncinme','Yanık','Göze Yabancı Cisim','Düşme Travması'];
+  const bolgeler=['Baş / Yüz','Göz','El / Parmak','Kol / Dirsek','Bacak / Diz','Ayak / Parmak','Gövde / Sırt'];
+  RECS.flatMap(r=>r.ekler||[]).forEach(f=>{ try{ delFile(f.id); }catch(e){} });
+  const yeni=[]; let sira=0;
+  Object.keys(dagilim).forEach(function(tur){
+    for(let i=0;i<dagilim[tur];i++){
+      sira++;
+      const lok=kis(loklar), kod=turKod(tur), c=cidOf(kod);
+      const dur=kis(durumlar), gecmis=Math.floor(Math.random()*330)+5;
+      const yaralanmali=yaralanmaliMi(kod);   /* ortak tanım (CIDDIYET.yarali) */
+      const r=Object.assign(blank(),{
+        id:uid(), no:'SIF-'+lok+'-INC-'+yil+'-'+String(sira).padStart(3,'0'),
+        lokasyon:lok, tur:tur, sonuc:kod, kaynak:kis(KAYNAKLAR.filter(k=>k!=='Diğer')),
+        tarih:gun(gecmis), saat:String(7+Math.floor(Math.random()*11)).padStart(2,'0')+':'+kis(['00','15','30','45']),
+        yer:kis(['Servis atölyesi','Yedek parça deposu','Saha sevkiyat alanı','Yıkama alanı','Test sahası']),
+        faaliyet:kis(['Bakım / onarım','Yükleme-boşaltma','Test sürüşü','Temizlik','Montaj']),
+        durum:dur, aciklama:tur+' — örnek kayıt, saha koşullarında meydana geldi.',
+        acil:'Alan emniyete alındı, ilk müdahale yapıldı.',
+        /* kök sebep "Kategori — sebep" biçiminde: kategori BİR KEZ seçilir,
+           sebep O KATEGORİNİN listesinden gelir (yoksa kategori-sebep karışır) */
+        bulgular:[kis(BULGULAR)], kokSebep:[kokKis()],
+        kisiler:[], aksiyonlar:[], ekler:[],
+        /* Kayit ACILIS ani: olayin kendi gunu + 0-2 gun bildirim gecikmesi.
+           Hepsine ayni ani yazmak listeleri acilisa gore siralanamaz hale getiriyordu. */
+        olusturma: gun(Math.max(0,gecmis-Math.floor(Math.random()*3)))+'T'+String(8+Math.floor(Math.random()*9)).padStart(2,'0')+':'+kis(['05','20','35','50'])+':00'
+      });
+      if(yaralanmali) r.kisiler=[{id:uid(),ad:'Örnek Personel '+sira,sicil:String(10000+sira),gorev:'Teknisyen',sirket:'SİF',
+        yara:kis(yaralilar), bolge:kis(bolgeler), tibbi:kod==='fac'?'Yerinde İlk Yardım':(kod==='lti'?'Hastane — Yatarak':'Revir'),
+        kayipGun:kod==='lti'?String(1+Math.floor(Math.random()*20)):'0'}];
+      if(dur==='rapor'||dur==='inceleme'){
+        const n=1+Math.floor(Math.random()*2);
+        for(let a=0;a<n;a++){
+          const kapali=Math.random()<0.5, gecikmis=!kapali&&Math.random()<0.45;
+          r.aksiyonlar.push({id:uid(), no:r.no+'-A0'+(a+1), tanim:kis(['Ekipman/alan iyileştirmesi','Eğitim ve bilgilendirme','Prosedür güncellemesi','KKD temini ve kontrolü','Periyodik bakım planı revizyonu']),
+            sorumlu:kis(sorumlular), termin:gecikmis?gun(gecmis-10):gun(gecmis-60),
+            /* aksiyon, olay acildiktan 0-3 gun sonra baslatilir */
+            olusturma: gun(Math.max(0,gecmis-Math.floor(Math.random()*4)))+'T'+String(9+Math.floor(Math.random()*8)).padStart(2,'0')+':00:00',
+            kapanis:kapali?{tarih:gun(gecmis-45),not:'Tamamlandı'}:null, gunluk:[], ekler:[], alicilar:[]});
+        }
+      }
+      yeni.push(r);
+    }
+  });
+  RECS=yeni; saveRecs(); renderAll(); newRec();
+  toast(yeni.length+' örnek olay kaydı oluşturuldu');
+}
+/* ── ÖRNEK DENETİM VERİSİ (09.11.2026) — 5 Saha İnceleme + 5 Planlı Denetim, her birinde birden çok aksiyon ──
+   Gerçek kayıtlara dokunmaz; örnekler d.ornek / a.denOrnek ile işaretlidir, yeniden kurulunca önce onlar silinir.
+   Lokasyonlar Ayarlar'daki gerçek listeden seçilir; birden çok lokasyonu olan bölgede "bölge geneli" rapor kurulur. */
+function denOrnekKur(sessiz){
+  if(!sessiz && !can('ayar')) return;
+  const eskiD=DEN.filter(d=>d.ornek), eskiA=SACT.filter(a=>a.denOrnek);
+  if(!sessiz && !confirm('5 Saha İnceleme ve 5 Planlı Denetim ÖRNEK kaydı (aksiyonlarıyla) oluşturulacak.'
+    +(eskiD.length?'\n\nÖnceki '+eskiD.length+' örnek kayıt ve '+eskiA.length+' örnek aksiyon silinip yeniden kurulur.':'')
+    +'\n\nGerçek kayıtlara dokunulmaz. Devam edilsin mi?')) return;
+  const aktif=LOK.filter(l=>l.aktif!==false).map(l=>l.kod); if(!aktif.length){ toast('Önce lokasyon tanımlayın'); return; }
+  DEN=DEN.filter(d=>!d.ornek); SACT=SACT.filter(a=>!a.denOrnek);
+  const gun=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toLocaleDateString('sv'); };
+  const lokSec=(...a)=>a.find(k=>aktif.includes(k))||aktif[Math.min(a.length,aktif.length)-1]||aktif[0];
+  const cokLokBolge=[...new Set(aktif.map(bolgeOf))].filter(b=>denBolgeLoklari(b).length>1);
+  const bolgeSec=(...a)=>a.find(b=>cokLokBolge.includes(b))||cokLokBolge[0]||'';
+  let say=0, aksSay=0;
+  const kur=(tip,bas,maddeler)=>{
+    const d=Object.assign(denBos(tip), bas, {ornek:true, maddeler:[], ekler:[]});
+    if(d.bolge) d.lokasyon='';
+    const altL=d.bolge?denBolgeLoklari(d.bolge):[d.lokasyon];
+    d.no=denNo(tip,denKapsamKod(d),d.tarih);
+    d.olusturma=d.tarih+'T09:'+pad(10+say,2)+':00'; d.guncelleme=d.olusturma;
+    maddeler.forEach((m,i)=>{
+      const mm=Object.assign(denMaddeBos(tip,i+1,altL[(m.li||0)%altL.length]), m); delete mm.li; delete mm.aks;
+      d.maddeler.push(mm);
+      (m.aks||[]).forEach(x=>{
+        const no=d.no+'-A'+pad(denAksSonraki(d),2), lk=mm.lok||altL[0];
+        const a={ id:uid(), no, bagimsiz:true, lokasyon:lk, olusturma:d.tarih+'T15:00:00', guncelleme:'', taslak:false,
+          olusturanMail:SES?SES.mail:'', olusturanAd:d.ekip.split(',')[0], tanim:x.t, sorumlu:x.s, sorumluMail:'', birim:lokAd2(lk),
+          termin:gun(-x.termin), oncelik:x.o||'Orta', kaynak:DEN_TIP[tip].kaynak, kaynakRef:d.no, bagliOlayId:'', not:'', gunluk:[], ekler:[], alicilar:[],
+          denId:d.id, denMadde:mm.id, denTip:tip, denOrnek:true };
+        if(x.d==='kapandi') a.kapanis={tarih:gun(Math.max(0,-x.termin+4)), not:'Tamamlandı — kanıt fotoğrafı eklendi', kim:x.s};
+        if(x.d==='onay') a.onay={durum:'bekliyor', tarih:gun(1), gonderenAd:x.s, gonderenMail:'', gerceklesme:gun(1)};
+        SACT.push(a); aksSay++;
+      });
+    });
+    DEN.unshift(d); say++;
+  };
+  const ANK=bolgeSec('ANK','IST'), IST=bolgeSec('IST','ANK');
+  /* ───────── SAHA İNCELEME ───────── */
+  kur('saha',{bolge:ANK, tarih:gun(62), saat:'09:30', saha:'Servis atölyesi, yedek parça deposu ve saha operasyon alanı', faaliyet:'Bakım-onarım, parça sevkiyatı, sahada makine kurulumu',
+    firma:'Kendi ekibimiz + bakım taşeronu', ekip:'İSG Uzmanı, Bölge Servis Müdürü', eslik:'Servis Şefi',
+    kapsam:'Bölgedeki tüm lokasyonlarda dönemsel İSG turu: kaldırma ekipmanları, elektrik, düzen-temizlik, KKD.', durum:'tamam',
+    sonuc:'Bölge genelinde KKD kullanımı iyi. Kaldırma ekipmanlarının periyodik kontrol takibi ve elektrik panoları öncelikli konular. Depo düzeni iki lokasyonda farklı seviyede; standart bir 5S uygulaması önerildi.'},[
+    {bolum:'Servis atölyesi — vinç alanı', li:0, konu:'Kaldırma operasyonu', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Atölyedeki 5 t köprü vincin kanca emniyet mandalı kırık; periyodik kontrol etiketi 2 ay önce dolmuş. Vinç kullanımda.',
+      aks:[{t:'Vinç kullanımdan alınsın, kanca mandalı değiştirilsin',s:'Servis Şefi',termin:-55,o:'Yüksek',d:'kapandi'},{t:'Tüm kaldırma ekipmanlarının periyodik kontrol takvimi çıkarılıp yetkili kuruluşa kontrol yaptırılsın',s:'Bakım Sorumlusu',termin:-20,o:'Yüksek',d:'gec'}]},
+    {bolum:'Saha konteyner alanı', li:1, konu:'Elektrik', kategori:'Uygunsuzluk', risk:'Kritik', metin:'Saha konteynerindeki seyyar dağıtım panosunun kapağı açık, kaçak akım rölesi test butonuyla açmıyor; kablolar zeminde, su birikintisi içinden geçiyor.',
+      aks:[{t:'Kaçak akım rölesi değiştirilsin, pano kapağı kilitlensin',s:'Saha Elektrikçisi',termin:-58,o:'Yüksek',d:'kapandi'},{t:'Kablolar askıya alınsın / kanal içine alınsın',s:'Saha Şefi',termin:-50,o:'Orta',d:'kapandi'},{t:'Aylık elektrik pano kontrol formu başlatılsın',s:'İSG Uzmanı',termin:10,o:'Orta',d:'acik'}]},
+    {bolum:'Yedek parça deposu', li:0, konu:'Düzen ve temizlik', kategori:'İyileştirme önerisi', risk:'Orta', metin:'Yedek parça rafları arası geçişlerde boş paletler ve hortum artıkları; forklift geçiş yolu daralmış.',
+      aks:[{t:'Depoda 5S uygulaması ve haftalık düzen denetimi',s:'Depo Sorumlusu',termin:-5,o:'Orta',d:'onay'}]},
+    {bolum:'Saha operasyon alanı', li:1, konu:'KKD', kategori:'Olumlu uygulama', metin:'Saha ekibinin tamamında baret, reflektörlü yelek ve S3 iş ayakkabısı tam; gözlük kullanımı yüksek.'}
+  ]);
+  kur('saha',{lokasyon:lokSec('IST-SRV','ANK-OPR','IZM'), tarih:gun(41), saat:'14:00', saha:'Servis atölyesi — hidrolik ve kaynak bölümü', faaliyet:'Hidrolik silindir revizyonu, kaynaklı onarım',
+    firma:'Kendi ekibimiz', ekip:'İSG Uzmanı', eslik:'Atölye Formeni', kapsam:'Atölye içi yüksek riskli işler: basınçlı sistem, sıcak iş, yangın önlemleri.', durum:'tamam',
+    sonuc:'Sıcak iş alanında yangın önlemleri yetersiz. Hidrolik test tezgâhı koruyucusu eksikliği giderilene kadar test yapılmaması kararlaştırıldı.'},[
+    {bolum:'Hidrolik bölümü — test tezgâhı', konu:'El aletleri / ekipman', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Hidrolik test tezgâhında hortum patlamasına karşı kalkan yok; test sırasında operatör hortum hattının önünde duruyor.',
+      aks:[{t:'Test tezgâhına polikarbon koruyucu kalkan takılsın',s:'Bakım Sorumlusu',termin:-30,o:'Yüksek',d:'kapandi'},{t:'Basınç testi talimatı güncellenip operatörlere eğitim verilsin',s:'Atölye Formeni',termin:-12,o:'Orta',d:'gec'}]},
+    {bolum:'Kaynak bölümü', konu:'Yangın / acil durum', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Kaynak alanında yangın battaniyesi yok; en yakın KKT 18 m uzakta ve dolum tarihi geçmiş. Yanıcı yağ bidonları kaynak noktasına 3 m.',
+      aks:[{t:'Kaynak alanına yangın battaniyesi ve 6 kg KKT konulsun',s:'Atölye Formeni',termin:-35,o:'Yüksek',d:'kapandi'},{t:'Tüm yangın tüplerinin dolum takibi listeye bağlansın',s:'İdari İşler',termin:-25,o:'Orta',d:'kapandi'},{t:'Yanıcı malzeme dolabı alınıp yağ bidonları taşınsın',s:'Depo Sorumlusu',termin:14,o:'Orta',d:'acik'}]},
+    {bolum:'Kimyasal depolama köşesi', konu:'Kimyasal / tehlikeli madde', kategori:'İyileştirme önerisi', risk:'Orta', metin:'Göz duşu çalışıyor ancak haftalık test kaydı tutulmuyor; önündeki alan malzemeyle kısmen kapalı.',
+      aks:[{t:'Göz duşu haftalık test formu asılsın, önü boşaltılsın',s:'Atölye Formeni',termin:-28,o:'Düşük',d:'kapandi'}]}
+  ]);
+  kur('saha',{lokasyon:lokSec('IZM','ADA','ANK-OPR'), tarih:gun(26), saat:'10:15', saha:'Makine teslim ve test sahası', faaliyet:'Yeni makine teslim öncesi test sürüşleri',
+    firma:'Kendi ekibimiz + nakliye firması', ekip:'Bölge İSG Uzmanı, Satış Sonrası Hizmetler Şefi', eslik:'Saha Sorumlusu', kapsam:'Test sahasında araç-yaya trafiği ve yükleme-boşaltma.', durum:'tamam',
+    sonuc:'Yaya-araç ayrımı en kritik konu. Nakliye firmasının yükleme operasyonunda sapan ve bağlama ekipmanı kontrolü yapılmıyor.'},[
+    {bolum:'Test sahası — dönüş alanı', konu:'İş makinesi / araç trafiği', kategori:'Uygunsuzluk', risk:'Kritik', metin:'Test sahasında yaya yolu işaretli değil; ziyaretçiler test edilen ekskavatörün dönüş alanından geçiyor.',
+      aks:[{t:'Yaya yolu bariyer ve zemin boyasıyla ayrılsın',s:'Saha Sorumlusu',termin:-10,o:'Yüksek',d:'gec'},{t:'Test alanına giriş kontrolü ve ziyaretçi refakat kuralı',s:'Satış Sonrası Hizmetler Şefi',termin:-15,o:'Yüksek',d:'kapandi'}]},
+    {bolum:'Yükleme rampası', konu:'Kaldırma operasyonu', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Nakliye firmasının bağlama zincirlerinden birinde kopmuş halka; kontrol kaydı yok.',
+      aks:[{t:'Nakliye firmasından bağlama ekipmanı kontrol belgesi istensin, hasarlı zincir imha edilsin',s:'Lojistik Sorumlusu',termin:5,o:'Yüksek',d:'acik'},{t:'Taşeron yükleme işleri için kontrol listesi',s:'Bölge İSG Uzmanı',termin:20,o:'Orta',d:'acik'}]},
+    {bolum:'Test sahası', konu:'İş makinesi / araç trafiği', kategori:'İyileştirme önerisi', risk:'Orta', metin:'Test edilen makinelerin geri vites alarmı çalışıyor ancak sahada dönüş aynası ve gözcü yok.',
+      aks:[{t:'Test sürüşlerinde gözcü (işaretçi) görevlendirilsin',s:'Saha Sorumlusu',termin:-3,o:'Orta',d:'onay'}]},
+    {bolum:'Operatör dosyaları (ofis)', konu:'Belge / izin / eğitim', kategori:'Olumlu uygulama', metin:'Test operatörlerinin tamamının operatörlük belgesi ve G sınıfı ehliyeti geçerli; dosyada düzenli.'}
+  ]);
+  kur('saha',{bolge:IST, tarih:gun(14), saat:'08:45', saha:'Bölge ofisi, servis atölyesi ve parça deposu', faaliyet:'Sabah vardiyası, forklift ile parça yerleştirme',
+    firma:'Kendi ekibimiz + temizlik taşeronu', ekip:'İSG Uzmanı', eslik:'Bölge Müdürü', kapsam:'Bölgedeki lokasyonlarda forklift güvenliği, acil çıkışlar ve ergonomi.', durum:'taslak',
+    sonuc:''},[
+    {bolum:'Parça deposu — forklift koridoru', li:1, konu:'İş makinesi / araç trafiği', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Forklift operatörü emniyet kemeri takmadan çalışıyor; forklift günlük kontrol formu son 6 gündür doldurulmamış.',
+      aks:[{t:'Forklift operatörlerine emniyet kemeri ve günlük kontrol uygulaması tekrar eğitimi',s:'Depo Sorumlusu',termin:7,o:'Yüksek',d:'acik'},{t:'Kemer takılmadan çalışmayan kilit sistemi için teklif alınsın',s:'Satınalma',termin:30,o:'Orta',d:'acik'}]},
+    {bolum:'Ofis katı — acil çıkış', li:0, konu:'Yangın / acil durum', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Ofis katında acil çıkış kapısının önüne arşiv kolileri konulmuş; kapı içeriden kilitli.',
+      aks:[{t:'Acil çıkış önü boşaltılsın, panik bar takılsın',s:'İdari İşler',termin:-2,o:'Yüksek',d:'gec'},{t:'Haftalık acil çıkış kontrol turu',s:'Bölge Müdürü',termin:12,o:'Orta',d:'acik'}]},
+    {bolum:'Paketleme alanı', li:1, konu:'Ergonomi', kategori:'İyileştirme önerisi', risk:'Düşük', metin:'Parça paketleme masası yüksekliği ayarlanamıyor; çalışanlar uzun süre eğilerek çalışıyor.',
+      aks:[{t:'Yüksekliği ayarlanabilir paketleme masası alınsın',s:'Satınalma',termin:45,o:'Düşük',d:'acik'}]}
+  ]);
+  kur('saha',{lokasyon:lokSec('MRK','IST-HQ','ANK-HQ'), tarih:gun(5), saat:'11:00', saha:'Genel merkez — otopark, jeneratör ve teknik oda', faaliyet:'Rutin teknik bakım, araç trafiği',
+    firma:'Bina yönetimi taşeronu', ekip:'İSG Koordinatörü', eslik:'Teknik İşler Sorumlusu', kapsam:'Genel merkez yerleşkesinde ortak alanlar ve teknik hacimler.', durum:'taslak', sonuc:''},[
+    {bolum:'Jeneratör odası', konu:'Elektrik', kategori:'Uygunsuzluk', risk:'Yüksek', metin:'Jeneratör odasında yetkisiz giriş engellenmemiş, kapı açık; yakıt tankı yanında temizlik malzemeleri depolanıyor.',
+      aks:[{t:'Jeneratör odası kilitlensin, "yetkisiz giremez" levhası asılsın',s:'Teknik İşler Sorumlusu',termin:3,o:'Yüksek',d:'acik'},{t:'Yakıt tankı çevresi boşaltılsın, döküntü tavası konulsun',s:'Bina Yönetimi',termin:10,o:'Orta',d:'acik'}]},
+    {bolum:'Otopark rampası', konu:'İş makinesi / araç trafiği', kategori:'İyileştirme önerisi', risk:'Orta', metin:'Otopark rampasında hız sınırı levhası yok; yaya geçişi ile araç rampası kesişiyor.',
+      aks:[{t:'Rampaya hız sınırı levhası ve ayna konulsun',s:'Bina Yönetimi',termin:20,o:'Orta',d:'acik'}]},
+    {bolum:'Tüm katlar — yangın dolapları', konu:'Yangın / acil durum', kategori:'Olumlu uygulama', metin:'Yangın dolapları ve acil aydınlatma testleri güncel; tahliye planları her katta asılı.'}
+  ]);
+  /* ───────── PLANLI DENETİM ───────── */
+  kur('denetim',{bolge:ANK, tarih:gun(75), bitis:gun(74), denTur:DEN_TUR[0], birim:'Bölge servis organizasyonu İSG yönetim sistemi',
+    ekip:'Baş Denetçi (İç Denetçi), İSG Uzmanı', eslik:'Bölge Servis Müdürü', kriter:'ISO 45001:2018 madde 6.1.2, 7.2, 8.1.2, 8.2, 9.1, 10.2; şirket İSG el kitabı',
+    kapsam:'Bölgedeki tüm lokasyonlarda İSG yönetim sisteminin uygulanması ve etkinliği.', ornekleme:'4 risk değerlendirmesi, 12 personel eğitim dosyası, 2 tatbikat raporu, 3 olay raporu; sahada 2 lokasyon', durum:'tamam',
+    sonuc:'Sistem genel olarak kurulu ve uygulanıyor. Yetkinlik ve risk değerlendirmesi güncelliği zayıf; 1 majör, 1 minör uygunsuzluk. Olay araştırma süreci iyi işliyor.'},[
+    {bolum:'Servis atölyesi', li:0, kriter:'ISO 45001 6.1.2', husus:'Tehlike tanımlama ve risk değerlendirmesi', kanit:'Atölye risk değerlendirmesi 2023 tarihli; yeni alınan hidrolik test tezgâhı değerlendirmede yok.', sonuc:'Minör Uygunsuzluk', metin:'Değişiklik yönetimi sonrası risk değerlendirmesi güncellenmemiş.',
+      aks:[{t:'Atölye risk değerlendirmesi yeni ekipmanlarla güncellensin',s:'İSG Uzmanı',termin:-40,o:'Orta',d:'kapandi'},{t:'Yeni ekipman alımında risk değerlendirme adımı satınalma akışına eklensin',s:'Satınalma',termin:-15,o:'Orta',d:'gec'}]},
+    {bolum:'Saha operasyon — vinç ekibi', li:1, kriter:'ISO 45001 7.2', husus:'Operatör yetkinlik belgeleri', kanit:'12 dosyadan 3 operatörün vinç operatörlük belgesinin süresi dolmuş; biri aktif çalışıyor.', sonuc:'Majör Uygunsuzluk', metin:'Yetkinliği doğrulanmamış kişi kritik ekipman kullanıyor.',
+      aks:[{t:'Belgesi dolan operatörler vinç kullanımından alınsın',s:'Bölge Servis Müdürü',termin:-72,o:'Yüksek',d:'kapandi'},{t:'Belge yenileme eğitimi planlansın',s:'İnsan Kaynakları',termin:-45,o:'Yüksek',d:'kapandi'},{t:'Belge süresi takibi için 60 gün önce uyarı listesi',s:'İnsan Kaynakları',termin:-10,o:'Orta',d:'onay'}]},
+    {bolum:'Ofis binası', li:0, kriter:'ISO 45001 8.2', husus:'Acil durum tatbikatları', kanit:'Yangın tatbikatı yapılmış; deprem/tahliye tatbikatı raporu yok.', sonuc:'Gözlem', metin:'Tatbikat programı tüm senaryoları kapsamıyor.',
+      aks:[{t:'Yıllık tatbikat programına deprem ve kimyasal döküntü senaryosu eklensin',s:'İSG Uzmanı',termin:15,o:'Düşük',d:'acik'}]},
+    {bolum:'İSG birimi kayıtları', li:1, kriter:'ISO 45001 9.1', husus:'İzleme ve ölçme', kanit:'Aylık İSG göstergeleri raporlanıyor, hedefler tanımlı.', sonuc:'Uygun', metin:'Göstergeler düzenli raporlanıyor.'},
+    {bolum:'Olay araştırma dosyaları', li:0, kriter:'ISO 45001 10.2', husus:'Olay araştırma ve düzeltici faaliyet', kanit:'3 olay raporunda kök sebep analizi yapılmış, aksiyonlar kapanmış.', sonuc:'İyileştirme Fırsatı', metin:'Öğrenilen derslerin diğer bölgelerle paylaşımı sistematik değil.',
+      aks:[{t:'Aylık "öğrenilen ders" bülteni tüm bölgelere gönderilsin',s:'İSG Koordinatörü',termin:25,o:'Düşük',d:'acik'}]}
+  ]);
+  kur('denetim',{lokasyon:lokSec('IST-SRV','ANK-OPR','IZM'), tarih:gun(48), denTur:DEN_TUR[1], birim:'Servis atölyesi — iş izni sistemi',
+    ekip:'İSG Uzmanı', eslik:'Atölye Formeni', kriter:'PR-İSG-05 İş İzni Prosedürü md.4-7; Sıcak İş Talimatı TL-İSG-11',
+    kapsam:'Son 3 ayda düzenlenen sıcak iş ve kapalı alan iş izinleri.', ornekleme:'Rastgele 10 iş izni; sahada 2 aktif izin', durum:'tamam',
+    sonuc:'İş izni sistemi kâğıt üzerinde işliyor ancak gaz ölçümü ve yangın gözcüsü kayıtlarında eksikler var.'},[
+    {bolum:'Kaynak bölümü', kriter:'PR-İSG-05 md.5', husus:'Sıcak iş öncesi gaz ölçümü', kanit:'10 izinden 3’ünde gaz ölçüm değeri yazılmamış.', sonuc:'Minör Uygunsuzluk', metin:'Ölçüm yapılıp yapılmadığı doğrulanamıyor.',
+      aks:[{t:'Gaz ölçüm değeri girilmeden izin onaylanmasın (form revizyonu)',s:'İSG Uzmanı',termin:-30,o:'Orta',d:'kapandi'},{t:'Gaz ölçüm cihazı kalibrasyon takibi',s:'Bakım Sorumlusu',termin:-8,o:'Orta',d:'gec'}]},
+    {bolum:'Kaynak bölümü — aktif iş', kriter:'TL-İSG-11 md.3', husus:'Yangın gözcüsü', kanit:'Sahadaki aktif izinde gözcü atanmış ama iş bitiminde 30 dk izleme yapılmamış.', sonuc:'Majör Uygunsuzluk', metin:'Sıcak iş sonrası yangın izleme uygulanmıyor.',
+      aks:[{t:'Yangın gözcülerine eğitim; iş sonu izleme imza bölümü',s:'Atölye Formeni',termin:-35,o:'Yüksek',d:'kapandi'},{t:'Aylık iş izni örneklem denetimi',s:'İSG Uzmanı',termin:20,o:'Orta',d:'acik'}]},
+    {bolum:'İSG arşivi', kriter:'PR-İSG-05 md.7', husus:'İzin kapatma ve arşiv', kanit:'İzinler kapatılmış, arşivde eksiksiz.', sonuc:'Uygun', metin:'Kapatma ve arşiv düzgün.'}
+  ]);
+  kur('denetim',{lokasyon:lokSec('IZM','ADA','ANK-HQ'), tarih:gun(33), denTur:DEN_TUR[3], birim:'Şube — yasal İSG yükümlülükleri',
+    ekip:'İSG Koordinatörü, İşyeri Hekimi', eslik:'Şube Müdürü', kriter:'6331 sayılı Kanun md.10, 16, 17, 20; İş Ekipmanlarının Kullanımında Sağlık ve Güvenlik Şartları Yönetmeliği Ek-3; İlkyardım Yönetmeliği md.8',
+    kapsam:'Şubenin yasal İSG yükümlülüklerinin karşılanma durumu.', ornekleme:'Periyodik kontrol raporları, eğitim kayıtları, ilkyardımcı listesi, temsilci atama yazısı', durum:'tamam',
+    sonuc:'Yasal yükümlülüklerin çoğu karşılanıyor; periyodik kontrol ve ilkyardımcı sayısı açıkları giderilmeli.'},[
+    {bolum:'Kompresör odası', kriter:'İş Ekipmanları Yön. Ek-3', husus:'Periyodik kontroller', kanit:'Kompresör ve hava tankı periyodik kontrol raporu yok; forklift raporu güncel.', sonuc:'Majör Uygunsuzluk', metin:'Basınçlı kap periyodik kontrolü yapılmamış.',
+      aks:[{t:'Kompresör ve hava tankı periyodik kontrolü yaptırılsın',s:'Bakım Sorumlusu',termin:-20,o:'Yüksek',d:'kapandi'},{t:'Periyodik kontrol takvimi tüm ekipmanları kapsayacak şekilde güncellensin',s:'İSG Koordinatörü',termin:-5,o:'Orta',d:'onay'}]},
+    {bolum:'İnsan kaynakları kayıtları', kriter:'İlkyardım Yön. md.8', husus:'İlkyardımcı sayısı', kanit:'42 çalışan için 1 sertifikalı ilkyardımcı var (az tehlikeli değil, tehlikeli sınıf: her 15 çalışana 1).', sonuc:'Minör Uygunsuzluk', metin:'İlkyardımcı sayısı yetersiz.',
+      aks:[{t:'2 personele ilkyardım eğitimi aldırılsın',s:'İnsan Kaynakları',termin:-2,o:'Orta',d:'gec'}]},
+    {bolum:'Eğitim kayıtları', kriter:'6331 md.17', husus:'Çalışanların İSG eğitimleri', kanit:'Temel İSG eğitim kayıtları tam; yenileme tarihleri takipte.', sonuc:'Uygun', metin:'Eğitimler güncel.'},
+    {bolum:'Şube yönetimi', kriter:'6331 md.20', husus:'Çalışan temsilcisi', kanit:'Temsilci atanmış, ancak eğitim kaydı yok.', sonuc:'Gözlem', metin:'Temsilcinin eğitimi belgelenmemiş.',
+      aks:[{t:'Çalışan temsilcisine temsilci eğitimi verilsin',s:'İSG Koordinatörü',termin:30,o:'Düşük',d:'acik'}]}
+  ]);
+  kur('denetim',{lokasyon:lokSec('ADA','IZM','ANK-OPR'), tarih:gun(19), denTur:DEN_TUR[4], birim:'Bakım ve temizlik taşeronları',
+    ekip:'İSG Uzmanı, Satınalma Uzmanı', eslik:'Taşeron Firma Yetkilisi', kriter:'Taşeron Yönetimi Prosedürü PR-İSG-09; 6331 md.22-23 (asıl işveren-alt işveren)',
+    kapsam:'Şubede çalışan iki taşeron firmanın İSG evrakı, eğitimleri ve sahadaki uygulamaları.', ornekleme:'2 firma, 9 çalışan özlük/eğitim dosyası; sahada 1 bakım işi', durum:'taslak', sonuc:''},[
+    {bolum:'Güvenlik / giriş kapısı', kriter:'PR-İSG-09 md.4', husus:'İşe giriş evrakı (sağlık raporu, eğitim, SGK girişi)', kanit:'9 dosyadan 2’sinde işe giriş sağlık raporu yok.', sonuc:'Minör Uygunsuzluk', metin:'Evrakı eksik taşeron çalışanı sahada.',
+      aks:[{t:'Evrakı eksik 2 çalışanın raporları tamamlanana kadar sahaya alınmasın',s:'Satınalma Uzmanı',termin:-4,o:'Yüksek',d:'gec'},{t:'Taşeron girişinde evrak kontrol listesi güvenlikte uygulansın',s:'İdari İşler',termin:10,o:'Orta',d:'acik'}]},
+    {bolum:'Çatı bakım işi', kriter:'PR-İSG-09 md.6', husus:'Sahada KKD ve iş güvenliği', kanit:'Bakım işinde yüksekte çalışma emniyet kemeri bağlanmadan yapılıyor.', sonuc:'Majör Uygunsuzluk', metin:'Yüksekte çalışmada düşmeye karşı koruma kullanılmıyor.',
+      aks:[{t:'İş durdurulsun; yaşam hattı ve tam vücut kemeri sağlansın',s:'Taşeron Firma Yetkilisi',termin:-18,o:'Yüksek',d:'kapandi'},{t:'Taşeron çalışanlarına yüksekte çalışma eğitimi',s:'İSG Uzmanı',termin:6,o:'Yüksek',d:'acik'},{t:'Taşeron sözleşmesine İSG ihlali yaptırım maddesi',s:'Satınalma Uzmanı',termin:40,o:'Orta',d:'acik'}]},
+    {bolum:'Toplantı tutanakları', kriter:'6331 md.23', husus:'Koordinasyon toplantıları', kanit:'Aylık koordinasyon toplantı tutanakları mevcut.', sonuc:'Uygun', metin:'Koordinasyon düzenli.'}
+  ]);
+  kur('denetim',{bolge:IST, tarih:gun(8), bitis:gun(8), denTur:DEN_TUR[2], birim:'Bölge acil durum yönetimi',
+    ekip:'İSG Koordinatörü', eslik:'Bölge Müdürü', kriter:'Bölge Acil Durum Planı (rev.3); İşyerlerinde Acil Durumlar Hakkında Yönetmelik md.9-12',
+    kapsam:'Acil durum planının güncelliği, ekiplerin oluşturulması ve eğitimi, tatbikat.', ornekleme:'Plan dokümanı, ekip listeleri, 2 lokasyonda sahada ekipman kontrolü', durum:'taslak', sonuc:''},[
+    {bolum:'Ofis binası', li:0, kriter:'Acil Durumlar Yön. md.11', husus:'Destek elemanları', kanit:'Ofis lokasyonunda yangın ekibinde ayrılan 2 personelin yerine atama yapılmamış.', sonuc:'Minör Uygunsuzluk', metin:'Acil durum ekipleri güncel değil.',
+      aks:[{t:'Acil durum ekipleri güncellenip ilan edilsin',s:'Bölge Müdürü',termin:7,o:'Orta',d:'acik'},{t:'Yeni ekip üyelerine yangın söndürme eğitimi',s:'İSG Koordinatörü',termin:21,o:'Orta',d:'acik'}]},
+    {bolum:'Atölye toplanma alanı', li:1, kriter:'Acil Durum Planı rev.3 md.6', husus:'Toplanma alanı ve tahliye', kanit:'Atölye toplanma alanı yeni yapılan sundurma ile kapanmış; planda eski yer duruyor.', sonuc:'İyileştirme Fırsatı', metin:'Plan saha değişikliğini takip etmiyor.',
+      aks:[{t:'Toplanma alanı yeniden belirlenip planda ve sahada işaretlensin',s:'Bölge Müdürü',termin:14,o:'Orta',d:'acik'}]},
+    {bolum:'Tatbikat kayıtları', li:1, kriter:'Acil Durumlar Yön. md.13', husus:'Tatbikat', kanit:'Son tatbikat 11 ay önce yapılmış, rapor mevcut.', sonuc:'Uygun', metin:'Tatbikat yıllık periyotta.'}
+  ]);
+  saveDen(); saveSact(); DEN_CUR=null;
+  const v=((document.querySelector('.view.on')||{}).id||'').replace('v-','');
+  if(v==='saha'||v==='denetim') denRender(v); renderAct();
+  toast(say+' örnek kayıt ve '+aksSay+' aksiyon oluşturuldu (Denetim menüsü)');
+}
+/* Açılışta bir kez: bu cihazda hiç denetim kaydı yoksa örnekler kendiliğinden kurulur (geliştirme kopyası; yayına gitmez) */
+function denOrnekOto(){
+  if(DENEME_GIRIS) return;   /* deneme sitesinde yalnız "Demo Veri Yükle" ile */
+  const k=K.rec.replace(/records$/,'den_ornek_kuruldu_v2');   /* v2: maddelerde saha / bölüm */
+  if(!SES || DEN.some(d=>!d.ornek) || store.get(k,false)) return;
+  store.set(k,true); denOrnekKur(true);
+}
+/* ── ÖRNEK PERSONEL + MAKİNE (10.11.2026) — açılışta bir kez, ikisi de boşsa; yayına gitmez ── */
+function ymOrnekOto(){
+  if(DENEME_GIRIS) return;   /* deneme sitesinde yalnız "Demo Veri Yükle" ile */
+  const k=K.rec.replace(/records$/,'ym_ornek_v5');   /* v5: eğitim oturumları; v4: makine belgeleri, rapor dosyaları, bakım, kiralık; v3: + örnek vesikalık; v2: cinsiyet, doğum, taşeron, ayrılan (pano) */
+  if(!SES || PRS.some(p=>!p.ornek) || MAK.some(m=>!m.ornek) || EGT.some(s=>!s.ornek) || store.get(k,false)) return;
+  store.set(k,true); ymOrnekKur();
+}
+/* örnek vesikalık (çizim, gerçek kişi değil): 35x45 oranında sade portre */
+async function ymOrnekFoto(p,i){
+  const c=document.createElement('canvas'); c.width=350; c.height=450; const g=c.getContext('2d');
+  const bg=g.createLinearGradient(0,0,0,450); bg.addColorStop(0,'#E9EEF4'); bg.addColorStop(1,'#CBD5E1'); g.fillStyle=bg; g.fillRect(0,0,350,450);
+  const ten=['#E8C2A0','#D9A982','#F0CFB0','#C9946C'][i%4], sac=['#2B2420','#4A3A2E','#1E1E1E','#6B5444'][i%4], ust=['#1F3A63','#2E3440','#3E5C76','#4B5563'][i%4];
+  g.fillStyle=ust; g.beginPath(); g.moveTo(30,450); g.quadraticCurveTo(40,330,175,318); g.quadraticCurveTo(310,330,320,450); g.fill();
+  g.fillStyle='#fff'; g.beginPath(); g.moveTo(140,322); g.lineTo(175,380); g.lineTo(210,322); g.fill();
+  g.fillStyle=ten; g.fillRect(150,270,50,60);
+  g.beginPath(); g.ellipse(175,215,68,84,0,0,Math.PI*2); g.fill();
+  g.fillStyle=sac; g.beginPath(); g.ellipse(175,160,74,48,0,Math.PI,0); g.fill();
+  if(p.cinsiyet==='Kadın'){ g.fillRect(101,160,22,120); g.fillRect(227,160,22,120); }
+  g.fillStyle='#2B2B2B'; g.beginPath(); g.arc(150,212,5,0,7); g.arc(200,212,5,0,7); g.fill();
+  g.strokeStyle='#9A5B4A'; g.lineWidth=3; g.beginPath(); g.arc(175,248,16,0.15*Math.PI,0.85*Math.PI); g.stroke();
+  const b=await new Promise(r=>c.toBlob(r,'image/jpeg',0.86)); const fid=uid(); await putFile(fid,b); p.foto={id:fid, ad:'ornek_vesikalik.jpg', boyut:b.size, ornek:true};
+}
+function ymOrnekKur(){
+  const aktif=LOK.filter(l=>l.aktif!==false).map(l=>l.kod); if(!aktif.length) return;
+  PRS=PRS.filter(p=>!p.ornek); MAK=MAK.filter(m=>!m.ornek);
+  const gun=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toLocaleDateString('sv'); };
+  const lk=i=>aktif[i%aktif.length];
+  const kisiler=[
+    ['10421','Murat Kaya','8342','Operatör'],['10433','Emre Yıldız','8343','Vinç operatörü'],['10457','Hakan Demir','8344','Depo forklift operatörü'],
+    ['10462','Serkan Aydın','7212','Kaynakçı'],['10478','Burak Çelik','7411','Elektrik teknisyeni'],['10481','Oğuz Şahin','7233','Servis teknisyeni'],
+    ['10495','Kemal Arslan','7233','Kıdemli servis teknisyeni'],['10502','Ahmet Koç','8332','Tır şoförü'],['10516','Selin Özdemir','2263','İSG uzmanı'],
+    ['10523','Deniz Aksoy','4321','Yedek parça sorumlusu'],['10537','Cem Yılmaz','3115','Saha teknisyeni'],['10544','Ayşe Kurt','4110','İdari işler']];
+  kisiler.forEach(([sicil,ad,meslek,gorev],i)=>{
+    const p=Object.assign(prsBos(),{sicil, ad, meslek, gorev, lok:lk(i), iseGiris:gun(400+i*97), tehlike:'Tehlikeli', ornek:true,
+      cinsiyet:['Selin Özdemir','Ayşe Kurt','Deniz Aksoy'].includes(ad)?'Kadın':'Erkek', dogum:gun(365*(22+(i*7)%36)+i*41)});
+    if(i===10) p.sirket='Örnek Mühendislik Ltd. (taşeron)';
+    if(i===11){ p.durum='ayrildi'; p.ayrilis=gun(45); }
+    const bit=(n)=>gun(-n);   /* n gün sonra (eksi: geçmiş) */
+    p.egitimler.push({id:uid(), ad:'Temel İSG eğitimi', tur:'isg', tarih:gun(700-i*40), bitis:ayEkle(gun(700-i*40),24), sure:'12', veren:'İSG Uzmanı', dosya:null});
+    if(i%3===0) p.egitimler.push({id:uid(), ad:'Yüksekte çalışma eğitimi', tarih:gun(120), bitis:bit(245), sure:'8', veren:'Dış eğitim kurumu', dosya:null});
+    p.belgeler.push({id:uid(), tur:'KKD zimmet tutanağı', tarih:gun(300), bitis:'', dosya:null});
+    const m=meslekOf(meslek);
+    (m?m.belge:[]).forEach((b,j)=>{ if((i+j)%5===4) return;   /* bazıları eksik kalsın */
+      const bitis = b.ay ? [bit(-20),bit(18),bit(400),bit(900)][(i+j)%4] : ((i+j)%3===0?bit(25):'');
+      p.belgeler.push({id:uid(), tur:b.ad, no:'B-'+sicil+'-'+(j+1), tarih:gun(500), bitis, dosya:null}); });
+    p.saglik.push({id:uid(), tur:'Periyodik', sonuc:'Çalışmaya elverişli', tarih:gun(1000-i*80), sonraki:ayEkle(gun(1000-i*80),36), dosya:null});
+    ['Nüfus cüzdanı / kimlik fotokopisi','İş sözleşmesi','SGK işe giriş bildirgesi','KVKK aydınlatma metni ve açık rıza','İşe giriş sağlık raporu','Diploma / öğrenim belgesi'].slice(0,3+(i%4))
+      .forEach(o=>{ p.ozluk[o]={tarih:gun(400), dosya:{id:'ornek-'+uid(), ad:o+'.pdf', boyut:120000}}; });
+    PRS.push(p);
+  });
+  const makineler=[
+    ['forklift','Linde','H25D',4],['vinc-kopru','Demag','EKDR 5t',1],['vinc-mobil','Liebherr','LTM 1050',0],['kompresor','Atlas Copco','GA30',1],
+    ['ekskavator','JCB','JS220',0],['beko','JCB','3CX',2],['telehandler','JCB','540-170',3],['platform','Genie','GS-1932',1],
+    ['elektrik','—','Atölye iç tesisatı',1],['yangin-tup','—','6 kg KKT (12 adet)',2],['hid-test','—','Hidrolik test tezgâhı',1],['kamyon','Mercedes','Actros 3341',4]];
+  makineler.forEach(([tur,marka,model,li],i)=>{
+    const m=Object.assign(makBos(),{tur, marka, model, lok:lk(li), seriNo:'SN'+(70000+i*137), yil:String(2016+(i%8)), ornek:true});
+    m.envNo=makEnvNo(m);
+    const t=makTurOf(tur);
+    if(t.ay){ const son=[gun(380),gun(340),gun(200),gun(30)][i%4];
+      const ds=(ad)=>({id:'ornek-'+uid(), ad, boyut:180000});
+      if(i%4===0) m.kontroller.push({id:uid(), tarih:gun(760), sonraki:gun(395), kurulus:'Akredite muayene kuruluşu', sonuc:'Uygun', yukTest:!!t.yukTest, dosya:ds('kontrol_eski.pdf')});
+      m.kontroller.push({id:uid(), tarih:son, sonraki:ayEkle(son,t.ay), kurulus:'Akredite muayene kuruluşu', sonuc:i%7===3?'Şartlı uygun':'Uygun', yukTest:i===2, dosya:i%5===2?null:ds('periyodik_kontrol.pdf')}); }
+    const dsy=(ad)=>({id:'ornek-'+uid(), ad, boyut:150000});
+    if(i%6!==5) m.belgeler.push({id:uid(), tur:'CE uygunluk beyanı', tarih:gun(2000), bitis:'', dosya:dsy('CE.pdf')});
+    if(i%4!==3) m.belgeler.push({id:uid(), tur:'Kullanım kılavuzu', tarih:gun(2000), bitis:'', dosya:dsy('kilavuz.pdf')});
+    if(tur==='kamyon'||tur==='ekskavator'||tur==='beko'){ m.plaka=tur==='kamyon'?'34 ABC '+(100+i):'';
+      m.belgeler.push({id:uid(), tur:'Ruhsat / tescil', tarih:gun(1500), bitis:'', dosya:dsy('ruhsat.pdf')});
+      m.belgeler.push({id:uid(), tur:'Zorunlu mali sorumluluk sigortası', tarih:gun(300), bitis:gun(-[15,120,200][i%3]), dosya:dsy('sigorta.pdf')}); }
+    if(i===6||i===7){ m.sahiplik='Kiralık'; if(i===6) m.belgeler.push({id:uid(), tur:'Kiralama sözleşmesi', tarih:gun(200), bitis:gun(-160), dosya:dsy('kiralama.pdf')}); }
+    m.bakimlar=[{id:uid(), tarih:gun(60+i*11), is:['250 saat bakımı','Hidrolik hortum değişimi','Fren ayarı','Genel bakım'][i%4], yapan:'Servis ekibi', dosya:i%3?dsy('bakim_formu.pdf'):null}];
+    if(i===9) m.durum='Bakımda';
+    if(i===11) m.durum='Arızalı';
+    MAK.push(m);
+  });
+  /* örnek eğitim oturumları (v5): tamamlananlar kişilerin kartına işlenir (egtSenkron) */
+  EGT=EGT.filter(s=>!s.ornek);
+  const EP=PRS.filter(p=>p.ornek&&p.durum!=='ayrildi'), ek=f=>EP.filter(f).map(p=>({pid:p.id, ad:p.ad, sicil:p.sicil||'', katildi:true}));
+  const egt=(turKod,gn,sure,durum,kat,ekA)=>{ const s=Object.assign(egtBos(gun(gn),turKod),{sure:String(sure),durum,katilimci:kat,egitmen:'İSG Uzmanı',lok:lk(0),ornek:true},ekA||{}); s.no=egtNo(s); EGT.push(s); };
+  egt('isg-temel',150,12,'tamamlandi',ek(()=>true).slice(0,7),{yer:'Eğitim salonu'});
+  egt('acil-durum',35,2,'tamamlandi',ek(()=>true),{yer:'Tatbikat alanı'});
+  egt('yuksekte',70,8,'tamamlandi',ek(p=>/^(7233|7119|7411|3115)/.test(p.meslek)),{veren:'Dış',kurum:'Örnek Eğitim Kurumu',egitmen:'Dış eğitmen'});
+  egt('forklift',210,4,'tamamlandi',ek(p=>/^(8344|4321)/.test(p.meslek)));
+  egt('is-makinesi',100,4,'tamamlandi',ek(p=>/^8342/.test(p.meslek)));
+  egt('sapanci',-9,4,'planli',ek(p=>/^8343/.test(p.meslek)),{saat:'10:00'});
+  egt('ilk-yardim',-23,16,'planli',ek(()=>true).slice(2,5),{veren:'Dış',kurum:'Örnek İlk Yardım Merkezi',egitmen:'Dış eğitmen'});
+  egt('kkd',-4,2,'planli',ek(p=>/^[789]/.test(p.meslek)),{saat:'14:00'});
+  egt('sicak-is',14,4,'iptal',ek(p=>/^7212/.test(p.meslek)));
+  EGT.filter(s=>s.ornek).forEach(s=>{ const k=s.katilimci; if(s.durum==='tamamlandi'&&k.length>3) k[k.length-1].katildi=false; });
+  saveEgt(); EGT.filter(s=>s.ornek).forEach(s=>egtSenkron(s));
+  savePrs(); saveMak();
+  /* örnek vesikalık: ilk 6 kişiye çizim portre (gerçek kişi değil) */
+  (async()=>{ const L=PRS.filter(p=>p.ornek).slice(0,6); for(let i=0;i<L.length;i++){ try{ await ymOrnekFoto(L[i],i); }catch(e){} } savePrs(); try{ if(typeof prsRender==='function') prsRender(); }catch(e){} })();
+}
 function wipe(){
   if(!can('ayar')) return;
   if(!confirm(`DİKKAT: ${RECS.length} olay kaydı ve tüm ekleri kalıcı olarak silinecek.\nLokasyon, kullanıcı ve dağıtım ayarları KALIR.\n\nÖnce yedek aldınız mı? Devam edilsin mi?`)) return;
@@ -12231,7 +12562,8 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.13':['Deneme sitesinde parolasız giriş: şirket e-posta adresinizle (@sif.com.tr) doğrudan girersiniz; veriler yalnız kendi cihazınızda tutulur'],
+const SURUM_NOTU={'1.9.14':['Ayarlar › Genel › Demo Veri Yükle: tek tıkla tüm modüllere örnek kayıt (olaylar ve aksiyonlar, denetimler, personel, makine-ekipman, eğitimler)'],
+  '1.9.13':['Deneme sitesinde parolasız giriş: şirket e-posta adresinizle (@sif.com.tr) doğrudan girersiniz; veriler yalnız kendi cihazınızda tutulur'],
   '1.9.12':['Yeni Ana Sayfa: İSG, Personel, Makine-Ekipman ve Eğitim Yönetimi bölümleri; giriş yetkiye bağlı; yaklaşanlar ajandası ve özet kutuları',
   'Personel Yönetimi: pano (birbirine bağlı grafikler), personel listesi, kişi kartı (vesikalık, belge grupları, son kullanma); meslek SGK kodu SAP dökümünden',
   'Makine-Ekipman Yönetimi: pano, makine listesi, kart (Ek-III periyodik kontrol, yük testi, sertifika ve belgeler, bakım kayıtları, ilgili olaylar); SAP ekipman dökümünden aktarım',
