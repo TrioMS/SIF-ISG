@@ -2221,7 +2221,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.21';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.22';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6466,7 +6466,7 @@ window.addEventListener('hashchange',()=>{ const h=location.hash; if(h.startsWit
 function anaGit(m){ if(!modYetki(m)){ toast('Bu bölüm için yetkiniz yok.'); return; } go(m==='isg'?'analiz':m==='personel'?'prsPano':m==='makine'?'makPano':m==='egitim'?'egtPano':m); }
 const ANA_ICO={
   egitim:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/><line x1="22" y1="9" x2="22" y2="15"/></svg>',
-  isg:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  isg:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0 1 16 0"/><rect x="2" y="16" width="20" height="3" rx="1.5"/><path d="M10 8.6V6h4v2.6"/></svg>',
   personel:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.5a5 5 0 0 1 5.5 5"/></svg>',
   makine:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="13" width="12" height="5" rx="1.5"/><circle cx="5" cy="19" r="1.6"/><circle cx="11" cy="19" r="1.6"/><path d="M14 15h3l3-6"/><path d="M20 9l-6-4-3 4"/></svg>'
 };
@@ -13522,7 +13522,8 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.21':['Ana sayfa: sağ sütundaki Son olaylar kartı ajandayla aynı hizada biter'],
+const SURUM_NOTU={'1.9.22':['Ana sayfa: İSG Yönetimi simgesi baret'],
+  '1.9.21':['Ana sayfa: sağ sütundaki Son olaylar kartı ajandayla aynı hizada biter'],
   '1.9.20':['Personel, Makine-Ekipman ve Eğitim menüsünde Analiz sayfası: İSG Analiz ekranıyla aynı (özet, bulgular, aksiyon planı, strateji, analiz geçmişi)',
   'AI düğmesine basınca neleri analiz ettiği adım adım görünür',
   'Ana sayfada hava durumu kutusu sağ sütunla hizalı'],
