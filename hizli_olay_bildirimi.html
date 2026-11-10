@@ -2125,7 +2125,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.12';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.13';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2929,7 +2929,13 @@ const MS_GIRIS = {
      YÖNETİCİ olarak eklenir (yeni telefonda ilk açılış için). Liste yalnız kodla değişir. */
   ilkYoneticiler: ['cagri.dincturk@stfa.com']
 };
-const msAktif = () => !!(MS_GIRIS.tenantId && MS_GIRIS.clientId);
+/* DENEME SİTESİ (kullanıcı kararı 10.11.2026: "o tarafta şimdilik şifreyi kaldıralım, kendi sif mail adresiyle açabilsin"):
+   localhost:8090 DIŞINDA (GitHub Pages deneme sitesi) Microsoft girişi KAPALI; şirket e-postası (DENEME_ALANLAR) yazan
+   kişi parolasız girer, cihazda kullanıcısı yoksa YÖNETİCİ olarak açılır. Veri yalnız o cihazın tarayıcısında durur
+   (kimseyle paylaşılmaz). Gerçek veri / canlı kullanım öncesi KAPATILACAK: DENEME_GIRIS=false → Microsoft (Entra) girişi döner. */
+const DENEME_GIRIS = !(['localhost','127.0.0.1'].includes(location.hostname) && location.port==='8090');
+const DENEME_ALANLAR = ['sif.com.tr','stfa.com'];
+const msAktif = () => !DENEME_GIRIS && !!(MS_GIRIS.tenantId && MS_GIRIS.clientId);
 const MSAL_CDN = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js';
 let MS_PCA = null, MS_HESAP = null;   /* MS_HESAP: Microsoft'tan dönen, doğrulanmış e-posta */
 function msHata(m){ const e=$('gateMsErr'); if(e) e.textContent=m||''; }
@@ -3344,7 +3350,7 @@ function gateRender(){
     const h=$('gateMsHatirla'); if(h) h.checked = msHatirla();
     const ph=$('gatePwHatirla'); if(ph) ph.checked = msHatirla();
     const ha=$('gatePwHesap'); if(ha) ha.textContent = PW_EPOSTA; }
-  const yok = aktifAdmin().length===0 && (!msAktif() || !!MS_HESAP);
+  const yok = !DENEME_GIRIS && aktifAdmin().length===0 && (!msAktif() || !!MS_HESAP);   /* deneme sitesinde ilk giren yönetici olur */
   $('gateRecover').innerHTML = yok ? `
     <div class="warn" style="background:var(--red-light);border-color:var(--red);color:var(--red-700)">
       <b>Aktif uygulama yöneticisi kalmadı.</b> Ayarlar ekranını kimse açamaz.
@@ -3375,6 +3381,13 @@ function girisDene(mail){
   if(msAktif()){ msHata('Giriş yalnız Microsoft şirket hesabıyla yapılır.'); return; }   /* SAST B5 */
   const m=String(mail||$('gateMail').value||'').trim().toLowerCase();
   if(!m){ $('gateErr').textContent='E-posta adresinizi yazın.'; return; }
+  if(DENEME_GIRIS && !USR.some(x=>(x.mail||'').trim().toLowerCase()===m)){
+    const alan=m.slice(m.lastIndexOf('@')+1);
+    if(!/^[^@\s]+@[^@\s]+$/.test(m) || !DENEME_ALANLAR.includes(alan)){ $('gateErr').textContent='Şirket e-posta adresinizi yazın ('+DENEME_ALANLAR.map(a=>'@'+a).join(', ')+').'; return; }
+    { const l=sirketAlanlari(); if(!l.includes(alan)){ GEN.mailAlan=l.concat([alan]); store.set(K.gen,GEN); } }
+    const ad=m.split('@')[0].split(/[._-]+/).filter(Boolean).map(s=>s.charAt(0).toLocaleUpperCase('tr')+s.slice(1)).join(' ');
+    USR.push({id:uid(), ad:ad||m, mail:m, pozisyon:'admin', loklar:['*'], aktif:true, ornek:false, dis:false}); store.set(K.usr,USR);
+  }
   const u=USR.find(x=>(x.mail||'').trim().toLowerCase()===m);
   if(!u){ $('gateErr').innerHTML='Bu adres sistemde tanımlı değil. Yöneticinizin sizi <b>Ayarlar → Kullanıcılar</b>\'dan eklemesi gerekir.'; return; }
   if(!u.aktif){ $('gateErr').textContent='Bu kullanıcı pasif durumda. Yöneticinize başvurun.'; return; }
@@ -12218,7 +12231,8 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.12':['Yeni Ana Sayfa: İSG, Personel, Makine-Ekipman ve Eğitim Yönetimi bölümleri; giriş yetkiye bağlı; yaklaşanlar ajandası ve özet kutuları',
+const SURUM_NOTU={'1.9.13':['Deneme sitesinde parolasız giriş: şirket e-posta adresinizle (@sif.com.tr) doğrudan girersiniz; veriler yalnız kendi cihazınızda tutulur'],
+  '1.9.12':['Yeni Ana Sayfa: İSG, Personel, Makine-Ekipman ve Eğitim Yönetimi bölümleri; giriş yetkiye bağlı; yaklaşanlar ajandası ve özet kutuları',
   'Personel Yönetimi: pano (birbirine bağlı grafikler), personel listesi, kişi kartı (vesikalık, belge grupları, son kullanma); meslek SGK kodu SAP dökümünden',
   'Makine-Ekipman Yönetimi: pano, makine listesi, kart (Ek-III periyodik kontrol, yük testi, sertifika ve belgeler, bakım kayıtları, ilgili olaylar); SAP ekipman dökümünden aktarım',
   'Eğitim Yönetimi: pano (adam·saat), eğitim planı takvimi ve planlanması gerekenler, eğitim kayıtları ve katılımcılar; zorunlu ve mesleki eğitim durumu; eğitim türleri Ayarlar’da',
@@ -12263,8 +12277,11 @@ function guncellendiGoster(){
   let g=null; try{ g=localStorage.getItem(K_GORULEN_SURUM); }catch(e){}
   if(g===APP_SURUM || !SURUM_NOTU[APP_SURUM]) return;
   try{ localStorage.setItem(K_GORULEN_SURUM, APP_SURUM); }catch(e){}
+  /* son görülenden sonraki BÜTÜN notlu sürümler (en çok 3) — araya giren sürüm notları kaybolmasın (10.11.2026) */
+  const sv=s=>String(s).split('.').map(n=>+n||0), buyuk=(a,b)=>{ const x=sv(a), y=sv(b); for(let i=0;i<3;i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; };
+  const L=Object.keys(SURUM_NOTU).filter(k=>!buyuk(k,APP_SURUM) && (!g || buyuk(k,g))).sort((a,b)=>buyuk(a,b)?-1:1).slice(0,g?3:2);
   $('gpBaslik').textContent='Uygulama güncellendi — Sürüm '+APP_SURUM;
-  $('gpGovde').innerHTML='<ul class="surumNot">'+SURUM_NOTU[APP_SURUM].map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>';
+  $('gpGovde').innerHTML=L.map(k=>(L.length>1?'<div style="font-weight:700;margin:6px 0 2px">Sürüm '+esc(k)+'</div>':'')+'<ul class="surumNot">'+SURUM_NOTU[k].map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>').join('');
   ovAc('ovGrafik');
 }
 
