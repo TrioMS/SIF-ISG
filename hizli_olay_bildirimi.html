@@ -809,6 +809,13 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 .hava-sehirler button:hover,.hava-sehirler button.secili{background:var(--surface2);font-weight:700}
 #havaBaska{width:100%;border-radius:10px}
 @media(max-width:700px){ .hava-gunler{display:none} }
+/* hizalama (10.11.2026, kullanıcı: "hava durumunu da hizala"): genişlik = kutu şeridinin son sütunu (sağ sütunla aynı hiza),
+   yükseklik = modül simgeleriyle aynı (60px); gün sütunları tek satır en yüksek/en düşük */
+.anaModuller .hava{box-sizing:border-box;width:calc((100% - (var(--sut,4) - 1)*10px)/var(--sut,4));height:60px;padding:0 14px;justify-content:space-between;gap:10px}
+.anaModuller .hava-simdi{min-width:0}.anaModuller .hava-yer{width:auto;flex:1 1 auto}
+.anaModuller .hava-gunler{gap:8px;padding-left:10px;flex:none}
+.anaModuller .hava-gun{gap:0;line-height:1.15}.anaModuller .hava-gun svg{width:16px;height:16px}
+@media(max-width:900px){ .anaModuller .hava{width:auto} }
 /* 11.11.2026: ajanda solda geniş, satırlar tek satır; kutular sağda ikişerli; iki sütun aynı hizada biter (Assist kuralı) */
 .hp-pano{grid-template-columns:minmax(0,1fr) minmax(280px,380px)!important;align-items:stretch!important}
 #anaAjanda{display:flex;flex-direction:column;min-height:0}
@@ -1397,16 +1404,19 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
     </div>
   </div>
   <button data-v="prsPano" data-mv="personel">Pano</button>
+  <button data-v="prsAnaliz" data-mv="personel">Analiz</button>
   <button data-v="personel" data-mv="personel">Personel Listesi</button>
   <button data-v="prsYeni" data-mv="personel">Yeni Personel</button>
   <button data-v="prsYa" data-mv="personel">Yeni Aksiyon</button>
   <button data-v="prsAks" data-mv="personel">Aksiyon Listesi</button>
   <button data-v="makPano" data-mv="makine">Pano</button>
+  <button data-v="makAnaliz" data-mv="makine">Analiz</button>
   <button data-v="makine" data-mv="makine">Makine Listesi</button>
   <button data-v="makYeni" data-mv="makine">Yeni Makine</button>
   <button data-v="makYa" data-mv="makine">Yeni Aksiyon</button>
   <button data-v="makAks" data-mv="makine">Aksiyon Listesi</button>
   <button data-v="egtPano" data-mv="egitim">Pano</button>
+  <button data-v="egtAnaliz" data-mv="egitim">Analiz</button>
   <button data-v="egtPlan" data-mv="egitim">Eğitim Planı</button>
   <button data-v="egitim" data-mv="egitim">Eğitim Kayıtları</button>
   <button data-v="egtYeni" data-mv="egitim">Yeni Eğitim</button>
@@ -1711,13 +1721,40 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <section class="view" id="v-denetim"><div id="denetimWrap"></div></section>
 <!-- ══════════ ANA SAYFA + PERSONEL + MAKİNE-EKİPMAN (10.11.2026) ══════════ -->
 <section class="view" id="v-ana"><div id="anaWrap"></div></section>
-<section class="view" id="v-prsPano"><div id="prsPanoWrap"></div><button class="aiFab" onclick="maiAc('prs')" title="AI analizi">AI</button></section>
+<section class="view" id="v-prsPano"><div id="prsPanoWrap"></div><button class="aiFab" onclick="maiCalistir('prs',false)" title="AI analizi">AI</button></section>
+<section class="view" id="v-prsAnaliz">
+  <div class="bar" style="margin-bottom:12px;align-items:baseline;flex-wrap:wrap;gap:10px"><h2 style="font-size:19px">Analiz</h2><span class="hint" id="maiKapsam_prs"></span></div>
+  <div class="bgOzetBar" id="maiOzet_prs"></div>
+  <div class="card"><h3>Bulgular <span class="hint" id="maiSay_prs" style="font-weight:600;margin-left:6px"></span></h3><div class="cb"><div class="bgSuz" id="maiSuz_prs"></div><div id="maiListe_prs"></div></div></div>
+  <div class="card" id="maiPlanKart_prs" style="margin-top:16px;scroll-margin-top:12px"><h3>Aksiyon Planı</h3><div class="cb" id="maiPlan_prs"></div></div>
+  <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Strateji Planı</h3></summary><div class="cb" id="maiStrateji_prs"></div></details>
+  <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Analiz Geçmişi</h3></summary><div class="cb" id="maiGecmis_prs"></div></details>
+  <button class="aiFab" onclick="maiCalistir('prs',true)" title="AI — tüm verileri analiz et">AI</button>
+</section>
 <section class="view" id="v-personel"><div id="personelWrap"></div></section>
 <section class="view" id="v-prsYeni"><div id="prsYeniWrap"></div></section>
-<section class="view" id="v-makPano"><div id="makPanoWrap"></div><button class="aiFab" onclick="maiAc('mak')" title="AI analizi">AI</button></section>
+<section class="view" id="v-makPano"><div id="makPanoWrap"></div><button class="aiFab" onclick="maiCalistir('mak',false)" title="AI analizi">AI</button></section>
+<section class="view" id="v-makAnaliz">
+  <div class="bar" style="margin-bottom:12px;align-items:baseline;flex-wrap:wrap;gap:10px"><h2 style="font-size:19px">Analiz</h2><span class="hint" id="maiKapsam_mak"></span></div>
+  <div class="bgOzetBar" id="maiOzet_mak"></div>
+  <div class="card"><h3>Bulgular <span class="hint" id="maiSay_mak" style="font-weight:600;margin-left:6px"></span></h3><div class="cb"><div class="bgSuz" id="maiSuz_mak"></div><div id="maiListe_mak"></div></div></div>
+  <div class="card" id="maiPlanKart_mak" style="margin-top:16px;scroll-margin-top:12px"><h3>Aksiyon Planı</h3><div class="cb" id="maiPlan_mak"></div></div>
+  <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Strateji Planı</h3></summary><div class="cb" id="maiStrateji_mak"></div></details>
+  <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Analiz Geçmişi</h3></summary><div class="cb" id="maiGecmis_mak"></div></details>
+  <button class="aiFab" onclick="maiCalistir('mak',true)" title="AI — tüm verileri analiz et">AI</button>
+</section>
 <section class="view" id="v-makine"><div id="makineWrap"></div></section>
 <section class="view" id="v-makYeni"><div id="makYeniWrap"></div></section>
-<section class="view" id="v-egtPano"><div id="egtPanoWrap"></div><button class="aiFab" onclick="maiAc('egt')" title="AI analizi">AI</button></section>
+<section class="view" id="v-egtPano"><div id="egtPanoWrap"></div><button class="aiFab" onclick="maiCalistir('egt',false)" title="AI analizi">AI</button></section>
+<section class="view" id="v-egtAnaliz">
+  <div class="bar" style="margin-bottom:12px;align-items:baseline;flex-wrap:wrap;gap:10px"><h2 style="font-size:19px">Analiz</h2><span class="hint" id="maiKapsam_egt"></span></div>
+  <div class="bgOzetBar" id="maiOzet_egt"></div>
+  <div class="card"><h3>Bulgular <span class="hint" id="maiSay_egt" style="font-weight:600;margin-left:6px"></span></h3><div class="cb"><div class="bgSuz" id="maiSuz_egt"></div><div id="maiListe_egt"></div></div></div>
+  <div class="card" id="maiPlanKart_egt" style="margin-top:16px;scroll-margin-top:12px"><h3>Aksiyon Planı</h3><div class="cb" id="maiPlan_egt"></div></div>
+  <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Strateji Planı</h3></summary><div class="cb" id="maiStrateji_egt"></div></details>
+  <details class="card bgGecmisKart" style="margin-top:16px"><summary><h3>Analiz Geçmişi</h3></summary><div class="cb" id="maiGecmis_egt"></div></details>
+  <button class="aiFab" onclick="maiCalistir('egt',true)" title="AI — tüm verileri analiz et">AI</button>
+</section>
 <section class="view" id="v-egtPlan"><div id="egtPlanWrap"></div></section>
 <section class="view" id="v-egitim"><div id="egitimWrap"></div></section>
 <section class="view" id="v-egtYeni"><div id="egtYeniWrap"></div></section>
@@ -2001,6 +2038,10 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
         </div>
       </div>
     </div>
+    <div class="card" id="shKart" style="max-width:620px;display:none">
+      <h3>Veri Havuzu</h3>
+      <div class="cb" id="shKartIc"></div>
+    </div>
   </div>
 
   <!-- airtable bağlantısı -->
@@ -2179,7 +2220,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.19';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.20';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2210,10 +2251,241 @@ const K = {rec:'hse::HOB::records', dist:'hse::HOB::dist', lok:'hse::HOB::lok',
    doğrusu onu gizlemek değil kuralı düzeltmek. Depoda kalan işaretler artık
    hiçbir yerde okunmuyor; sessizce yer tutmasınlar. */
 try{ localStorage.removeItem('hse::HOB::ogren'); }catch(e){}
-const store = {
-  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
-  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ toast('Tarayıcı deposu yazamadı — yedek alın!'); } }
+/* ══════════ VERİ HAVUZU (10.11.2026) ══════════
+   Kullanıcı: "her ana modül için ayrı klasör, alt modüller için içinde klasörler; ortak klasörler (aksiyon vs.)
+   ama sadece yetki dahilinde ilgili bilgiye ulaşılabilecek; öğrenme motorları bu havuzlardan okuyacak" ·
+   "şimdilik sunucu, sonra Azure taşıması".
+   Yerel sunucuda (8090) havuz açıksa (HSE\Ayarlar\sif_havuzu.json) paylaşılan kayıtlar tarayıcıya YAZILMAZ:
+   açılışta sunucudan okunur (/__sif_veri), değişiklik sunucuya yazılır (/__sif_veri_yaz). Sunucu yalnız
+   yetkili dosyaları verir (modül yetkisi + lokasyon kapsamı + sağlık); bölme / birleştirme burada.
+   Klasör düzeni ve yetki kuralları: .claude\sif_havuz.ps1. Havuz kapalıysa / GitHub deneme sitesinde
+   davranış değişmez (tarayıcı deposu). Kişisel ayarlar (oturum, tema, AI anahtarı, hava şehri) hep tarayıcıda. */
+const SH_ONEK = 'hse::HOB::';
+const shKod = s => String(s==null||s===''?'_genel':s).replace(/[^A-Za-z0-9_.-]/g,'_').slice(0,60) || '_genel';
+/* anahtar → bölme: t = tek dosya; b = dizi alanına göre <LOK> dosyaları */
+const SH_HARITA = {
+  usr:{t:'_sistem/kullanicilar'}, poz:{t:'_sistem/pozisyonlar'}, lok:{t:'_sistem/lokasyonlar'}, gen:{t:'_sistem/genel'},
+  pers:{t:'_sistem/personel_rehberi'}, dist:{t:'isg/_ayar/dagitim_matrisi'},
+  records:{b:x=>'isg/olay/'+shKod(x.lokasyon)},
+  denetim:{b:x=>'isg/denetim/'+(x.lokasyon?shKod(x.lokasyon):x.bolge?'B-'+shKod(x.bolge):'_genel')},
+  sact:{b:x=>'ortak/aksiyon/'+(['personel','makine','egitim'].includes(x.modul)?x.modul:'isg')+'/'+shKod(x.lokasyon)},
+  personel:{prs:1},
+  makine:{b:x=>'makine/envanter/'+shKod(x.lok)},
+  egitim:{b:x=>'egitim/kayit/'+shKod(x.lok)},
+  sap_ekipman:{t:'makine/sap/ekipman'}, egitim_tur:{t:'egitim/_ayar/egitim_turleri'},
+  mai_esik:{esik:{prs:'personel',mak:'makine',egt:'egitim'}},
+  mai_gecmis:{esik:{prs:'personel',mak:'makine',egt:'egitim'}, dosya:'ai_gecmisi'},
+  an_bulgu:{plan:1},                                   /* analiz aksiyon planı: satır başına modül (bk "mai:<mod>:") → ortak/aksiyon_plani/<modül> */
+  yb_model:{t:'_ogrenme/belge_motoru'}, model:{t:'_ogrenme/analiz_modeli'}, bellek:{t:'_ogrenme/analiz_bellegi'},
+  ym_ornek_v6:{t:'_sistem/kurulum/ym_ornek_v6'}, den_ornek_kuruldu_v2:{t:'_sistem/kurulum/den_ornek_kuruldu_v2'}
 };
+const shAd = k => (typeof k==='string' && k.startsWith(SH_ONEK) && SH_HARITA[k.slice(SH_ONEK.length)]) ? k.slice(SH_ONEK.length) : null;
+/* değer → {göreli yol: ham JSON}; boş parça gönderilmez (yokluk = sil) */
+function shBol(ad, v){
+  const h=SH_HARITA[ad], p={};
+  if(v==null) return p;
+  if(h.t){ p[h.t]=JSON.stringify(v); return p; }
+  if(h.esik){ for(const [k,m] of Object.entries(h.esik)) if(v[k] && Object.keys(v[k]).length) p[m+'/_ayar/'+(h.dosya||'ai_esikleri')]=JSON.stringify(v[k]); return p; }
+  if(h.plan){ const M={prs:'personel',mak:'makine',egt:'egitim'}, G={};
+    for(const r of (v.plan||[])){ const mm=(String(r&&r.bk||'').match(/^mai:(prs|mak|egt):/)||[])[1]; const m=mm?M[mm]:'isg'; (G[m]=G[m]||[]).push(r); }
+    if(v.kat && Object.keys(v.kat).length) G.isg=G.isg||[];
+    for(const [m,L] of Object.entries(G)) p['ortak/aksiyon_plani/'+m]=JSON.stringify(m==='isg'?{plan:L,kat:v.kat||{}}:{plan:L});
+    return p; }
+  if(!Array.isArray(v)) return p;
+  const G={}, ek=(rel,x)=>{ (G[rel]=G[rel]||[]).push(x); };
+  if(h.prs){
+    const S={};
+    for(const x of v){ const {saglik,...kart}=x||{}; const l=shKod(x&&x.lok); ek('personel/kart/'+l,kart);
+      if(Array.isArray(saglik)&&saglik.length){ (S['personel/saglik/'+l]=S['personel/saglik/'+l]||{})[x.id]=saglik; } }
+    for(const [r,o] of Object.entries(S)) p[r]=JSON.stringify(o);
+  } else for(const x of v) ek(h.b(x||{}),x);
+  for(const [r,a] of Object.entries(G)) p[r]=JSON.stringify(a);
+  return p;
+}
+/* {göreli: ham} → değer */
+function shTopla(ad, parcalar){
+  const h=SH_HARITA[ad], rels=Object.keys(parcalar||{}).sort();
+  if(!rels.length) return undefined;
+  const oku=r=>{ try{ return JSON.parse(parcalar[r]); }catch(e){ return null; } };
+  if(h.t) return oku(h.t);
+  if(h.esik){ const o={}; for(const [k,m] of Object.entries(h.esik)){ const r=m+'/_ayar/'+(h.dosya||'ai_esikleri'); if(r in parcalar) o[k]=oku(r)||{}; } return o; }
+  if(h.plan){ const o={plan:[],kat:{}}; for(const r of rels){ const d=oku(r)||{}; o.plan=o.plan.concat(d.plan||[]); if(d.kat) Object.assign(o.kat,d.kat); } return o; }
+  let a=[]; const S={};
+  for(const r of rels){ const d=oku(r);
+    if(h.prs && r.startsWith('personel/saglik/')){ if(d&&typeof d==='object') Object.assign(S,d); continue; }
+    if(Array.isArray(d)) a=a.concat(d); }
+  if(h.prs) a=a.map(x=>S[x.id]?{...x,saglik:S[x.id]}:x);
+  return a;
+}
+/* ÜÇ YOLLU BİRLEŞTİRME (veri katmanıyla aynı kural: kimliğe göre kayıt, alan bazında; taban bilinmiyorsa
+   zaman damgası / benimki). Aynı anda iki kişi aynı dosyayı değiştirince veri kaybolmaz. */
+const shBirlestir = (function(){
+  const HAS=Object.prototype.hasOwnProperty;
+  const esit=(a,b)=>{ if(a===b) return true; try{ return JSON.stringify(a)===JSON.stringify(b); }catch(e){ return false; } };
+  const nesneMi=x=>x!==null && typeof x==='object' && !Array.isArray(x);
+  const IDA=['id','uid','no','kod','k'];
+  function idAlani(D){ for(const a of IDA){ let ok=true, say=0;
+      for(const arr of D){ const gor={}; for(const el of arr){ if(!nesneMi(el)){ ok=false; break; } const v=el[a];
+          if(v===undefined||v===null||v===''||typeof v==='object'){ ok=false; break; } const kk=typeof v+':'+v; if(gor[kk]){ ok=false; break; } gor[kk]=1; say++; }
+        if(!ok) break; }
+      if(ok && say) return a; } return null; }
+  const ZA=['guncelleme','updatedAt','degisti','_ts'];
+  function zk(m,t){ for(const f of ZA){ if(m[f]!=null && t[f]!=null && m[f]!==t[f]){ const a=Date.parse(m[f])||+m[f], b=Date.parse(t[f])||+t[f]; if(!isNaN(a)&&!isNaN(b)) return a>b?1:a<b?-1:0; } } return 0; }
+  function dB(b,m,t,tv){
+    if(esit(m,t)) return m;
+    if(tv){ if(esit(b,m)) return t; if(esit(b,t)) return m; }
+    if(Array.isArray(m)&&Array.isArray(t)) return diziB(tv&&Array.isArray(b)?b:null,m,t);
+    if(nesneMi(m)&&nesneMi(t)) return nesneB(tv&&nesneMi(b)?b:null,m,t);
+    return m;
+  }
+  function nesneB(b,m,t){
+    if(!b){ const z=zk(m,t); if(z>0) return m; if(z<0) return t; }
+    const out={};
+    for(const k in m) if(HAS.call(m,k)){ const iB=!!b&&HAS.call(b,k);
+      if(HAS.call(t,k)) out[k]=dB(iB?b[k]:undefined,m[k],t[k],iB); else if(!(iB&&esit(b[k],m[k]))) out[k]=m[k]; }
+    for(const k in t) if(HAS.call(t,k)&&!HAS.call(m,k)){ const iB=!!b&&HAS.call(b,k); if(!(iB&&esit(b[k],t[k]))) out[k]=t[k]; }
+    return out;
+  }
+  function diziB(b,m,t){
+    const a=idAlani([m,t]);
+    if(a){ const k=x=>typeof x[a]+':'+x[a], mB={}, mT={}, mM={}, sira=[], kon={};
+      if(b) for(const x of b) if(nesneMi(x)&&x[a]!=null) mB[k(x)]=x;
+      for(const x of t) mT[k(x)]=x; for(const x of m) mM[k(x)]=x;
+      for(const x of m){ const kk=k(x), iB=HAS.call(mB,kk);
+        if(HAS.call(mT,kk)){ sira.push(kk); kon[kk]=dB(iB?mB[kk]:undefined,x,mT[kk],iB); }
+        else if(!(iB&&esit(mB[kk],x))){ sira.push(kk); kon[kk]=x; } }
+      for(const x of t){ const kk=k(x); if(HAS.call(kon,kk)||HAS.call(mM,kk)) continue; if(HAS.call(mB,kk)&&esit(mB[kk],x)) continue; kon[kk]=x; sira.push(kk); }
+      return sira.map(kk=>kon[kk]); }
+    const js=x=>JSON.stringify(x), out=[], gor={};
+    for(const x of m){ out.push(x); gor[js(x)]=(gor[js(x)]||0)+1; }
+    const bS={}; if(b) for(const x of b) bS[js(x)]=(bS[js(x)]||0)+1;
+    for(const x of t){ const s=js(x); if(gor[s]>0){ gor[s]--; continue; } if(bS[s]>0){ bS[s]--; continue; } out.push(x); }
+    return out;
+  }
+  /* b: taban değeri (undefined = bilinmiyor), m: benimki, t: sunucudaki */
+  return (b,m,t)=>{ if(m===undefined) return t; if(t===undefined) return m; return dB(b,m,t,b!==undefined); };
+})();
+const SH = { aktif:false, kilit:false, bos:false, kim:null, D:{}, S:{}, T:{}, bekleyen:new Set(), zaman:null, yaziyor:false, red:{} };
+function shJeton(){ try{ const s=localStorage.getItem('hse::HOB::pwDogrulama')||sessionStorage.getItem('hse::HOB::pwDogrulama'); const d=s?JSON.parse(s):null; return d&&d.jeton||''; }catch(e){ return ''; } }
+function shAl(j){
+  SH.kim=j.kim||null; SH.bos=!!j.bos;
+  const A=j.anahtarlar||{}, gelen={};
+  for(const ad of Object.keys(SH_HARITA)){
+    const x=A[ad], s=x?x.s:'';
+    if(SH.S[ad]===s && ad in SH.T) continue;
+    if(SH.bekleyen.has(ad)) continue;              // gönderilmemiş değişikliğim var → yazınca birleşir
+    const v=x?shTopla(ad,x.p):undefined;
+    SH.S[ad]=s; SH.T[ad]=v===undefined?undefined:JSON.stringify(v);
+    if(v===undefined) delete SH.D[ad]; else SH.D[ad]=v;
+    gelen[ad]=1;
+  }
+  return Object.keys(gelen);
+}
+/* Açılış: senkron okuma (sayfa kodu ilk satırdan store.get ile okuyor) */
+(function shBaslat(){
+  if(!(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /^(8090|8099)$/.test(location.port))) return;
+  try{
+    const x=new XMLHttpRequest(); x.open('GET','/__sif_veri',false);
+    const j0=shJeton(); if(j0) x.setRequestHeader('X-Qhse-Oturum',j0);
+    x.send(null);
+    if(x.status!==200) return;
+    const j=JSON.parse(x.responseText);
+    if(!j || !j.ok || !j.etkin) return;
+    SH.aktif=true; SH.oturum=!!j.oturum; SH.kim=j.kim||null;
+    if(!j.oturum || !j.kim || !j.kim.var){ SH.kilit=true; return; }   // giriş yapılınca sayfa yeniden yüklenir
+    shAl(j);
+    if(SH.bos) SH.kilit=true;                       // boş havuza tohum değerler yazılmaz; aktarım ya da "boş başla" (Ayarlar)
+  }catch(e){ SH.aktif=false; }
+})();
+const store = {
+  get(k,d){
+    const ad=SH.aktif?shAd(k):null;
+    if(ad) return (ad in SH.D) ? SH.D[ad] : d;
+    try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; }
+  },
+  set(k,v){
+    const ad=SH.aktif?shAd(k):null;
+    if(ad){ SH.D[ad]=v; if(!SH.kilit){ SH.bekleyen.add(ad); shZamanla(); } return; }
+    try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ toast('Tarayıcı deposu yazamadı — yedek alın!'); }
+  }
+};
+function shZamanla(ms){ clearTimeout(SH.zaman); SH.zaman=setTimeout(shGonder, ms==null?350:ms); }
+async function shGonder(){
+  if(SH.yaziyor){ shZamanla(400); return; }
+  const adlar=[...SH.bekleyen]; if(!adlar.length) return;
+  SH.yaziyor=true; SH.bekleyen.clear();
+  const giden={};
+  try{
+    const yazilar=adlar.map(ad=>{ const ham=SH.D[ad]===undefined?undefined:JSON.stringify(SH.D[ad]); giden[ad]=ham;
+      return {k:ad, o:SH.S[ad]||'', p:ham===undefined?{}:shBol(ad,JSON.parse(ham))}; });
+    const r=await fetch('/__sif_veri_yaz',{method:'POST',headers:{'Content-Type':'application/json','X-Qhse-Oturum':shJeton()},body:JSON.stringify({yazilar}),cache:'no-store',credentials:'same-origin'});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok || !j || !j.ok){ adlar.forEach(a=>SH.bekleyen.add(a)); shDurum(j&&j.oturum?'Oturum doğrulanamadı — yeniden giriş yapın; değişiklikler bekliyor.':'Veri sunucusuna yazılamadı — yeniden denenecek.'); shZamanla(15000); return; }
+    const yenile=[];
+    for(const s of j.sonuc||[]){
+      const ad=s.k;
+      if(s.ok){ SH.S[ad]=s.s; SH.T[ad]=giden[ad]; continue; }
+      const sunucu=shTopla(ad,s.p||{});
+      if(s.cakisma){                                 // başkası değiştirmiş: üç yollu birleştir, yeniden yaz
+        const taban=SH.T[ad]===undefined?undefined:JSON.parse(SH.T[ad]);
+        const benim=SH.D[ad]===undefined?undefined:JSON.parse(JSON.stringify(SH.D[ad]));
+        const v=shBirlestir(taban,benim,sunucu);
+        SH.S[ad]=s.s; SH.T[ad]=sunucu===undefined?undefined:JSON.stringify(sunucu);
+        if(v===undefined) delete SH.D[ad]; else SH.D[ad]=v;
+        SH.bekleyen.add(ad); yenile.push(ad); continue;
+      }
+      /* yetki yok: sunucudaki hâli geri gelir (yetkisiz değişiklik sayfada kalmasın) */
+      SH.S[ad]=s.s||''; SH.T[ad]=sunucu===undefined?undefined:JSON.stringify(sunucu);
+      if(sunucu===undefined) delete SH.D[ad]; else SH.D[ad]=sunucu;
+      yenile.push(ad);
+      if(!SH.red[ad]){ SH.red[ad]=1; toast('Bu değişikliği kaydetme yetkiniz yok — kayıt eski hâline döndü.'); }
+    }
+    shDurum('');
+    if(yenile.length) shYenile(yenile);
+  }catch(e){ adlar.forEach(a=>SH.bekleyen.add(a)); shDurum('Veri sunucusuna ulaşılamadı — yeniden denenecek.'); shZamanla(15000); }
+  finally{ SH.yaziyor=false; if(SH.bekleyen.size) shZamanla(); }
+}
+let SH_DURUM='';
+function shDurum(m){ if(m===SH_DURUM) return; SH_DURUM=m; if(m) toast(m); }
+/* Başkalarının değişikliği: 30 sn'de bir okunur; değişen anahtarın genel değişkeni yenilenir, açık ekran yeniden çizilir */
+async function shCek(){
+  if(!SH.aktif || SH.kilit || document.hidden) return;
+  try{
+    const r=await fetch('/__sif_veri',{headers:{'X-Qhse-Oturum':shJeton()},cache:'no-store',credentials:'same-origin'});
+    const j=await r.json(); if(!j||!j.ok||!j.etkin||!j.oturum) return;
+    const g=shAl(j); if(g.length) shYenile(g);
+  }catch(e){}
+}
+function shYenile(adlar){
+  for(const ad of adlar){ try{ switch(ad){
+    case 'records': RECS=store.get(K.rec,[]); break;           case 'sact': SACT=store.get(K.sact,[]); break;
+    case 'lok': LOK=store.get(K.lok,LOK); break;               case 'dist': DIST=store.get(K.dist,DIST); break;
+    case 'pers': PERS=store.get(K.pers,[]); break;             case 'poz': POZ=store.get(K.poz,POZ); break;
+    case 'gen': GEN=store.get(K.gen,GEN); break;
+    case 'usr': USR=store.get(K.usr,USR); if(SES){ SES=USR.find(u=>u.id===SES.id)||SES; } break;
+    case 'denetim': DEN=store.get(K.den,[]); break;
+    case 'personel': PRS=store.get(K.prs,[]); break;           case 'makine': MAK=store.get(K.mak,[]); break;
+    case 'sap_ekipman': MAKSAP=store.get(K.sapmak,[]); break;  case 'egitim': EGT=store.get(K.egt,[]); break;
+    case 'egitim_tur': EGT_TUR=store.get(K.egtTur,EGT_TUR); break;
+    case 'mai_esik': MAI_ESIK_AYAR=store.get(K.maiEsik,{})||{}; break;
+    case 'model': MODEL=null; break;
+  } }catch(e){} }
+  try{ shEkranYenile(); }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) shCek(); });
+addEventListener('beforeunload',e=>{ if(SH.aktif && (SH.bekleyen.size||SH.yaziyor)){ shGonder(); e.preventDefault(); e.returnValue=''; } });
+/* Uzak değişiklikten sonra açık ekran: form, Ayarlar, yeni kayıt ekranı ya da açık pencere varsa DOKUNULMAZ (yazılan kaybolmasın) */
+function shEkranYenile(){
+  if(!SES) return;
+  const v=((document.querySelector('.view.on')||{}).id||'').replace('v-','');
+  if(document.querySelector('.ov.on') || ['form','set','yeniaksiyon','prsYeni','makYeni','egtYeni'].includes(v)) return;
+  const a=document.activeElement; if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.closest('.view.on')) return;
+  try{ if(typeof regLokFilter==='function') regLokFilter(); }catch(e){}
+  ({ana:()=>anaRender(), reg:()=>renderReg(), act:()=>renderAct(), analiz:()=>renderAnaliz(), bulgu:()=>renderBulgu(),
+    prsPano:()=>prsPanoRender(), prsAnaliz:()=>maiSayfa('prs'), makAnaliz:()=>maiSayfa('mak'), egtAnaliz:()=>maiSayfa('egt'), personel:()=>prsRender(), makPano:()=>makPanoRender(), makine:()=>makRender(),
+    egtPano:()=>egtPanoRender(), egtPlan:()=>egtPlanRender(), egitim:()=>egtRender(), saha:()=>denRender('saha'), denetim:()=>denRender('denetim')}[v]||(()=>{}))();
+}
+setInterval(shCek, 30000);
 
 /* ── SABİTLER ─────────────────────────────────────────────────── */
 /* ── POZİSYONLAR ve YETKİ ─────────────────────────────────────
@@ -2987,7 +3259,7 @@ const MS_GIRIS = {
    localhost:8090 DIŞINDA (GitHub Pages deneme sitesi) Microsoft girişi KAPALI; şirket e-postası (DENEME_ALANLAR) yazan
    kişi parolasız girer, cihazda kullanıcısı yoksa YÖNETİCİ olarak açılır. Veri yalnız o cihazın tarayıcısında durur
    (kimseyle paylaşılmaz). Gerçek veri / canlı kullanım öncesi KAPATILACAK: DENEME_GIRIS=false → Microsoft (Entra) girişi döner. */
-const DENEME_GIRIS = !(['localhost','127.0.0.1'].includes(location.hostname) && location.port==='8090');
+const DENEME_GIRIS = !(['localhost','127.0.0.1'].includes(location.hostname) && /^(8090|8099)$/.test(location.port));
 const DENEME_ALANLAR = ['sif.com.tr','stfa.com'];
 const msAktif = () => !DENEME_GIRIS && !!(MS_GIRIS.tenantId && MS_GIRIS.clientId);
 const MSAL_CDN = 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js';
@@ -3133,7 +3405,7 @@ function sirketHesapGiris(mail, ad, hata, ms){
    ucu olmayan eski sunucuda bu panel hiç görünmez — Microsoft girişi aynen çalışır.
    "Beni hatırla": doğrulama damgası localStorage'da MS_CEVRIMDISI_GUN (14) gün geçerli ve yalnız AYNI
    Windows hesabına; kapalıysa sessionStorage + 5 dakika arka plan kuralı (Microsoft girişindekiyle aynı). */
-const PW_YEREL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && location.port==='8090';
+const PW_YEREL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /^(8090|8099)$/.test(location.port);   /* 8099: geliştirme sunucusunun test kapısı */
 const PW_DOGRULAMA_KEY = 'hse::HOB::pwDogrulama';
 let PW_DESTEK = PW_YEREL ? null : false, PW_EPOSTA = '', PW_MESGUL = false;
 const pwAktif = () => PW_DESTEK===true;
@@ -3194,6 +3466,8 @@ async function pwGirisDene(){
   const mail=String(j.eposta||'').trim().toLowerCase();
   pwDamgaYaz(mail, j.oturum);
   try{ localStorage.removeItem(MS_GIZLENDI_KEY); }catch(e){}
+  /* veri havuzu: oturum belgesi olmadan açılan sayfa havuzu okuyamadı → belgeyle yeniden yüklenir, yetkili kayıtlar gelir */
+  if(SH.aktif && !SH.oturum){ location.reload(); return; }
   sirketHesapGiris(mail, '', pwHata);
 }
 
@@ -6017,8 +6291,9 @@ function anaRender(){
     can('makine')?kutu('mak','Makine kontrolü','geçmiş / '+UYARI_GUN+' gün içinde',1):'',
     can('egitim')?kutu('egt','Eğitim','eksik / süresi dolan / '+UYARI_GUN+' gün içinde',1):''
   ].filter(Boolean).join('');
-  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}<div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
-    <div class="hp-gov" style="--sut:${(n=>n>4?Math.ceil(n/2):Math.max(n,1))((kutular.match(/class="hp-kutu/g)||[]).length)}"><div class="hp-serit">${kutular}</div>
+  const SUT=(n=>n>4?Math.ceil(n/2):Math.max(n,1))((kutular.match(/class="hp-kutu/g)||[]).length);
+  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller" style="--sut:${SUT}">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}<div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
+    <div class="hp-gov" style="--sut:${SUT}"><div class="hp-serit">${kutular}</div>
     <div class="hp-pano">
       <div class="hp-kart" id="anaAjanda"><h3>Ajanda<small>Yaklaşanlar · önümüzdeki ${ANA_GUN} gün</small></h3>
         <div class="hp-liste">${gruplar.length?gruplar.map(([ad,G,cls])=>`<div class="hp-grup ${cls}">${ad} · ${G.length}</div>`+G.slice(0,12).map(oge).join('')+(G.length>12?`<div class="hp-bos">+${G.length-12} daha</div>`:'')).join('')
@@ -6069,7 +6344,7 @@ async function havaYukle(){
     HAVA_HTML=`<div class="hava-simdi" title="${esc(t.ad)}">${havaSvg(t.s)}<span class="hava-derece">${Math.round(c.temperature_2m)}°</span>`
       +`<span class="hava-yer"><b>${esc(k.ad)}</b><span>${esc(t.ad)}</span><span>${Math.round(d.temperature_2m_min[0])}° / ${Math.round(d.temperature_2m_max[0])}°</span></span></div>`
       +'<div class="hava-gunler">'+[1,2,3].map(i=>{ const g=havaTur(d.weather_code[i],1);
-        return `<span class="hava-gun" title="${esc(g.ad)}">${GUN[new Date(d.time[i]+'T12:00').getDay()]}${havaSvg(g.s)}<b>${Math.round(d.temperature_2m_max[i])}°</b>${Math.round(d.temperature_2m_min[i])}°</span>`; }).join('')+'</div>';
+        return `<span class="hava-gun" title="${esc(g.ad)}">${GUN[new Date(d.time[i]+'T12:00').getDay()]}${havaSvg(g.s)}<span><b>${Math.round(d.temperature_2m_max[i])}°</b> ${Math.round(d.temperature_2m_min[i])}°</span></span>`; }).join('')+'</div>';
   }catch(e){ clearTimeout(HAVA_ZAMAN); HAVA_ZAMAN=setTimeout(havaYukle,2*60*1000); }
   havaYaz();
 }
@@ -7384,7 +7659,7 @@ function maiEsikSet(mod,a,deger){
   MAI_ESIK_AYAR[mod]=Object.assign({},MAI_ESIK_AYAR[mod]||{},{[a]:v}); setYaz(K.maiEsik, MAI_ESIK_AYAR);
 }
 function maiEsikVarsayilan(mod){ const t=MAI_ESIK_TANIM[mod]; if(!t||!can(t.yetki)) return; delete MAI_ESIK_AYAR[mod]; setYaz(K.maiEsik, MAI_ESIK_AYAR); renderMaiEsik(); }
-let MAI_SON={}, MAI_AC=null, MAI_ARTI={};
+let MAI_SON={}, MAI_AC=null, MAI_ARTI={}, MAI_HEDEF=null, MAI_BULGU=null;   /* MAI_HEDEF: modülün Analiz sayfası (null = panodaki AI penceresi) */
 const maiPct=(a,n)=>n?Math.round(a/n*100):0;
 const maiSay=(L,f)=>{ const m={}; L.forEach(x=>[].concat(f(x)).forEach(k=>{ if(k) m[k]=(m[k]||0)+1; })); return Object.entries(m).map(([ad,n])=>({ad,n})).sort((a,b)=>b.n-a.n); };
 const maiOlayKisi = () => { const S=new Set(); gorunurKayitlar().forEach(r=>(r.kisiler||[]).forEach(k=>{ if(k.sicil) S.add('s:'+String(k.sicil).trim()); if(k.ad) S.add('a:'+trKucukDen(k.ad)); })); return S; };
@@ -7479,9 +7754,36 @@ function maiEgt(){
 /* ── PENCERE ── */
 const MAI_SEV={3:['Yüksek','color:var(--red)'],2:['Orta','color:var(--amber-700)'],1:['Düşük','color:var(--text2)']};
 function maiKapsam(mod){ const S=Object.entries(PANO[mod].sec); return S.length ? S.map(([k,v])=>PANO[mod].cfg.boyut[k].ad.split(' ·')[0]+': '+v).join(' · ') : 'tüm kayıtlar'; }
-function maiAc(mod){ MAI_AC=mod; MAI_SON[mod]=maiBulgular(mod); maiYaz(); ovAc('ovGrafik'); }
+function maiAc(mod){ MAI_AC=mod; MAI_HEDEF=null; MAI_BULGU=null; MAI_SON[mod]=maiBulgular(mod); maiYaz(); ovAc('ovGrafik'); }
+/* MODÜL ANALİZ SAYFASI (10.11.2026, kullanıcı: "analiz butonları nerede, modüllere koymamışsın"): İSG'deki Analiz sekmesi gibi
+   menüde ayrı sayfa; içerik panodaki AI penceresiyle aynı (bulgular, öneriler, strateji, aksiyon planı). Kapsam = panodaki seçim. */
+/* AI DÜĞMESİ (10.11.2026, kullanıcı: "AI tuşuna basınca isg tarafı gibi ikon döndür, neleri analiz ettiği de altında o an yazsın"):
+   İSG'deki örtü (dönen AI simgesi) + o an incelenen veri adım adım; bitince sonuç panodan basıldıysa pencerede, Analiz sayfasındaysa sayfada. */
+async function maiCalistir(mod, sayfa){
+  let V=[]; try{ V=panoSuz(mod,PANO[mod].cfg.kume()); }catch(e){}
+  const kap=maiKapsam(mod), bekle=ms=>new Promise(r=>setTimeout(r,ms));
+  const A={
+    prs:['Personel kartları — '+V.length+' kişi ('+kap+')','Mesleğe göre zorunlu belgeler ve son kullanma tarihleri',
+         ...(can('saglik')?['Sağlık muayeneleri ve sonraki muayene tarihleri']:[]),'Lokasyon ve taşeron karşılaştırması (belge uyumu)','Pozisyonlara göre eksik belge oranları'],
+    mak:['Makine-ekipman kayıtları — '+V.length+' ekipman ('+kap+')','Periyodik kontroller (İş Ekipmanları Yönetmeliği Ek-III)','Kaldırma ekipmanlarında yük testleri',
+         'Zorunlu belgeler: CE uygunluk beyanı, kullanım kılavuzu, ruhsat, sigorta','Arıza / bakım durumu ve ekipman yaşı'],
+    egt:['Eğitim kayıtları — '+V.length+' kayıt ('+kap+')','Zorunlu ve mesleğe göre eğitim durumu (kişi bazında)','Katılım oranı ve adam·saat',
+         'Olay kök sebeplerinde eğitim / yetkinlik eksikliği','Planlanması gereken eğitimler']
+  }[mod]||[];
+  AI_OV_TUT=true; aiOverlayAc();
+  for(const m of A){ aiAdim(m); await bekle(320); }
+  MAI_SON[mod]=maiBulgular(mod);
+  const B=MAI_SON[mod];
+  aiAdim('Öneriler ve strateji planı hazırlanıyor'); await bekle(320);
+  aiAdim(B.length?B.length+' bulgu — '+B.filter(b=>b.sev===3).length+' yüksek, '+B.filter(b=>b.sev===2).length+' orta öncelik':'Bu kapsamda veriden çıkan bulgu yok');
+  MAI_AC=mod; MAI_HEDEF=sayfa?'maiGovde_'+mod:null; MAI_BULGU=null; maiGecmisEkle(mod,false);
+  if(sayfa) maiYaz();
+  await bekle(900); aiOverlayKapat(true);
+  if(!sayfa){ maiYaz(); ovAc('ovGrafik'); }
+}
+function maiSayfa(mod){ MAI_AC=mod; MAI_HEDEF='maiGovde_'+mod; MAI_BULGU=null; MAI_SON[mod]=maiBulgular(mod); maiGecmisEkle(mod,true); maiYaz(); }
 const maiBulgular = mod => mod==='prs'?maiPrs():mod==='mak'?maiMak():maiEgt();
-function maiYaz(){
+function maiPencereYaz(){
   const mod=MAI_AC, B=MAI_SON[mod]||[], yazA=can('aksiyon'), D=bgDepo(), P=D.plan.filter(p=>String(p.bk||'').startsWith('mai:'+mod+':'));
   const kanit=(b,i)=>{ const L=b.kanit||[]; if(!L.length) return ''; const tip=b.kanitTip||mod;
     const s=x=>tip==='prs'||tip==='egt'&&x.ad&&!x.turKod ? {u:x.ad||'', a:[meslekAd(x),lokAd(x.lok)].filter(Boolean).join(' · '), git:`prsAc(${jsA(x.id)})`}
@@ -7505,6 +7807,102 @@ function maiYaz(){
     ${P.length?`<div class="maiBolum"><h4>Bu analizden aksiyon planı · ${P.length}</h4>${P.map(p=>{ const A=bgPlanAks(p);
       return `<div class="maiOneri"><span>${esc(p.tanim)}<small>${A.length?A.map(a=>esc(aksTerminDurum(a).ad)).join(', '):'planda bekliyor'}</small></span><span class="maiDug">${yazA&&!A.length?`<button class="denHapBtn kucuk acc" onclick="bgPlanAc(${jsA(p.id)})">Aksiyon aç</button><button class="denHapBtn kucuk" onclick="bgPlanSil(${jsA(p.id)});maiYaz()">Sil</button>`:''}</span></div>`; }).join('')}</div>`:''}
   </div>`;
+}
+/* ═══ MODÜL ANALİZ SAYFASI = İSG ANALİZ EKRANININ AYNISI (10.11.2026, kullanıcı: "analiz ekranları isg analiz ekranının aynısı olsun") ═══
+   Özet balonları · Bulgular (Açık / Aksiyonda / Tümü + kaynak süzgeci; satıra tıklayınca bulgu penceresi) · Aksiyon Planı (aynı tablo,
+   yalnız o modülün satırları) · Strateji Planı · Analiz Geçmişi. Bulgular modülün kural tabanlı analizinden (maiPrs / maiMak / maiEgt). */
+const MAI_MODUL={prs:'personel', mak:'makine', egt:'egitim'};
+const MAI_KAYNAK={prs:{eksik:'Zorunlu belgeler', yakin:'Belge süreleri', lok:'Lokasyon', meslek:'Pozisyon', taseron:'Taşeron', saglik:'Sağlık muayenesi', olay:'Olaylar'},
+  mak:{kontrol:'Periyodik kontrol', yakin:'Kontrol tarihleri', yuktest:'Yük testi', sigorta:'Sigorta', belge:'Zorunlu belgeler', ariza:'Arıza', bakim:'Bakım', olay:'Olaylar', yas:'Ekipman yaşı'},
+  egt:{eksik:'Zorunlu eğitim', yakin:'Eğitim süreleri', gecplan:'Eğitim planı', katilim:'Katılım', olaykok:'Olay kök sebebi'}};
+const maiKay = (mod,b) => (MAI_KAYNAK[mod]||{})[b.id] || (/^tur-/.test(b.id)?'Zorunlu eğitim':'Genel analiz');
+let MAI_SUZ={}, MAI_KAY={};
+function maiDurum(mod,b){
+  const P=bgDepo().plan.filter(p=>p.bk==='mai:'+mod+':'+b.id), A=P.flatMap(bgPlanAks), gor=new Set(A.map(a=>a.id));
+  const ah=new Set([aiAnahtar(b.metin), ...b.oneri.map(o=>aiAnahtar(o.metin))]);
+  SACT.forEach(a=>{ if(a.aiOneri && !a.iptal && !gor.has(a.id) && aksModOf(a)===MAI_MODUL[mod] && ah.has(aiAnahtar(a.aiOneri))){ gor.add(a.id); A.push(a); } });
+  return {P, A, planda:P.filter(p=>!bgPlanAks(p).length).length};
+}
+function maiYaz(){
+  const mod=MAI_AC; if(!mod) return;
+  const v=$('v-'+mod+'Analiz'), sayfa=!!(v && v.classList.contains('on'));
+  if(sayfa) maiSayfaYaz(mod);
+  if(MAI_BULGU){ if($('ovGrafik').classList.contains('on')) maiBulguYaz(); return; }
+  if(!sayfa) maiPencereYaz();
+}
+function maiSayfaYaz(mod){
+  if(!$('maiListe_'+mod)) return;
+  const B=MAI_SON[mod]||[], yetki=can('aksiyon');
+  $('maiKapsam_'+mod).textContent=MAI_AD[mod]+' · '+maiKapsam(mod)+' — kapsam Pano’daki seçimden gelir';
+  const L0=B.map(b=>({b, d:maiDurum(mod,b), kay:maiKay(mod,b)}));
+  const acik=L0.filter(x=>!x.d.A.length).length, Pm=bgDepo().plan.filter(p=>String(p.bk||'').startsWith('mai:'+mod+':'));
+  const AA=[...new Map(L0.flatMap(x=>x.d.A).map(a=>[a.id,a])).values()], gec=AA.filter(a=>aksTerminDurum(a).gecikti).length;
+  const planaGit=`document.getElementById('maiPlanKart_${mod}').scrollIntoView({behavior:'smooth',block:'start'})`;
+  const bb=(n,t,on,cls)=>`<button type="button" class="${cls||''}" onclick="${on}"><b>${n}</b><span>${t}</span></button>`;
+  $('maiOzet_'+mod).innerHTML=bb(acik,'açık bulgu',`MAI_SUZ.${mod}='acik';maiSayfaYaz('${mod}')`)+bb(L0.length-acik,'aksiyonda',`MAI_SUZ.${mod}='alinan';maiSayfaYaz('${mod}')`)
+    +bb(Pm.filter(p=>!bgPlanAks(p).length).length,'planda bekleyen',planaGit)+bb(AA.length,'açılan aksiyon',planaGit)+bb(gec,'geciken',planaGit,gec?'kirmizi':'');
+  const suz=MAI_SUZ[mod]||'acik', kaynaklar=[...new Set(L0.map(x=>x.kay))];
+  if(MAI_KAY[mod] && !kaynaklar.includes(MAI_KAY[mod])) MAI_KAY[mod]='';
+  const L=L0.filter(x=>(suz==='tum'||(suz==='acik'?!x.d.A.length:x.d.A.length>0)) && (!MAI_KAY[mod]||x.kay===MAI_KAY[mod])).sort((a,b)=>b.b.sev-a.b.sev);
+  const cip=(k,t)=>`<button type="button" class="kchip${suz===k?' on':''}" onclick="MAI_SUZ.${mod}='${k}';maiSayfaYaz('${mod}')">${t}</button>`;
+  $('maiSay_'+mod).textContent=L0.length?`${acik} açık · ${L0.length-acik} aksiyonda`:'';
+  $('maiSuz_'+mod).innerHTML=cip('acik','Açık')+cip('alinan','Aksiyonda')+cip('tum','Tümü')
+    +`<select class="bgKaySec" onchange="MAI_KAY.${mod}=this.value;maiSayfaYaz('${mod}')"><option value="">Tüm kaynaklar</option>${kaynaklar.map(k=>`<option${k===MAI_KAY[mod]?' selected':''}>${esc(k)}</option>`).join('')}</select>`;
+  const pil=x=>x.d.A.length?`<span class="pill p-grn">Aksiyonda${x.d.A.length>1?' ('+x.d.A.length+')':''}</span>`:x.d.planda?'<span class="pill p-blu">Planda</span>':'<span class="pill p-amb">Açık</span>';
+  $('maiListe_'+mod).innerHTML=(B.length?'':`<div class="bgBos">Bu kapsamda veriden çıkan bulgu yok — sağ alttaki AI düğmesiyle yeniden analiz edin. <button class="btn sm" onclick="maiCalistir('${mod}',true)">Analiz et</button></div>`)
+    +(L.length?L.map(x=>`<div class="bgSatir" title="${esc(x.b.metin)}" onclick="maiBulguAc('${mod}',${jsA(x.b.id)})">
+        <span class="aiBadge">${ICO_AI} AI</span><div class="t">${esc(x.b.metin)}</div><span class="kay">${esc(x.kay)} · <b style="${MAI_SEV[x.b.sev][1]}">${MAI_SEV[x.b.sev][0]}</b></span>${pil(x)}</div>`).join('')
+      :(B.length?'<div class="hint" style="padding:10px 4px">Bu süzgeçte bulgu yok.</div>':''));
+  bgPlanYaz('maiPlan_'+mod, mod);
+  const ufuk=[[3,'Hemen (0–30 gün)'],[2,'Kısa vade (1–3 ay)'],[1,'Orta vade (3–12 ay)']].map(([s,ad])=>({ad, L:B.filter(b=>b.sev===s)})).filter(u=>u.L.length);
+  $('maiStrateji_'+mod).innerHTML=ufuk.length?ufuk.map(u=>`<div class="maiUfuk"><b>${u.ad}</b><ul>${u.L.map(b=>`<li>${esc(b.oneri[0].metin)}</li>`).join('')}</ul></div>`).join('')
+      +(yetki?`<button class="btn sm" style="margin-top:8px" onclick="MAI_AC='${mod}';maiStratejiEkle()">Strateji planını aksiyon planına ekle</button>`:'')
+    :'<div class="hint">Strateji planı bulgulardan oluşur; bu kapsamda bulgu yok.</div>';
+  maiGecmisYaz(mod);
+}
+/* Bulgu penceresi (İSG'deki "Bulgu Analizi" gibi): ilgili kayıtlar, öneriler, kendi aksiyonunuz, bulgunun aksiyonları */
+function maiBulguAc(mod,id){ MAI_AC=mod; MAI_BULGU=id; maiBulguYaz(); ovAc('ovGrafik'); }
+function maiBulguYaz(){
+  const mod=MAI_AC, b=(MAI_SON[mod]||[]).find(x=>x.id===MAI_BULGU); if(!b){ MAI_BULGU=null; return; }
+  const d=maiDurum(mod,b), yetki=can('aksiyon'), tip=b.kanitTip||mod, L=b.kanit||[];
+  const s=x=>tip==='prs'||tip==='egt'&&x.ad&&!x.turKod ? {u:x.ad||'', a:[meslekAd(x),lokAd(x.lok)].filter(Boolean).join(' · '), git:`prsAc(${jsA(x.id)})`}
+    : tip==='mak' ? {u:x.envNo||'', a:[makTurOf(x.tur).ad,lokAd(x.lok)].join(' · '), git:`makAc(${jsA(x.id)})`}
+    : {u:(x.no||'')+' — '+(x.ad||egtTurOf(x.turKod).ad), a:trDate(x.tarih), git:`egtAc(${jsA(x.id)})`};
+  const plandaMi=t=>d.P.some(p=>aiAnahtar(p.tanim)===aiAnahtar(t));
+  const dur=a=>{ const x=aksTerminDurum(a); return `<span class="pill ${x.pil}">${esc(x.etiket||x.ad)}</span>`; };
+  const oneri=b.oneri.map((o,j)=>`<li>${esc(o.metin)} ${o.egt&&can('egitim')?`<button type="button" class="oneriAks" onclick="maiEgtPlanla(${jsA(b.id)},${j})">Eğitim planla</button>`:''}${!yetki?'':plandaMi(o.metin)?'<span class="pill p-blu">Planda</span>':`<button type="button" class="oneriAks" onclick="maiPlanaEkle(${jsA(b.id)},${j})">+ Aksiyon planına ekle</button>`}</li>`).join('');
+  $('gpBaslik').textContent='Bulgu Analizi';
+  $('gpGovde').innerHTML=`<div class="bgUst"><span class="aiBadge">${ICO_AI} AI</span><span class="pill p-gry">${esc(maiKay(mod,b))}</span><span style="${MAI_SEV[b.sev][1]};font-weight:700;font-size:12.5px">${MAI_SEV[b.sev][0]} öncelik</span>${d.A.length?`<span class="pill p-grn">Aksiyonda${d.A.length>1?' ('+d.A.length+')':''}</span>`:d.planda?'<span class="pill p-blu">Planda</span>':'<span class="pill p-amb">Açık</span>'}</div>
+    <div class="bgMetin">${esc(b.metin)}</div>
+    ${L.length?`<div class="bgBas">İlgili kayıtlar · ${L.length}</div><div class="hp-liste">${L.slice(0,40).map(x=>{ const o=s(x); return `<div class="hp-oge" onclick="closeOv('ovGrafik');${o.git}"><div class="m"><span class="u">${esc(o.u)}</span><small>${esc(o.a)}</small></div></div>`; }).join('')}${L.length>40?`<div class="hint">+ ${L.length-40} kayıt daha</div>`:''}</div>`:''}
+    ${oneri?`<div class="bgBas">Bu bulguya özel öneriler</div><ul class="bgOneri">${oneri}</ul>`:''}
+    ${yetki?`<div class="bgBas">Kendi aksiyonunuz</div><div class="bgKendi"><textarea id="maiKendiMetin" rows="2" placeholder="Bu bulgu için yapılacak işi yazın"></textarea><button class="btn sm pri" onclick="maiKendiEkle()">+ Aksiyon planına ekle</button></div>`:''}
+    ${(d.A.length||d.planda)?`<div class="bgBas">Bu bulgunun aksiyonları</div><ul class="bgAcilan">`+d.A.map(a=>`<li>${esc(a.no||'')} — ${esc(a.tanim||'')} ${dur(a)}</li>`).join('')
+      +d.P.filter(p=>!bgPlanAks(p).length).map(p=>`<li>${esc(p.tanim)} <span class="pill p-blu">Planda — aksiyon açılmadı</span></li>`).join('')+'</ul>':''}
+    <div class="hint" style="margin-top:12px">Aksiyon planı Analiz ekranının altındaki listedir: sorumlu ve termini orada girip “Aksiyon aç” ile aksiyonu açarsınız; açılan aksiyonun durumu orada görünür.</div>`;
+}
+function maiKendiEkle(){ if(!can('aksiyon')) return; const t=(($('maiKendiMetin')||{}).value||'').trim(); if(!t){ toast('Aksiyonu yazın.'); return; }
+  const b=(MAI_SON[MAI_AC]||[]).find(x=>x.id===MAI_BULGU); if(!b) return;
+  const D=bgDepo(); D.plan.push(maiPlanSatir(b,{metin:t})); bgDepoYaz(D); maiYaz(); toast('Aksiyon planına eklendi'); }
+function maiBulguAcK(k){ const m=String(k||'').match(/^mai:(prs|mak|egt):(.+)$/); if(!m) return;
+  if(!(MAI_SON[m[1]]||[]).length) MAI_SON[m[1]]=maiBulgular(m[1]);
+  if((MAI_SON[m[1]]||[]).some(b=>b.id===m[2])) maiBulguAc(m[1],m[2]); else toast('Bu bulgu güncel analizde yok (veri ya da kapsam değişti).'); }
+/* ANALİZ GEÇMİŞİ (modül başına): elle çalıştırma her zaman; sayfaya girişte yalnız sonuç değiştiyse ("veri değişince yenilendi") */
+const K_MAIGEC = K.rec.replace(/records$/,'mai_gecmis');
+function maiGecmisEkle(mod, oto){
+  const B=MAI_SON[mod]||[], G=store.get(K_MAIGEC,{})||{}, L=G[mod]||[], imza=B.map(b=>b.id+':'+b.metin).join('|');
+  if(oto && L[0] && L[0].imza===imza) return;
+  let V=[]; try{ V=panoSuz(mod,PANO[mod].cfg.kume()); }catch(e){}
+  G[mod]=[{at:new Date().toISOString(), oto:!!oto, kapsam:maiKapsam(mod), kayit:V.length, bulgu:B.length, oneri:B.reduce((t,b)=>t+b.oneri.length,0), yuksek:B.filter(b=>b.sev===3).length, imza}].concat(L).slice(0,30);
+  store.set(K_MAIGEC,G);
+}
+function maiGecmisYaz(mod){
+  const el=$('maiGecmis_'+mod); if(!el) return;
+  const g=(store.get(K_MAIGEC,{})||{})[mod]||[];
+  el.innerHTML=g.length?`<div class="tw"><table><thead><tr><th>Tarih</th><th>Mod</th><th>Analiz</th><th>Nasıl</th><th>Kapsam</th><th>Kayıt</th><th>Bulgu</th><th>Yüksek</th><th>Öneri</th></tr></thead><tbody>`
+    +g.map(x=>`<tr><td>${esc(anZaman(x.at))}</td><td><span class="aiBadge">${ICO_AI} AI</span></td><td>Veri</td><td>${x.oto?'veri değişince yenilendi':'elle çalıştırıldı'}</td><td>${esc(x.kapsam||'—')}</td><td>${x.kayit||0}</td><td>${x.bulgu||0}</td><td>${x.yuksek||0}</td><td>${x.oneri||0}</td></tr>`).join('')
+    +'</tbody></table></div>'
+    :'<div class="hint">Henüz analiz yapılmadı — sağ alttaki AI düğmesiyle analiz edin.</div>';
 }
 function maiPlanSatir(b,o){ return {id:uid(), bk:'mai:'+MAI_AC+':'+b.id, bham:b.metin, kaynak:MAI_AD[MAI_AC], ai:'AI', lok:'', tanim:o.metin, kok:'', sorumlu:'', termin:'', aks:[], at:new Date().toISOString()}; }
 function maiPlanaEkle(bid,j){ if(!can('aksiyon')) return; const b=(MAI_SON[MAI_AC]||[]).find(x=>x.id===bid), o=b&&b.oneri[j]; if(!o) return;
@@ -9329,6 +9727,42 @@ function renderGen(){
    üreteçleri artık yayın kopyasında da var — deneme sitesinde KENDİLİĞİNDEN çalışmaz (denOrnekOto / ymOrnekOto DENEME_GIRIS'te
    durur), yalnız Ayarlar › Genel › "Demo Veri Yükle" ile. Üretilen kişi / kayıt adları uydurmadır. (20.10.2026'dan beri yayından
    ayıklanıyordu.) */
+/* VERİ HAVUZU kartı (Ayarlar › Genel): durum, görebildiğiniz klasörler; havuz boşsa ilk kurulum (aktar / boş başla) */
+const SH_KLASOR_AD = {'_sistem':'Sistem (kullanıcı, pozisyon, lokasyon, genel)','isg':'İSG (olay, denetim, dağıtım)','personel':'Personel','makine':'Makine-Ekipman','egitim':'Eğitim','ortak':'Ortak (aksiyonlar)','_ogrenme':'Öğrenme motorları'};
+function shKartCiz(){
+  const k=$('shKart'), ic=$('shKartIc'); if(!k||!ic) return;
+  if(!SH.aktif){ k.style.display='none'; return; }
+  k.style.display='';
+  if(SH.bos){
+    const yetkili=!!(SH.kim&&SH.kim.korunan) || can('ayar');
+    ic.innerHTML=`<div class="note warn">Sunucudaki veri havuzu henüz boş. Kurulum yapılana kadar bu sayfadaki değişiklikler kaydedilmez.</div>`
+      +(yetkili?`<div class="bar" style="margin-top:10px"><button class="btn sm" onclick="shAktar(false)">Bu Tarayıcıdaki Kayıtları Havuza Aktar</button><button class="btn sm" onclick="shAktar(true)">Boş Havuzla Başla</button></div>`:'');
+    return;
+  }
+  const kl={}; for(const ad of Object.keys(SH_HARITA)) if(SH.S[ad]){ const h=SH_HARITA[ad]; const ilk=(h.t||(h.prs?'personel/':h.esik?'_ayar/':(h.b({})||'')).toString()).split('/')[0]; kl[ilk]=1; }
+  if(SH_HARITA.sact && SH.S.sact) kl.ortak=1;
+  ic.innerHTML=`<div class="kv" style="grid-template-columns:200px 1fr">
+      <div class="k">Kayıt yeri</div><div>Sunucudaki veri havuzu (modül klasörleri)</div>
+      <div class="k">Erişiminiz</div><div>${Object.keys(SH_KLASOR_AD).filter(x=>kl[x]).map(x=>esc(SH_KLASOR_AD[x])).join('<br>')||'—'}</div>
+      <div class="k">Son eşitleme</div><div>${SH.bekleyen.size||SH.yaziyor?'kaydediliyor':'güncel'}</div></div>`;
+}
+async function shAktar(bos){
+  if(!SH.aktif || !SH.bos) return;
+  if(!confirm(bos?'Veri havuzu başlangıç değerleriyle kurulacak (lokasyonlar, pozisyonlar, siz yönetici olarak).\n\nDevam edilsin mi?'
+    :'Bu tarayıcıdaki kayıtlar sunucudaki veri havuzuna KOPYALANACAK. Tarayıcıdaki kopya silinmez.\n\nDevam edilsin mi?')) return;
+  SH.bekleyen.clear();
+  for(const ad of Object.keys(SH_HARITA)){
+    let v=SH.D[ad];
+    if(!bos){ try{ const s=localStorage.getItem(SH_ONEK+ad); if(s) v=JSON.parse(s); }catch(e){} }
+    if(ad==='usr' && Array.isArray(v) && SES && !v.some(u=>(u.mail||'').toLowerCase()===(SES.mail||'').toLowerCase())) v=v.concat([SES]);
+    if(v===undefined) continue;
+    SH.D[ad]=v; SH.bekleyen.add(ad);
+  }
+  SH.kilit=false; SH.bos=false;
+  await shGonder();
+  if(SH.bekleyen.size){ toast('Aktarım tamamlanamadı — yeniden deneyin.'); return; }
+  location.reload();
+}
 function demoTumYukle(){
   if(!can('ayar')) return;
   if(!LOK.some(l=>l.aktif!==false)){ toast('Önce lokasyon tanımlayın'); return; }
@@ -9900,7 +10334,7 @@ function go(v, fromPop){
   if(g==='act'||g==='yeniaksiyon') AKS_MOD=_ak?_ak[1]:'isg';
   if(v==='set'&&!can('ayar')&&!esikYetki()) return;
   if(v==='form'&&!can('kayit')) return;
-  const vMod = _ak ? _ak[1] : (v==='personel'||v==='prsPano'||v==='prsYeni') ? 'personel' : (v==='makine'||v==='makPano'||v==='makYeni') ? 'makine' : (v==='egitim'||v==='egtPano'||v==='egtPlan'||v==='egtYeni') ? 'egitim' : v==='ana' ? 'ana' : 'isg';
+  const vMod = _ak ? _ak[1] : (v==='personel'||v==='prsPano'||v==='prsAnaliz'||v==='prsYeni') ? 'personel' : (v==='makine'||v==='makPano'||v==='makAnaliz'||v==='makYeni') ? 'makine' : (v==='egitim'||v==='egtPano'||v==='egtAnaliz'||v==='egtPlan'||v==='egtYeni') ? 'egitim' : v==='ana' ? 'ana' : 'isg';
   if((vMod==='personel'||vMod==='makine'||vMod==='egitim') && !can(vMod)){ toast('Bu bölüm için yetkiniz yok.'); return; }
   if(v!=='set') document.body.dataset.modul = vMod; else if(!document.body.dataset.modul) document.body.dataset.modul = 'isg';
   /* analiz balonundan gelen süzgeç (etiketsiz) yalnız o tıklamada geçerli: listeye başka yoldan gelince kalkar;
@@ -9943,6 +10377,9 @@ function go(v, fromPop){
   if(v==='bulgu') renderBulgu();
   if(v==='ana') anaRender();
   if(v==='prsPano') prsPanoRender();
+  if(v==='prsAnaliz') maiSayfa('prs');
+  if(v==='makAnaliz') maiSayfa('mak');
+  if(v==='egtAnaliz') maiSayfa('egt');
   if(v==='prsYeni'){ PRS_CUR=prsBos(); PRS_TC_GOSTER=true; prsRender(); }
   if(v==='personel'){ if(PRS_CUR && !PRS.some(x=>x.id===PRS_CUR.id)) PRS_CUR=null; prsRender(); }
   if(v==='makPano') makPanoRender();
@@ -9960,7 +10397,7 @@ function go(v, fromPop){
        başlangıç sanıyordu — kaydedilmemiş değişiklik uyarısı ve
        "değişiklikleri at" bu yüzden sessizce bozuluyordu. */
     if(suan!=='set'){ SET_HOLD=true; SET_DIRTY=false; SET_SNAP=setSnapAl(); }   // Kaydet'e kadar depoya yazma
-    renderLok(); renderPoz(); renderUsr(); renderOrg(); renderDist(); renderPers(); renderMakSap(); renderEgtTur(); renderMaiEsik(); renderGen();
+    renderLok(); renderPoz(); renderUsr(); renderOrg(); renderDist(); renderPers(); renderMakSap(); renderEgtTur(); renderMaiEsik(); renderGen(); shKartCiz();
     /* Ayarlar yetkisi olmayan modül yöneticisi: yalnız Analiz Eşikleri sekmesi */
     { const tam=can('ayar'); document.querySelectorAll('#setTabs button').forEach(b=>{ b.style.display = (tam||b.dataset.s==='esik')?'':'none'; });
       if(!tam){ const e=document.querySelector('#setTabs [data-s="esik"]'); if(e && !e.classList.contains('on')) e.click(); } }
@@ -12820,9 +13257,10 @@ const bgPlanAks = p => (p.aks||[]).map(id=>SACT.find(a=>a.id===id)).filter(Boole
 /* Analiz ekranı özeti: açık / aksiyonda bulgu, plandaki ve açılmış aksiyonlar (tıklanınca süzer ya da plana iner) */
 function bgOzetYaz(){
   const el=$('bgOzetBar'); if(!el) return;
-  const D=bgDepo(), bagli=new Set(D.plan.flatMap(p=>p.aks||[]));
+  const D0=bgDepo(), bagli=new Set(D0.plan.flatMap(p=>p.aks||[]));
+  const D={plan:D0.plan.filter(p=>!String(p.bk||'').startsWith('mai:'))};   /* modül analizlerinin planı kendi ekranında */
   const planda=D.plan.filter(p=>!bgPlanAks(p).length).length;
-  const A=[...D.plan.flatMap(bgPlanAks), ...SACT.filter(a=>a.aiOneri && a.aiTip!=='olay' && !a.iptal && !bagli.has(a.id) && lokGorebilir(a.lokasyon))];
+  const A=[...D.plan.flatMap(bgPlanAks), ...SACT.filter(a=>a.aiOneri && a.aiTip!=='olay' && !a.iptal && !bagli.has(a.id) && lokGorebilir(a.lokasyon) && aksModOf(a)==='isg')];
   const gec=A.filter(a=>aksTerminDurum(a).gecikti).length, acik=BG_LISTE.filter(f=>!f.aks.length).length;
   const b=(n,t,on,cls)=>`<button type="button" class="${cls||''}" onclick="${on}"><b>${n}</b><span>${t}</span></button>`;
   el.innerHTML=b(acik,'açık bulgu',"BG_SUZ='acik';bgListeYaz()")+b(BG_LISTE.length-acik,'aksiyonda',"BG_SUZ='alinan';bgListeYaz()")
@@ -12923,20 +13361,22 @@ function bgKokSecenek(secilen, deger){
   return `<option value="">— kök sebep seçin —</option>`+ust
     +KOK_KAT.map(c=>`<optgroup label="${esc(c.ad)}">${[c.ad, ...c.ops.map(o=>c.ad+' › '+o)].filter(v=>!S.has(v)).map(v=>v===c.ad?`<option value="${esc(v)}"${v===deger?' selected':''}>${esc(c.ad)} (genel)</option>`:op(v)).join('')}</optgroup>`).join('');
 }
-function bgPlanYaz(){
-  const el=$('bgPlan'); if(!el) return;
-  const D=bgDepo(), yetki=can('aksiyon');
+function bgPlanYaz(elId, mod){
+  const el=$(elId||'bgPlan'); if(!el) return;
+  /* 10.11.2026: her Analiz ekranı kendi planını gösterir — İSG: modül dışı satırlar; modül (prs/mak/egt): "mai:<mod>:" satırları */
+  const D0=bgDepo(), yetki=can('aksiyon'), modSat=p=>mod?String(p.bk||'').startsWith('mai:'+mod+':'):!String(p.bk||'').startsWith('mai:');
+  const D={plan:D0.plan.filter(modSat), kat:D0.kat};
   /* Plan dışından açılmış AI aksiyonları (AI kutusu / grafik penceresi "+ Aksiyon"): bulgudan ya da analiz önerisinden
      geldiyse (aiOneri damgası, olay kartı AI'ı hariç) planda da görünür — salt okunur, durumuyla (03.11.2026, kullanıcı isteği) */
-  const bagli=new Set(D.plan.flatMap(p=>p.aks||[]));
-  const dis=SACT.filter(a=>a.aiOneri && a.aiTip!=='olay' && !a.iptal && !bagli.has(a.id) && (typeof lokGorebilir!=='function'||lokGorebilir(a.lokasyon)))
+  const bagli=new Set(D0.plan.flatMap(p=>p.aks||[]));
+  const dis=SACT.filter(a=>a.aiOneri && a.aiTip!=='olay' && !a.iptal && !bagli.has(a.id) && (typeof lokGorebilir!=='function'||lokGorebilir(a.lokasyon)) && aksModOf(a)===(mod?MAI_MODUL[mod]:'isg'))
     .sort((a,b)=>String(b.olusturma||'').localeCompare(String(a.olusturma||'')));
   if(!D.plan.length && !dis.length){ el.innerHTML='<div class="hint">Plan boş. Bir bulguya tıklayın; penceredeki önerilerden ya da kendi yazdığınız aksiyondan “Aksiyon planına ekle” ile buraya ekleyin.</div>'; return; }
-  if(!BG_LISTE.length) try{ BG_LISTE=bulguTopla(); }catch(e){}
+  if(!mod && !BG_LISTE.length) try{ BG_LISTE=bulguTopla(); }catch(e){}
   const kisa=t=>t.length>70?t.slice(0,70)+'…':t;
   const bulguHTML=(ai,metin,k,kaynak)=>`<span class="aiBadge${ai==='AI+'?' aiArti':''}">${ICO_AI} ${ai}</span> `
-    +(k?`<a class="bgBulguBag" title="${esc(metin)}" onclick="event.stopPropagation();bgSecAnahtar(${jsA(k)})">${esc(kisa(metin))}</a>`:esc(kisa(metin)))+`<div class="hint">${esc(kaynak)}</div>`;
-  const disBulgu=a=>{ const ah=aiAnahtar(a.aiOneri), f=BG_LISTE.find(x=>aiAnahtar(x.ham)===ah)||BG_LISTE.find(x=>x.oneriler.some(o=>aiAnahtar(o.ham)===ah));
+    +(k?`<a class="bgBulguBag" title="${esc(metin)}" onclick="event.stopPropagation();${String(k).startsWith('mai:')?'maiBulguAcK':'bgSecAnahtar'}(${jsA(k)})">${esc(kisa(metin))}</a>`:esc(kisa(metin)))+`<div class="hint">${esc(kaynak)}</div>`;
+  const disBulgu=a=>{ if(mod) return bulguHTML('AI', a.aiOneri, null, (a.kaynakRef||'').replace(/^Analiz( bulgusu)?:\s*/,'')||MAI_AD[mod]); const ah=aiAnahtar(a.aiOneri), f=BG_LISTE.find(x=>aiAnahtar(x.ham)===ah)||BG_LISTE.find(x=>x.oneriler.some(o=>aiAnahtar(o.ham)===ah));
     return bulguHTML(/AI\+|Çevrimiçi/i.test(a.kaynakRef||'')?'AI+':'AI', a.aiOneri, f&&f.k, (a.kaynakRef||'').replace(/^Analiz( bulgusu)?:\s*/,'')||'AI analizi'); };
   const durum=a=>{ const d=aksTerminDurum(a); return `<span class="pill ${d.pil}">${esc(d.etiket||d.ad)}</span>`; };
   /* Açılmış aksiyon satırı: başta aksiyon no; üzerine gelince ayrıntı penceresi, tıklayınca aksiyon */
@@ -12985,7 +13425,7 @@ function bgAksKart(tr, id){
 function bgAksKartKapat(){ clearTimeout(BG_KART_T); const k=document.getElementById('bgAksKart'); if(k) k.classList.remove('acik'); }
 function bgSecAnahtar(k){ if(!BG_LISTE.length) BG_LISTE=bulguTopla(); if(BG_LISTE.some(x=>x.k===k)) bgSec(k); else toast('Bu bulgu güncel analizde yok (veri ya da kapsam değişti).'); }
 function bgPlanAlan(id,alan,v){ const D=bgDepo(), p=D.plan.find(x=>x.id===id); if(!p) return; p[alan]=v; bgDepoYaz(D); }
-function bgPlanSil(id){ const D=bgDepo(); D.plan=D.plan.filter(x=>x.id!==id); bgDepoYaz(D); bgPlanYaz(); bgListeYaz(); }
+function bgPlanSil(id){ const D=bgDepo(); D.plan=D.plan.filter(x=>x.id!==id); bgDepoYaz(D); bgPlanYaz(); bgListeYaz(); try{ if(MAI_AC) maiYaz(); }catch(e){} }
 function bgPlanAc(id){
   if(!can('aksiyon')){ toast('Aksiyon oluşturma yetkiniz yok.'); return; }
   const p=bgDepo().plan.find(x=>x.id===id); if(!p) return;
@@ -13081,7 +13521,10 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.19':['Ana sayfa daha verimli: özet kutuları iki kısa sırada, ajanda geniş; sağda kazasız gün, bu ayın özeti ve son olaylar',
+const SURUM_NOTU={'1.9.20':['Personel, Makine-Ekipman ve Eğitim menüsünde Analiz sayfası: İSG Analiz ekranıyla aynı (özet, bulgular, aksiyon planı, strateji, analiz geçmişi)',
+  'AI düğmesine basınca neleri analiz ettiği adım adım görünür',
+  'Ana sayfada hava durumu kutusu sağ sütunla hizalı'],
+  '1.9.19':['Ana sayfa daha verimli: özet kutuları iki kısa sırada, ajanda geniş; sağda kazasız gün, bu ayın özeti ve son olaylar',
   'Hoş geldiniz satırında e-posta yerine ad soyad',
   'Demo Veri Yükle: personel, makine ve eğitim aksiyon listeleri de oluşur'],
   '1.9.18':['Personel, Makine-Ekipman ve Eğitim modüllerinde Yeni Aksiyon ve Aksiyon Listesi; AI analizinden açılan aksiyonlar kendi modülünün listesinde',
@@ -13828,7 +14271,7 @@ function renderAll(){ regLokFilter(); renderReg(); renderAct(); renderPers(); re
     aksiyonlar: svgN('<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/><path d="M9 13l2 2 4-4"/>'),
     denetim: svgN('<path d="M9 11l2 2 4-4"/><path d="M20 12a8 8 0 1 1-8-8"/><path d="M20 4v5h-5"/>')
   };
-  ['prs','mak','egt'].forEach(p=>{ NAV_ICO[p+'Ya']=NAV_ICO.yeniaksiyon; NAV_ICO[p+'Aks']=NAV_ICO.act; });
+  ['prs','mak','egt'].forEach(p=>{ NAV_ICO[p+'Ya']=NAV_ICO.yeniaksiyon; NAV_ICO[p+'Aks']=NAV_ICO.act; NAV_ICO[p+'Analiz']=NAV_ICO.bulgu; });
   document.querySelectorAll('#nav [data-v]').forEach(b=>{ const ic=NAV_ICO[b.dataset.v]; if(ic) b.innerHTML=ic+'<span>'+b.textContent+'</span>'; });
   document.querySelectorAll('#nav .navGrp').forEach(g=>{ const ic=NAV_GRP_ICO[g.dataset.grp], t=g.querySelector('.navTop'); if(ic&&t) t.innerHTML=ic+'<span>'+t.textContent+'</span>'; });
   /* bölüm (modül) etiketi: alt çubuk yalnız açık bölümün sekmelerini gösterir */
