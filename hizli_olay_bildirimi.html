@@ -817,6 +817,28 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 #anaAjanda .hp-oge .m,.anaPop .hp-oge .m{display:flex;align-items:baseline;gap:10px;white-space:nowrap;flex:1}
 #anaAjanda .hp-oge .m .u,.anaPop .hp-oge .m .u{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #anaAjanda .hp-oge .m small,.anaPop .hp-oge .m small{display:inline;flex:none;max-width:34%;margin:0;overflow:hidden;text-overflow:ellipsis}
+/* 10.11.2026 (kullanıcı: "ekranı daha verimli yapalım"): kutular modüllerin altında tek sıra kısa şerit; ajanda tam genişlik */
+.hp-serit{display:grid;grid-template-columns:repeat(var(--sut,4),minmax(0,1fr));gap:10px;margin-bottom:12px}
+@media(max-width:900px){.hp-serit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hp-serit .hp-kutu{display:grid;grid-template:"s e" auto "s a" auto / auto minmax(0,1fr);column-gap:12px;align-items:center;padding:10px 14px}
+.hp-serit .hp-kutu .s{grid-area:s;font-size:26px;margin:0;min-width:34px}
+.hp-serit .hp-kutu .e{grid-area:e;align-self:end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-serit .hp-kutu .a{grid-area:a;align-self:start;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-pano.tek{grid-template-columns:minmax(0,1fr)!important}
+/* kutular, ajanda ve sağ sütun AYNI ızgarada: sağ sütun son kutu sütunuyla hizalı (kullanıcı: "hepsi hizalı olsun") */
+.hp-gov .hp-pano{grid-template-columns:repeat(var(--sut,4),minmax(0,1fr))!important;gap:10px!important}
+.hp-gov #anaAjanda{grid-column:1 / -2}.hp-gov .hp-sag{grid-column:-2 / -1;gap:10px}
+@media(max-width:900px){.hp-gov .hp-pano{grid-template-columns:1fr!important}.hp-gov #anaAjanda,.hp-gov .hp-sag{grid-column:auto}}
+/* kutu rengi (kullanıcı): rakam SİF sarısı, başlık siyah, alt yazı aynı */
+.hp-serit .hp-kutu .s,.hp-serit .hp-kutu.uyari .s{color:var(--jcb)}
+.hp-serit .hp-kutu .e,.hp-serit .hp-kutu.uyari .e{color:var(--text)}
+.hpKazasiz{display:flex!important;flex-direction:row!important;align-items:center;gap:14px;cursor:pointer;border-left:4px solid var(--jcb)!important}
+.hpKazasiz .kz-s{font-size:40px;font-weight:900;line-height:1;min-width:56px;text-align:center}
+.hpKazasiz b{display:block;font-size:14px}.hpKazasiz small{display:block;font-size:12px;color:var(--text3);margin-top:2px}
+.hpMini{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hpMini div{background:var(--surface2);border-radius:10px;padding:8px 10px}.hpMini b{display:block;font-size:20px;font-weight:800}
+.hpMini small{display:block;font-size:11.5px;color:var(--text3)}
+#anaAjanda .hp-liste{max-height:68vh}
 .hp-sag{height:100%}
 .hp-sag .hp-kutular{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:1fr;flex:1}
 (max-width:900px){ .hp-pano{grid-template-columns:1fr!important} #anaAjanda .hp-oge .m{white-space:normal;flex-wrap:wrap} }
@@ -2157,7 +2179,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.18';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.19';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -3428,8 +3450,13 @@ function girisDene(mail){
   try{ localStorage.setItem('hse::HOB::sonMail',u.mail); }catch(e){}
   giris(u.id);
 }
+/* Kullanıcı adı yerine e-posta kayıtlıysa (Microsoft dışı / parolasız girişte ad gelmez) adresten ad türetilir:
+   ad.soyad@… → "Ad Soyad". Türkçe harf adresten çıkarılamaz; Ayarlar › Kullanıcılar'dan düzeltilir. (10.11.2026) */
+const adGoster = u => { const a=String((u&&u.ad)||'').trim(); if(a && !a.includes('@')) return a;
+  const m=String((u&&u.mail)||a).split('@')[0]; return m.split(/[._-]+/).filter(Boolean).map(s=>s.charAt(0).toLocaleUpperCase('tr')+s.slice(1)).join(' ') || a; };
 function giris(uid_){
   const u=USR.find(x=>x.id===uid_); if(!u) return;
+  if(!String(u.ad||'').trim() || String(u.ad).includes('@')){ u.ad=adGoster(u); try{ store.set(K.usr,USR); }catch(e){} }
   /* SAST B5: Microsoft girişi zorunluysa yalnız Microsoft'un doğruladığı hesap açılır */
   if(msAktif() && (!MS_HESAP || (u.mail||'').trim().toLowerCase()!==MS_HESAP)){
     try{ sessionStorage.removeItem('hse::HOB::ses'); }catch(e){} msHata('Önce Microsoft hesabıyla giriş yapın.'); return; }
@@ -5954,6 +5981,25 @@ function anaKutuAc(k){
     +`<div class="bar" style="margin-top:12px;justify-content:flex-end"><button class="denHapBtn" onclick="closeOv('ovGrafik');${T.liste}">Listeye git →</button></div>`;
   ovAc('ovGrafik');
 }
+/* AJANDANIN SAĞI (10.11.2026, kullanıcı: "ajandanın sağına faydalı ekranlar da koyabilirsin"): kazasız gün, bu ayın özeti,
+   son olaylar — hepsi görünür kayıtlardan (lokasyon yetkisi), uydurma gösterge yok. */
+function anaYanHtml(){
+  const V=gorunurKayitlar(), b=sgkBugun(), AGIR=['olumlu','lti','disab'];
+  const ag=V.filter(r=>AGIR.includes(r.sonuc)&&r.tarih).map(r=>r.tarih).sort(), son=ag.length?ag[ag.length-1]:null;
+  const gun=son?Math.max(0,Math.round((new Date(b+'T12:00:00')-new Date(son+'T12:00:00'))/864e5)):null;
+  const ay=b.slice(0,7), d0=new Date(b+'T12:00:00'); d0.setMonth(d0.getMonth()-1); const gAy=d0.toLocaleDateString('sv').slice(0,7);
+  const ayAd=new Date(b+'T12:00:00').toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
+  const buAy=r=>(r.tarih||'').startsWith(ay), olay=V.filter(buAy).length, once=V.filter(r=>(r.tarih||'').startsWith(gAy)).length;
+  const nm=V.filter(r=>buAy(r)&&r.sonuc==='nearmiss').length;
+  const kap=allActions().filter(({a})=>aksErisir(a)&&a.kapanis&&(a.kapanis.tarih||'').startsWith(ay)).length;
+  const as=can('egitim')?Math.round(EGT.filter(s=>egtGorebilir(s)&&s.durum==='tamamlandi'&&(s.tarih||'').startsWith(ay)).reduce((t,s)=>t+egtAdamSaat(s),0)):null;
+  const mini=(v,l,ek)=>`<div><b>${v}</b><small>${l}${ek?` · ${ek}`:''}</small></div>`;
+  const fark=olay-once, sonO=V.slice().sort((x,y)=>((y.tarih||'')+(y.saat||'')).localeCompare((x.tarih||'')+(x.saat||''))).slice(0,5);
+  return `<div class="hp-kart hpKazasiz" onclick="go('analiz')"><div class="kz-s">${gun==null?'—':gun}</div><div><b>${gun==null?'kayıp günlü kaza kaydı yok':'gündür kayıp günlü kaza yok'}</b><small>${son?'son kayıt: '+trDate(son):'görünür kayıtlarda'}</small></div></div>
+    <div class="hp-kart"><h3>Bu ay<small>${esc(ayAd)}</small></h3><div class="hpMini">
+      ${mini(olay,'olay',once?(fark>0?'+'+fark:fark)+' geçen aya göre':'')}${mini(nm,'ramak kala')}${mini(kap,'kapanan aksiyon')}${as!=null?mini(as,'eğitim adam·saat'):''}</div></div>
+    <div class="hp-kart"><h3>Son olaylar</h3><div class="hp-liste">${sonO.map(r=>`<div class="hp-oge" onclick="regAc(${jsA(r.id)})"><span class="t">${anaGun(r.tarih)}</span><div class="m"><span class="u">${esc((r.no||'')+' — '+turAd(r))}</span><small>${esc(lokAd(r.lokasyon))}</small></div></div>`).join('')||'<div class="hp-bos">Kayıt yok.</div>'}</div></div>`;
+}
 function anaRender(){
   const w=$('anaWrap'); if(!w||!SES) return;
   setTimeout(()=>{ if(HAVA_HTML) havaYaz(); else havaYukle(); },0);
@@ -5971,13 +6017,14 @@ function anaRender(){
     can('makine')?kutu('mak','Makine kontrolü','geçmiş / '+UYARI_GUN+' gün içinde',1):'',
     can('egitim')?kutu('egt','Eğitim','eksik / süresi dolan / '+UYARI_GUN+' gün içinde',1):''
   ].filter(Boolean).join('');
-  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(SES.ad||'')}</b></div><div class="anaModuller">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}<div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
+  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}<div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
+    <div class="hp-gov" style="--sut:${(n=>n>4?Math.ceil(n/2):Math.max(n,1))((kutular.match(/class="hp-kutu/g)||[]).length)}"><div class="hp-serit">${kutular}</div>
     <div class="hp-pano">
       <div class="hp-kart" id="anaAjanda"><h3>Ajanda<small>Yaklaşanlar · önümüzdeki ${ANA_GUN} gün</small></h3>
-        <div class="hp-liste">${gruplar.length?gruplar.map(([ad,G,cls])=>`<div class="hp-grup ${cls}">${ad} · ${G.length}</div>`+G.slice(0,8).map(oge).join('')+(G.length>8?`<div class="hp-bos">+${G.length-8} daha</div>`:'')).join('')
+        <div class="hp-liste">${gruplar.length?gruplar.map(([ad,G,cls])=>`<div class="hp-grup ${cls}">${ad} · ${G.length}</div>`+G.slice(0,12).map(oge).join('')+(G.length>12?`<div class="hp-bos">+${G.length-12} daha</div>`:'')).join('')
           :`<div class="hp-bos">Önümüzdeki ${ANA_GUN} günde planlı iş yok.</div>`}</div></div>
-      <div class="hp-sag"><div class="hp-kutular">${kutular}</div></div>
-    </div>`;
+      <div class="hp-sag">${anaYanHtml()}</div>
+    </div></div>`;
 }
 /* ── HAVA DURUMU (11.11.2026, kullanıcı: "sağ tarafa Assist gibi hava durumu") — Assist ile aynı: Open-Meteo, anahtar gerekmez;
    tarayıcı yalnız şehrin koordinatını gönderir, kişisel veri gitmez. 30 dk'da bir tazelenir; ulaşılamazsa kutu gizlenir.
@@ -9520,7 +9567,7 @@ function denOrnekOto(){
 /* ── ÖRNEK PERSONEL + MAKİNE (10.11.2026) — açılışta bir kez, ikisi de boşsa; yayına gitmez ── */
 function ymOrnekOto(){
   if(DENEME_GIRIS) return;   /* deneme sitesinde yalnız "Demo Veri Yükle" ile */
-  const k=K.rec.replace(/records$/,'ym_ornek_v5');   /* v5: eğitim oturumları; v4: makine belgeleri, rapor dosyaları, bakım, kiralık; v3: + örnek vesikalık; v2: cinsiyet, doğum, taşeron, ayrılan (pano) */
+  const k=K.rec.replace(/records$/,'ym_ornek_v6');   /* v6: modül aksiyonları; v5: eğitim oturumları; v4: makine belgeleri, rapor dosyaları, bakım, kiralık; v3: + örnek vesikalık; v2: cinsiyet, doğum, taşeron, ayrılan (pano) */
   if(!SES || PRS.some(p=>!p.ornek) || MAK.some(m=>!m.ornek) || EGT.some(s=>!s.ornek) || store.get(k,false)) return;
   store.set(k,true); ymOrnekKur();
 }
@@ -9606,6 +9653,31 @@ function ymOrnekKur(){
   egt('sicak-is',14,4,'iptal',ek(p=>/^7212/.test(p.meslek)));
   EGT.filter(s=>s.ornek).forEach(s=>{ const k=s.katilimci; if(s.durum==='tamamlandi'&&k.length>3) k[k.length-1].katildi=false; });
   saveEgt(); EGT.filter(s=>s.ornek).forEach(s=>egtSenkron(s));
+  /* örnek MODÜL AKSİYONLARI (v6, 10.11.2026, kullanıcı: "demoya aksiyonları da dahil et — makine, eğitim, personel aksiyon listeleri"):
+     her modülün kendi listesinde açık, gecikmiş, onay bekleyen ve kapanmış örnekler. termin: + ileri gün, − gecikmiş. */
+  SACT=SACT.filter(a=>!a.ymOrnek);
+  const maks=(modul,li,t,s,termin,o,d,kaynak)=>{ const L=lk(li), tarih=gun(30+Math.max(0,-termin));
+    const a={id:uid(), no:nextActNo(L,tarih), bagimsiz:true, lokasyon:L, olusturma:tarih+'T10:00:00', guncelleme:'', taslak:false, olusturanMail:'', olusturanAd:'İSG Uzmanı',
+      tanim:t, sorumlu:s, sorumluMail:'', birim:lokAd2(L), termin:gun(-termin), oncelik:o, kaynak:kaynak||'AI analizi önerisi', kaynakRef:'', bagliOlayId:'', modul,
+      not:'', gunluk:[], ekler:[], alicilar:[], ymOrnek:true};
+    if(d==='kapandi') a.kapanis={tarih:gun(Math.max(0,-termin+3)), not:'Tamamlandı', kim:s};
+    if(d==='onay') a.onay={durum:'bekliyor', tarih:gun(1), gonderenAd:s, gonderenMail:'', gerceklesme:gun(1)};
+    SACT.push(a); };
+  maks('personel',0,'Psikoteknik raporu süresi dolan sürücülerin raporları yenilensin','İnsan Kaynakları',10,'Yüksek');
+  maks('personel',1,'Eksik MYK belgeli operatörler için belgelendirme sınavı planlansın','İSG Uzmanı',-5,'Yüksek');
+  maks('personel',2,'Taşeron personel saha girişine zorunlu belge kontrol listesi eklensin','İdari İşler',20,'Orta','','Yönetim talebi');
+  maks('personel',0,'Periyodik muayenesi geciken çalışanlar işyeri hekimine yönlendirilsin','İşyeri Hekimi',-12,'Orta','kapandi');
+  maks('personel',3,'Özlük dosyasındaki eksik belgeler tamamlansın','İnsan Kaynakları',3,'Düşük','onay');
+  maks('makine',1,'Periyodik kontrolü gecikmiş ekipman için yetkili kuruluştan randevu alınsın','Bakım Şefi',7,'Yüksek');
+  maks('makine',4,'Kontrolü geciken forklift, kontrol yapılana kadar kullanımdan alınsın','Depo Sorumlusu',-3,'Yüksek','','Saha denetimi / gözlem');
+  maks('makine',2,'Kullanım kılavuzu eksik ekipmanlar için üreticiden kılavuz istensin','Satın Alma',30,'Düşük');
+  maks('makine',0,'Ekskavatörün zorunlu mali sorumluluk sigortası yenilensin','Filo Sorumlusu',-20,'Orta','kapandi');
+  maks('makine',1,'Mobil vinç yük testi raporu sisteme yüklensin','Bakım Şefi',2,'Orta','onay');
+  maks('egitim',0,'İşe başlama İSG bilgilendirmesi tüm çalışanlara verilsin','İSG Uzmanı',14,'Yüksek');
+  maks('egitim',1,'LOTO eğitimi elektrik ve bakım ekiplerine planlansın','İSG Uzmanı',-8,'Orta');
+  maks('egitim',2,'Katılmayan çalışanlar için telafi eğitimi yapılsın','Eğitim Sorumlusu',21,'Düşük');
+  maks('egitim',3,'Yüksekte çalışma eğitimi dış kurumdan alınsın','İnsan Kaynakları',-30,'Orta','kapandi','Yönetim talebi');
+  saveSact();
   savePrs(); saveMak();
   /* örnek vesikalık: ilk 6 kişiye çizim portre (gerçek kişi değil) */
   (async()=>{ const L=PRS.filter(p=>p.ornek).slice(0,6); for(let i=0;i<L.length;i++){ try{ await ymOrnekFoto(L[i],i); }catch(e){} } savePrs(); try{ if(typeof prsRender==='function') prsRender(); }catch(e){} })();
@@ -13009,7 +13081,10 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.18':['Personel, Makine-Ekipman ve Eğitim modüllerinde Yeni Aksiyon ve Aksiyon Listesi; AI analizinden açılan aksiyonlar kendi modülünün listesinde',
+const SURUM_NOTU={'1.9.19':['Ana sayfa daha verimli: özet kutuları iki kısa sırada, ajanda geniş; sağda kazasız gün, bu ayın özeti ve son olaylar',
+  'Hoş geldiniz satırında e-posta yerine ad soyad',
+  'Demo Veri Yükle: personel, makine ve eğitim aksiyon listeleri de oluşur'],
+  '1.9.18':['Personel, Makine-Ekipman ve Eğitim modüllerinde Yeni Aksiyon ve Aksiyon Listesi; AI analizinden açılan aksiyonlar kendi modülünün listesinde',
   'Ana sayfada Açık aksiyon kutusu: yetkili olduğunuz bütün modüllerin açık aksiyonları tek listede',
   'Ayarlar › Analiz Eşikleri: her modülün AI analizi eşiklerini yalnız o modülün yetkilisi görür ve değiştirir'],
   '1.9.17':['Personel, Makine-Ekipman ve Eğitim panolarında AI analizi: veriden bulgular, dayandığı kayıtlar ve öneriler',
