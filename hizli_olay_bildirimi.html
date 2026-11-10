@@ -669,7 +669,9 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 #prsPop{position:absolute;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 40px rgba(20,24,31,.16);padding:6px;max-height:70vh;overflow:auto;animation:prsAc .18s ease}
 .prsPopB{font-size:13px;font-weight:700;padding:8px 10px 6px}.prsPopB small{display:block;font-weight:500;color:var(--text3);font-size:11.5px;margin-top:1px}
 .prsPopS{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px;cursor:pointer}
-.prsPopS:hover{background:var(--surface2)}.prsPopS.vurgu{background:var(--surface2);box-shadow:inset 3px 0 0 var(--jcb)}.prsSayPil{cursor:pointer}.prsPopS.kilit{cursor:default}
+.prsPopS:hover{background:var(--surface2)}
+.prsCeviri{margin-top:8px;background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.5;max-height:220px;overflow:auto}
+.prsCeviri b{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}.prsPopS.vurgu{background:var(--surface2);box-shadow:inset 3px 0 0 var(--jcb)}.prsSayPil{cursor:pointer}.prsPopS.kilit{cursor:default}
 .prsPopIco{width:34px;height:34px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;flex:none;color:var(--text2);font-weight:700}
 .prsPopM{flex:1;min-width:0}.prsPopM b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prsPopM small{display:block;font-size:11.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2131,7 +2133,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.15';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.16';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6384,11 +6386,12 @@ function prsKartHtml(){
 let PRS_FORM_AY=0, PF_ONER=null;   /* PF_ONER: makine yükleme penceresi bitiş önerisi (prsBelgedenOku ortak) */
 function prsOzlukSec(ad){ const i=$('prsOzlukGir'); if(!i) return; i.dataset.ad=ad; i.click(); }
 function prsYukle(tip,ad,ay,egitimId){
-  PRS_FORM_AY=ay||0; PF_ONER=null;
+  PRS_FORM_AY=ay||0; PF_ONER=null; YB_SON=null;
+  PF_BAGLAM={mod:'prs', tip, ad:ad||'', ay:ay||0, kisi:(PRS_CUR&&PRS_CUR.ad)||''};
   const bas=tip==='saglik'?'Muayene':tip==='egitim'?'Eğitim':'Belge';
   $('gpBaslik').textContent=(ad||'Yeni eğitim')+(ad?' — güncel belge':'');
   $('gpGovde').innerHTML=`<div class="prsForm yumusak"><div class="denIzgara">
-      <div class="denAlan genis"><label>Belge dosyası</label><input type="file" id="pfDosya" onchange="prsBelgedenOku()"><span class="hint" id="pfOku">Seçince belgedeki tarihler okunup aşağıya önerilir.</span></div>
+      <div class="denAlan genis"><label>Belge dosyası</label><input type="file" id="pfDosya" onchange="prsBelgedenOku()"><span class="hint" id="pfOku">Seçince belge okunur; türü, numarası ve tarihleri önerilir.</span></div>
       <div class="denAlan genis"${ad&&tip!=='egitim'?' style="display:none"':''}><label>${bas} ${tip==='belge'?'türü':'adı'}</label><input type="text" id="pfAd" value="${esc(ad||'')}" placeholder="${tip==='egitim'?'Ör. Temel İSG eğitimi, Yüksekte çalışma':''}"></div>
       ${tip==='saglik'?`<div class="denAlan"><label>Muayene türü</label><select id="pfTur"><option>Periyodik</option><option>İşe giriş</option><option>İşe dönüş</option><option>Görev değişikliği</option></select></div>
         <div class="denAlan"><label>Sonuç</label><select id="pfSonuc"><option>Çalışmaya elverişli</option><option>Kısıtlı elverişli</option><option>Elverişsiz</option></select></div>`:''}
@@ -6500,6 +6503,7 @@ function prsBitisOner(ay,tip){
 }
 /* mevcut okuma motoru (pdf.js / OCR) — metin KVKK ayıklamasından geçer; yalnız tarihler alınır */
 async function prsBelgedenOku(){
+  if(PF_BAGLAM) return ybFormOku();   /* 10.11.2026: yönetim belgeleri motoru (tanıma, etiketli tarih, belge no, öğrenme) */
   const f=($('pfDosya').files||[])[0]; if(!f){ toast('Önce dosya seçin.'); return; }
   $('pfOku').textContent='okunuyor…';
   try{
@@ -6518,6 +6522,7 @@ async function prsBelgeKaydet(tip,egitimId){
   if(!ad){ toast('Ad / tür girin.'); return; } if(!tarih){ toast('Tarih girin.'); return; }
   let dosya=null; if(f){ const fid=uid(); await putFile(fid,f); dosya={id:fid, ad:f.name, boyut:f.size}; }
   const o={id:uid(), tarih, bitis, dosya, eklenme:new Date().toISOString(), ekleyen:SES?SES.ad:''};
+  ybOgren(tip==='saglik'?'Periyodik muayene':ad);
   if(tip==='belge') p.belgeler.push(Object.assign(o,{tur:ad, no:($('pfNo')||{}).value||''}));
   else if(tip==='egitim'){ const eski=egitimId&&p.egitimler.find(x=>x.id===egitimId);   /* var olan eğitime güncel belge */
     if(eski) Object.assign(eski,{tarih, bitis:bitis||eski.bitis, dosya:dosya||eski.dosya, sure:($('pfSure')||{}).value||eski.sure, veren:($('pfVeren')||{}).value||eski.veren});
@@ -6815,7 +6820,8 @@ function makKartHtml(){
 /* yükleme penceresi (personel ile aynı): dosya seçilince tarihler okunup önerilir */
 let MAK_FORM = {};
 function makYukle(tip,ad,ay,id,yuk){
-  MAK_FORM={tip, ay:ay||0}; PF_ONER=makBitisOner;
+  MAK_FORM={tip, ay:ay||0}; PF_ONER=makBitisOner; YB_SON=null;
+  PF_BAGLAM={mod:'mak', tip, ad:ad||'', ay:ay||0};
   const bas = tip==='kontrol' ? (yuk?'Yük testi raporu':'Periyodik kontrol raporu') : tip==='bakim' ? 'Bakım kaydı' : (ad||'Yeni belge');
   $('gpBaslik').textContent=bas+(ad&&tip==='belge'?' — güncel belge':'');
   $('gpGovde').innerHTML=`<div class="prsForm yumusak"><div class="denIzgara">
@@ -6841,6 +6847,7 @@ async function makBelgeKaydet(){
   const ad=(($('pfAd')||{}).value||'').trim(); if(tip==='belge'&&!ad){ toast('Belge türünü girin.'); return; }
   let dosya=null; if(f){ const fid=uid(); await putFile(fid,f); dosya={id:fid, ad:f.name, boyut:f.size}; }
   const o={id:uid(), tarih, dosya, eklenme:new Date().toISOString(), ekleyen:SES?SES.ad:''};
+  ybOgren(tip==='belge'?ad:tip==='kontrol'?'Periyodik kontrol raporu':'Bakım kaydı');
   if(tip==='kontrol') (m.kontroller=m.kontroller||[]).push(Object.assign(o,{sonraki:bitis||ayEkle(tarih,makPeriyot(m)), kurulus:$('pfKurulus').value, sonuc:$('pfSonuc').value, yukTest:!!($('pfYuk')&&$('pfYuk').checked)}));
   else if(tip==='bakim') (m.bakimlar=m.bakimlar||[]).push(Object.assign(o,{is:$('pfIs').value||'Bakım', yapan:$('pfYapan').value}));
   else (m.belgeler=m.belgeler||[]).push(Object.assign(o,{tur:ad, no:($('pfNo')||{}).value||'', bitis}));
@@ -10138,13 +10145,15 @@ const _kacar = s => String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
    İmza ile önbelleklenir — her belgede baştan taramak toplu taramayı yavaşlatırdı. */
 let _KVKK_SOZ=null, _KVKK_SOZ_IMZA='';
 function _kvkkSozluk(){
-  const imza=[RECS.length,(USR||[]).length,(PERS||[]).length,(LOK||[]).length].join('/');
+  let prs=[]; try{ prs=PRS||[]; }catch(e){}   /* 10.11.2026: personel kartlarındaki ad / sicil de sözlükte */
+  const imza=[RECS.length,(USR||[]).length,(PERS||[]).length,(LOK||[]).length,prs.length].join('/');
   if(_KVKK_SOZ && _KVKK_SOZ_IMZA===imza) return _KVKK_SOZ;
   const kisi=[], sicil=[], belge=[];
   const ekleKisi=v=>{ v=String(v||'').trim(); if(v.length>=3&&v.length<=60) kisi.push(v); };
   const ekleSicil=v=>{ v=String(v||'').trim(); if(v.length>=3&&v.length<=20) sicil.push(v); };
   (USR||[]).forEach(u=>{ ekleKisi(u.ad); });
   (PERS||[]).forEach(p=>{ ekleKisi(p.ad); ekleSicil(p.sicil); });
+  prs.forEach(p=>{ ekleKisi(p.ad); ekleSicil(p.sicil); });
   (LOK||[]).forEach(l=>{ ekleKisi(l.yonetici); });
   RECS.forEach(r=>{
     ekleKisi(r.bildiren); ekleSicil(r.bildirenSicil);
@@ -10478,7 +10487,7 @@ const belgeTerimAd = kod => (BELGE_TERIM.find(x=>x.kod===kod)||{}).ad || kod;
 
 /* Tek belgeyi okur. Dönen nesnede HAM METİN YOKTUR; `ayiklanmis` yalnız
    çağıran isterse (önizleme) kullanılır ve SAKLANMAZ. */
-function belgeOku(blob, ad, ilerle){
+function belgeOku(blob, ad, ilerle, secenek){
   const uz=String(ad||'').split('.').pop().toLowerCase();
   const bilgi=m=>{ if(ilerle) ilerle(m); };
   if(blob && blob.size>BELGE_EN_BUYUK)
@@ -10508,13 +10517,166 @@ function belgeOku(blob, ad, ilerle){
     return Promise.resolve({okundu:false, sebep:'bicimDesteklenmiyor', tur:'bilinmiyor'});
   }
   return p.then(r=>{
+    const kisiVar = secenek&&secenek.kisi ? ybKisiGecer(r.metin, secenek.kisi) : null;   /* yalnız evet / hayır */
     const a=kvkkAyikla(r.metin);          /* ham metin BURADAN SONRA KULLANILMAZ */
     const s=belgeSinifla(a.t);
-    return {okundu:true, tur:s.tur, puan:s.puan, terim:_terimSay(a.t, BELGE_TERIM),
+    return {okundu:true, kisiVar, tur:s.tur, puan:s.puan, terim:_terimSay(a.t, BELGE_TERIM),
             ocr:!!r.ocr, sayfa:r.sayfa||1, harf:a.t.replace(/\s/g,'').length,
             kvkk:a.say, kvkkToplam:a.toplam, ayiklanmis:a.t,
             damga:new Date().toISOString(), surum:BELGE_SURUM};
   }).catch(e=>({okundu:false, sebep:'hata', hata:String(e&&e.message||e), tur:'bilinmiyor'}));
+}
+/* ══ YÖNETİM BELGELERİ MOTORU (10.11.2026, kullanıcı: "KVKK, okuma, öğrenme motorlarını kuracağız, Hukuk ve HSE portallarındaki
+   gibi"; seçim: belge okuma ve tanıma + öğrenme + KVKK + çeviri) ══════════════════════════════════════════════════════════
+   Personel / makine belgesi, eğitim kaydı, kontrol raporu yüklenirken belge ÇEVRİMDIŞI okunur (belgeOku: pdf.js, OCR; dosya
+   makineden çıkmaz) → KVKK ayıklama (geri dönüşsüz; personel kartlarındaki ad / sicil de sözlükte) → şunlar çıkarılır:
+   belge TÜRÜ (o pencerenin aday türleri arasından), belge no, düzenlenme ve geçerlilik / sonraki kontrol tarihi (etikete
+   göre), eğitim süresi; kartın kişisi belgede geçiyor mu (yalnız evet / hayır — ham metin hiçbir yere yazılmaz).
+   ÖĞRENME: (1) Kaydedilen belgenin KVKK'dan geçmiş kelimeleri ÖZET (FNV-1a, okunamaz) olarak kaydedilen türe yazılır;
+   sonraki tanımada bu türün tipik kelimeleri puan katar — önerilen türü düzelttiğinizde motor doğrusunu öğrenir.
+   (2) Geçerlilik süresi: belgede bitiş yazmıyorsa, aynı türdeki kayıtlı belgelerin düzenlenme → bitiş süresinin ortancası
+   önerilir (en az 2 örnek). Model: hse::HOB::yb_model. Tanıma kuralı değişince YB_MOTOR_SURUM yükselt. */
+const YB_MOTOR_SURUM = '2026.11.10';
+const K_YB = K.rec.replace(/records$/,'yb_model');
+let YB_SON = null, PF_BAGLAM = null;   /* son okuma (kaydedince öğrenilir) ve açık yükleme penceresinin bağlamı — yalnız bellekte */
+const YB_ES = [
+  [/myk|mesleki yeterlilik/, ['mesleki yeterlilik','myk','yeterlilik belgesi']],
+  [/operatör/, ['operatör','operator','kullanma belgesi']],
+  [/forklift/, ['forklift','istif','transpalet']],
+  [/vinç|kren/, ['vinç','kren','crane']],
+  [/sapancı|işaretçi/, ['sapancı','işaretçi','rigger']],
+  [/kaynak/, ['kaynakçı','kaynak','welder','9606']],
+  [/elektrik/, ['elektrik','pano montaj','tesisatçı','ekat','yüksek gerilim']],
+  [/psikoteknik/, ['psikoteknik']],
+  [/src/, ['src belgesi','src']],
+  [/sürücü|ehliyet/, ['sürücü belgesi','ehliyet','driving licence']],
+  [/muayene|sağlık/, ['sağlık raporu','muayene','çalışmaya elverişli','hekim']],
+  [/temel isg|isg eğitimi|işe başlama/, ['iş sağlığı ve güvenliği','isg eğitimi','temel eğitim','6331']],
+  [/yüksekte/, ['yüksekte çalışma','yüksekte','düşmeye karşı']],
+  [/ilk yardım/, ['ilk yardım','ilkyardım','first aid']],
+  [/yangın|acil durum/, ['yangın','acil durum','tahliye','söndürme']],
+  [/kkd|zimmet/, ['kişisel koruyucu','kkd','zimmet']],
+  [/ce uygunluk/, ['uygunluk beyanı','declaration of conformity','2006/42']],
+  [/kılavuz/, ['kullanım kılavuzu','kullanma kılavuzu','operator manual','instruction manual']],
+  [/ruhsat|tescil/, ['ruhsat','tescil','registration']],
+  [/sigorta/, ['sigorta','poliçe','zorunlu mali sorumluluk']],
+  [/kiralama/, ['kiralama','kira sözleşmesi','rental']],
+  [/periyodik kontrol|kontrol raporu/, ['periyodik kontrol','kontrol raporu','muayene raporu','test raporu','yük testi']],
+  [/bakım/, ['bakım','servis formu','onarım']],
+  [/katılım|imza listesi/, ['katılım','imza listesi','katılımcı']],
+  [/sınav|değerlendirme/, ['sınav','değerlendirme','test sonucu']]
+];
+const YB_GENEL = new Set(['belgesi','belge','eğitimi','egitimi','raporu','gerekiyorsa','varsa','kullanıyorsa','olan','için','icin','ile','veya']);
+const ybNorm = s => _asciiKatla(s).replace(/\s*\(.*?\)\s*/g,' ').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const ybFnv = s => { let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(36); };
+const ybModel = () => { const m=store.get(K_YB,null); return (m && m.surum===YB_MOTOR_SURUM) ? m : {surum:YB_MOTOR_SURUM, turler:{}, belge:0}; };
+/* KVKK'dan geçmiş metnin özetlenmiş kelime kümesi (rakam, kısa kelime, ayıklama etiketi alınmaz) */
+function ybOzet(metin){ const S=new Set(); (_asciiKatla(metin).replace(/\[[^\]]*\]/g,' ').match(/[a-z]{4,}/g)||[]).forEach(w=>{ if(!YB_GENEL.has(w)) S.add(ybFnv(w)); }); return [...S].slice(0,300); }
+/* aday türler arasında tanıma: ad kelimeleri + eşanlamlar + öğrenilen özetler */
+function ybTani(metin, adaylar, beklenen){
+  const d=_asciiKatla(metin), oz=new Set(ybOzet(metin)), M=ybModel(), T=Object.keys(M.turler);
+  const say=k=>{ k=_asciiKatla(k); if(!k) return 0; let n=0,i=0; while((i=d.indexOf(k,i))>=0){ n++; i+=k.length; } return Math.min(n,3); };
+  const ogr={}; oz.forEach(h=>{ const L=T.filter(t=>{ const e=M.turler[t]; return e.n>=1 && (e.h[h]||0)/e.n>=0.6; }); if(L.length && L.length<=Math.max(1,Math.floor(T.length/2))) L.forEach(t=>{ ogr[t]=(ogr[t]||0)+1; }); });
+  const S=[...new Set(adaylar.filter(Boolean))].map(ad=>{
+    const n=ybNorm(ad), kel=n.split(' ').filter(w=>w.length>=4&&!YB_GENEL.has(w));
+    let p=kel.reduce((t,w)=>t+say(w),0);
+    YB_ES.forEach(([re,es])=>{ if(re.test(String(ad).toLocaleLowerCase('tr'))) p+=2*Math.min(2,es.reduce((t,e)=>t+say(e),0)); });
+    const o=Math.min(6,(ogr[n]||0)/2); p+=o;
+    if(beklenen && ybNorm(beklenen)===n) p+=0.5;   /* eşitlikte kullanıcının açtığı satır önde */
+    return {ad, p, ogr:o};
+  }).sort((a,b)=>b.p-a.p);
+  const en=S[0], iki=S[1];
+  if(!en || en.p<2) return {ad:'', guven:'yok', adaylar:S.slice(0,3)};
+  const guven = en.p>=5 && (!iki || en.p-iki.p>=2) ? 'yüksek' : 'orta';
+  return {ad:en.ad, guven, puan:en.p, ogrenilen:en.ogr>0, adaylar:S.slice(0,3)};
+}
+/* etiketli tarihler: düzenlenme / geçerlilik (sonraki kontrol); doğum tarihi alınmaz */
+function ybTarihler(metin){
+  const t=String(metin||''), L=[];
+  const re=/\b(\d{1,2})[.\/-](\d{1,2})[.\/-]((?:19|20)\d{2})\b|\b((?:19|20)\d{2})-(\d{2})-(\d{2})\b/g; let m;
+  while((m=re.exec(t))){ const iso=m[1]?`${m[3]}-${pad(+m[2],2)}-${pad(+m[1],2)}`:`${m[4]}-${m[5]}-${m[6]}`; if(isNaN(new Date(iso))) continue;
+    const once=_asciiKatla(t.slice(Math.max(0,m.index-48),m.index)), sonra=_asciiKatla(t.slice(m.index+m[0].length, m.index+m[0].length+24));
+    const tip = /dogum|birth/.test(once) ? 'dogum'
+      : /gecerlilik|son gecerli|bitis|valid|expir|sonraki kontrol|bir sonraki|sonraki muayene|gecerli olacak/.test(once) || /tarihine kadar|kadar gecerli/.test(sonra) ? 'bitis'
+      : /duzenle|verilis|veris|kontrol tarihi|muayene tarihi|egitim tarihi|sinav tarihi|tarih|date|issued/.test(once) ? 'tarih' : '';
+    L.push({iso, tip}); }
+  const D=L.filter(x=>x.tip!=='dogum'), s=a=>a.map(x=>x.iso).sort();
+  const tarih=s(D.filter(x=>x.tip==='tarih'))[0] || s(D.filter(x=>!x.tip))[0] || '';
+  let bitis=s(D.filter(x=>x.tip==='bitis')).pop() || '';
+  if(!bitis){ const son=s(D.filter(x=>!x.tip)).pop(); if(son && tarih && son>tarih) bitis=son; }
+  return {tarih, bitis, hepsi:[...new Set(s(D))]};
+}
+function ybBelgeNo(metin){
+  const m=String(metin||'').match(/(?:belge|sertifika|rapor|seri|poli[çc]e|ruhsat|kay[ıi]t|certificate)\s*(?:no|numaras[ıi]|nu|number)\s*[:.]?\s*([A-Z0-9][A-Z0-9\-\/.]{2,24})/i);
+  return m ? m[1].replace(/[.\-\/]+$/,'') : '';
+}
+const ybSure = metin => { const m=String(metin||'').match(/\b(\d{1,3}(?:[.,]5)?)\s*(?:saat|sa\.|hours?)\b/i); return m ? m[1].replace(',','.') : ''; };
+/* geçerlilik süresi kayıtlardan: aynı türde (düzenlenme → bitiş) ay farkının ortancası */
+function ybGecerlilik(ad){
+  const n=ybNorm(ad), A=[];
+  const ekle=(tur,ta,bi)=>{ if(!ta||!bi||ybNorm(tur)!==n) return; const a=Math.round((new Date(bi)-new Date(ta))/(864e5*30.44)); if(a>0&&a<=120) A.push(a); };
+  PRS.forEach(p=>{ (p.belgeler||[]).forEach(b=>ekle(b.tur,b.tarih,b.bitis)); (p.egitimler||[]).forEach(e=>ekle(e.ad,e.tarih,e.bitis)); });
+  MAK.forEach(m=>(m.belgeler||[]).forEach(b=>ekle(b.tur,b.tarih,b.bitis)));
+  if(A.length<2) return null; A.sort((x,y)=>x-y); return {ay:A[Math.floor(A.length/2)], n:A.length};
+}
+/* öğrenme: kaydedilen tür ← son okunan belgenin özetleri */
+function ybOgren(tur){
+  if(!YB_SON || !tur) return; const M=ybModel(), n=ybNorm(tur); if(!n) return;
+  const e=M.turler[n]||(M.turler[n]={n:0,h:{}}); e.n++; YB_SON.ozet.forEach(h=>{ e.h[h]=(e.h[h]||0)+1; });
+  const H=Object.entries(e.h); if(H.length>500){ H.sort((a,b)=>b[1]-a[1]); e.h=Object.fromEntries(H.slice(0,500)); }
+  M.belge=(M.belge||0)+1; M.damga=new Date().toISOString(); store.set(K_YB,M); YB_SON=null;   /* okunan metin de bellekten düşer */
+}
+/* kişi adı belgede geçiyor mu — HAM metinde, ad parçalarının hepsi; yalnız evet / hayır döner */
+function ybKisiGecer(ham, ad){ const d=_asciiKatla(ham), P=_asciiKatla(ad).split(/\s+/).filter(x=>x.length>=2); return P.length ? P.every(x=>d.includes(x)) : null; }
+/* aday türler: pencerenin bağlamına göre */
+function ybAdaylar(b){
+  if(b.mod==='prs' && b.tip==='egitim') return [...EGT_TUR.map(t=>t.ad), ...PRS.flatMap(p=>(p.egitimler||[]).map(e=>e.ad))];
+  if(b.mod==='prs' && b.tip==='belge') return [...ORTAK_BELGE.filter(x=>!x.egitim).map(x=>x.ad), ...MESLEK.flatMap(m=>(m.belge||[]).map(x=>x.ad)), ...PRS.flatMap(p=>(p.belgeler||[]).map(x=>x.tur))];
+  if(b.mod==='mak' && b.tip==='belge') return [...MAK_BELGE.filter(x=>x!=='Bakım kaydı'), ...MAK.flatMap(m=>(m.belgeler||[]).map(x=>x.tur))];
+  return [];
+}
+/* yükleme penceresinde dosya seçilince (personel ve makine ortak: pfDosya / pfAd / pfNo / pfTarih / pfBitis / pfSure) */
+async function ybFormOku(){
+  const f=($('pfDosya').files||[])[0], o=$('pfOku'); if(!f){ return; } YB_SON=null;
+  const b=PF_BAGLAM||{mod:'prs',tip:'belge'}; if(o) o.textContent='';
+  let r; try{ r=await belgeOku(f,f.name,null,{kisi:b.kisi}); }catch(e){ r={okundu:false}; }
+  if(!r.okundu){ if(o) o.textContent=r.sebep==='bicimDesteklenmiyor'?'bu biçim okunamıyor — bilgileri elle girin':'belge okunamadı — bilgileri elle girin'; return; }
+  const metin=r.ayiklanmis||'', set=(id,v)=>{ const el=$(id); if(el&&v){ el.dataset.iso=v; el.value=gunAy(v); } }, parca=[];
+  YB_SON={ozet:ybOzet(metin), metin, adaylar:null};   /* metin yalnız bellekte (çeviri için); kaydedince silinir */
+  const adEl=$('pfAd'), beklenen=b.ad||'', A=ybAdaylar(b);
+  if(A.length){ const t=ybTani(metin,A,beklenen);
+    if(t.ad){ if(adEl && !adEl.value.trim() && t.guven!=='yok'){ adEl.value=t.ad; }
+      if(beklenen && ybNorm(t.ad)!==ybNorm(beklenen) && t.guven==='yüksek') parca.push('⚠ belge “'+t.ad+'” gibi görünüyor');
+      else parca.push('tanındı: '+t.ad+(t.ogrenilen?' (öğrenilmiş)':'')); }
+    else parca.push('tür tanınmadı'); }
+  const T=ybTarihler(metin); set('pfTarih',T.tarih); if(T.bitis) set('pfBitis',T.bitis);
+  if(T.tarih) parca.push((b.tip==='kontrol'?'kontrol ':'düzenlenme ')+trDate(T.tarih));
+  if(T.bitis) parca.push((b.tip==='kontrol'?'sonraki ':'geçerlilik ')+trDate(T.bitis));
+  else if(T.tarih){ const ad=(adEl&&adEl.value)||beklenen; let ay=b.ay||0;
+    if(!ay && b.tip!=='kontrol' && b.tip!=='bakim'){ const g=ybGecerlilik(ad); if(g){ ay=g.ay; parca.push('geçerlilik öğrenilen süreyle ('+g.ay+' ay, '+g.n+' kayıttan)'); } }
+    if(b.tip==='kontrol' && PF_ONER) PF_ONER();
+    else if(ay){ const el=$('pfBitis'); if(el){ const bi=ayEkle(T.tarih,ay); el.dataset.iso=bi; el.value=gunAy(bi); } }
+    else if(PF_ONER) PF_ONER(); else prsBitisOner(PRS_FORM_AY,b.tip); }
+  const no=ybBelgeNo(metin); if(no && $('pfNo') && !$('pfNo').value){ $('pfNo').value=no; parca.push('belge no '+no); }
+  const su=ybSure(metin); if(su && $('pfSure') && !$('pfSure').value){ $('pfSure').value=su; parca.push(su+' saat'); }
+  if(r.kisiVar===true) parca.push('kişi adı belgede geçiyor'); else if(r.kisiVar===false) parca.push('⚠ kişinin adı belgede bulunamadı');
+  if(r.kvkkToplam) parca.push(r.kvkkToplam+' kişisel veri ayıklandı');
+  if(o) o.textContent=parca.join(' · ');
+  /* yabancı dil: bilgisayardaki çeviri motoru (Bergamot) varsa "Türkçe çevirisini göster" */
+  const dil=window.qhseDilTahmin ? qhseDilTahmin(metin) : 'tr';
+  if(o && (dil==='en'||dil==='ar') && window.qhseCeviriDurum){ YB_SON.adaylar=A; YB_SON.beklenen=beklenen;
+    qhseCeviriDurum().then(d=>{ if(!d.kurulu||!YB_SON) return;
+      o.insertAdjacentHTML('beforeend',' · <a class="prsLink" onclick="ybCeviriGoster()">'+(dil==='ar'?'İngilizce':'Türkçe')+' çevirisini göster</a><div id="pfCeviri"></div>'); }).catch(()=>{}); }
+}
+/* çeviri: KVKK'dan geçmiş metin, bilgisayarda (Bergamot); her zaman TASLAK. Tür bulunamadıysa çeviriyle yeniden tanınır. */
+async function ybCeviriGoster(){
+  const k=$('pfCeviri'); if(!k||!YB_SON||!YB_SON.metin) return;
+  const dil=qhseDilTahmin(YB_SON.metin), hedef=dil==='ar'?'en':'tr';
+  let c; try{ c=await qhseCevir(YB_SON.metin.slice(0,6000), hedef, dil); }catch(e){ k.innerHTML='<div class="hint">Çeviri yapılamadı: '+esc(e.message||e)+'</div>'; return; }
+  k.innerHTML='<div class="prsCeviri"><b>'+(hedef==='tr'?'Türkçe':'İngilizce')+' taslak çeviri — kontrol edin</b><div>'+esc(c).replace(/\n/g,'<br>')+'</div></div>';
+  const adEl=$('pfAd');
+  if(hedef==='tr' && YB_SON.adaylar && YB_SON.adaylar.length && adEl && !adEl.value.trim()){
+    const t=ybTani(c, YB_SON.adaylar, YB_SON.beklenen||''); if(t.ad){ adEl.value=t.ad; const o=$('pfOku'); if(o) o.insertAdjacentHTML('afterbegin','çeviriyle tanındı: '+esc(t.ad)+' · '); } }
 }
 /* Saklanacak biçim — `ayiklanmis` METİN ATILIR. Depoya yalnız türetilmiş
    sayılar ve kodlar yazılır; belgenin cümleleri diske hiç inmez. */
@@ -11717,6 +11879,18 @@ function sinavKayitlar(){   /* analiz motorları için uydurma küme — kişi y
     kokSebep:[kok], bulgular:['Sınav Bulgusu'], kisiler:[], aksiyonlar:[], ekler:[]}));
 }
 const MOTOR_SINAV=[
+  {ad:'Çeviri (Bergamot, bilgisayarda)', agir:true, f:async()=>{
+     if(typeof DENEME_GIRIS!=='undefined' && DENEME_GIRIS) return 'deneme sitesinde çeviri motoru yok (yalnız yerel portalda)';
+     if(!window.qhseCeviriSinav) throw new Error('çeviri bloğu yüklenmedi');
+     const d=await qhseCeviriDurum(); if(!d.kurulu) throw new Error('bu bilgisayarda çeviri motoru kurulu değil');
+     const s=await qhseCeviriSinav(); return 'örnek cümleler çevrildi · '+String(s).slice(0,60); }},
+  {ad:'Yönetim belgeleri (tanıma, tarih, belge no)', agir:false, f:async()=>{
+     const metin='T.C. MESLEKİ YETERLİLİK BELGESİ — Forklift Operatörü Seviye 3. Belge No: MYK-2025-001234. Düzenlenme Tarihi: 15.03.2025. Geçerlilik Tarihi: 15.03.2030.';
+     const t=ybTani(metin,['Forklift operatörü MYK mesleki yeterlilik belgesi','Psikoteknik raporu','Kullanım kılavuzu']), d=ybTarihler(metin), no=ybBelgeNo(metin);
+     if(!/Forklift/.test(t.ad)) throw new Error('örnek belge türü tanınmadı ('+(t.ad||'—')+')');
+     if(d.tarih!=='2025-03-15'||d.bitis!=='2030-03-15') throw new Error('etiketli tarihler yanlış ('+d.tarih+' / '+d.bitis+')');
+     if(no!=='MYK-2025-001234') throw new Error('belge no okunamadı ('+no+')');
+     const M=ybModel(); return 'örnek belge doğru tanındı · öğrenilen '+(M.belge||0)+' belge, '+Object.keys(M.turler).length+' tür · motor '+YB_MOTOR_SURUM; }},
   {ad:'PDF okuma (pdf.js)', agir:false, f:async()=>{
      const r=await pdfMetin(sinavPdf('SIF SINAV 2026'));
      const pj=window.pdfjsLib||{};
@@ -12586,7 +12760,11 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.15':['Üst çubukta ileri / geri düğmeleri (Alt+← / Alt+→): ekranlar ve açılan kartlar arasında gezinme'],
+const SURUM_NOTU={'1.9.16':['Belge okuma ve tanıma: personel, eğitim, sağlık ve makine belgesi yüklenince belge bilgisayarda okunur; türü, belge no, düzenlenme / geçerlilik tarihi ve eğitim süresi önerilir, yanlış belge ve kişi adı uyarısı',
+  'Öğrenme: düzelttiğiniz belge türü öğrenilir; bitiş yazmayan belgede bu türün kayıtlardaki geçerlilik süresi önerilir',
+  'KVKK: okunan metinden kimlik, iletişim ve personel kartlarındaki ad / sicil ayıklanır; belge metni saklanmaz',
+  'Yabancı dildeki belgeye Türkçe taslak çeviri (bilgisayarda, yalnız yerel portalda)'],
+  '1.9.15':['Üst çubukta ileri / geri düğmeleri (Alt+← / Alt+→): ekranlar ve açılan kartlar arasında gezinme'],
   '1.9.14':['Ayarlar › Genel › Demo Veri Yükle: tek tıkla tüm modüllere örnek kayıt (olaylar ve aksiyonlar, denetimler, personel, makine-ekipman, eğitimler)'],
   '1.9.13':['Deneme sitesinde parolasız giriş: şirket e-posta adresinizle (@sif.com.tr) doğrudan girersiniz; veriler yalnız kendi cihazınızda tutulur'],
   '1.9.12':['Yeni Ana Sayfa: İSG, Personel, Makine-Ekipman ve Eğitim Yönetimi bölümleri; giriş yetkiye bağlı; yaklaşanlar ajandası ve özet kutuları',
@@ -13806,5 +13984,149 @@ if('serviceWorker' in navigator && window.isSecureContext){
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) denetle(); });
 })();
 </script>
+<!-- ORTAK ÇEVİRİ BLOĞU (10.11.2026, SİF): Ortak/Ceviri/istemci_blok.html'nin BİREBİR kopyası — değişince buraya da kopyala.
+     Yollar varsayılan (/Ortak/Ceviri/…, yerel sunucu 8090). Deneme sitesinde (GitHub) motor yok: çeviri bağlantısı görünmez. -->
+<script>
+/* ══ ORTAK ÇEVİRİ (04.11.2026) — HSE, Kalite ve Hukuk'ta AYNI blok (kaynak: Ortak/Ceviri/istemci_blok.html; değişince üç sayfaya da
+   aynen kopyalanır; Hukuk yolları window.QHSE_CEVIRI_ISCI / QHSE_CEVIRI_LIB ile verir). Kullanıcı kararı: "hepsinde Bergamot olsun içeride". Çeviri TAMAMEN bu bilgisayarda (Mozilla Bergamot,
+   Türkçe ↔ İngilizce); metin hiçbir yere gitmez — Google / dış servis yok. İşçi (Ortak/Ceviri/ceviri-isci.js) sunucudan ağ
+   izni olmayan CSP ile gelir. Motor ve modeller TEK kopya: Ortak/Ceviri/lib/bergamot (bileşen listesinde özet denetimli,
+   günlük güncelleme çeviri sınavından geçerse kurulur).
+   Ölçüm (04.11.2026): Türkçe→İngilizce anlam çoğunlukla doğru ama şantiye terimleri yanlış ("perde betonu" → curtain concrete);
+   bu yüzden TERİM SÖZLÜĞÜ: 'on' terimleri çeviriden ÖNCE İngilizce karşılığıyla değiştirilir (Bergamot korur), 'son' terimleri
+   kaynakta geçiyorsa çıktıdaki bilinen yanlış karşılık düzeltilir. İngilizce→Türkçe daha zayıf: yalnız taslak.
+   Çeviri her zaman TASLAKTIR — çağıran ekran "kontrol edin" notu ve "Orijinale dön" gösterir.
+   API: qhseCevir(metin, hedef['tr'|'en'], kaynak?) → Promise<string> · qhseCeviriDurum() → Promise<{kurulu, surum}> ·
+        qhseDilTahmin(metin) → 'tr'|'en'|'ar' · qhseCeviriSinav() → Promise<string> (motor kartı sınavı)
+   04.11.2026 ARAPÇA: Arapça yazı 'ar' tanınır; aren modeli KURULU olan sayfada (Hukuk) qhseCevir(metin,'en','ar') İngilizce taslak
+   verir (doğrudan Arapça→Türkçe model yok — kullanıcı: "arapça ingilizce olsun"). Terim sözlükleri yalnız tr↔en çiftlerinde çalışır. */
+(function(){
+  if(window.qhseCevir) return;
+  /* Yollar sayfaya göre (Hukuk: kendi sunucusu, lib altında): window.QHSE_CEVIRI_ISCI / QHSE_CEVIRI_LIB bloktan ÖNCE verilir. */
+  var ISCI=window.QHSE_CEVIRI_ISCI||'/Ortak/Ceviri/ceviri-isci.js', LIB=window.QHSE_CEVIRI_LIB||'/Ortak/Ceviri/lib/bergamot/', BG={};
+  var SOZLUK=[   /* tr: kaynakta aranan (küçük harfe indirilmiş metinde), en: doğru karşılık */
+    {y:'on',  tr:/perde betonu?(?:n?[uü]n|nda|nu|na|ndaki)?/g, en:'shear wall concrete'},
+    {y:'on',  tr:/perde duvar(?:ı|ın|da|daki)?/g, en:'shear wall'},
+    {y:'on',  tr:/imalat (?:resimleri|resmi|çizimleri|çizimi)(?:n[ie]n?|nde|ne)?/g, en:'shop drawing'},
+    {y:'on',  tr:/kablo tava(?:ları|sı)(?:n[ıi]n|nda|na|ndaki)?/g, en:'cable tray'},
+    {y:'on',  tr:/geri (?:vites )?(?:ikaz|uyarı) (?:sesi|alarmı|ikazı)/g, en:'reverse alarm'},
+    {y:'on',  tr:/ramak kala/g, en:'near miss'},
+    {y:'on',  tr:/\bkkd\b/g, en:'PPE'},
+    {y:'on',  tr:/iş izni/g, en:'work permit'},
+    {y:'on',  tr:/grobeton/g, en:'blinding concrete'},
+    {y:'son', tr:/emniyet kemer/,  en:'safety harness', yanlis:[/\bseat ?belts?\b/gi, /\bsafety belts?\b/gi]},
+    {y:'son', tr:/\baks(?:ı|ın|ta|tak|ındaki|lar)?\b/, en:'axis', yanlis:[/\baxles?\b/gi]},
+    {y:'son', tr:/\bkalıp/, en:'formwork', yanlis:[/\bmou?lds?\b/gi]},
+    {y:'son', tr:/yüksekte/, en:'at height', yanlis:[/\b(work(?:ing|ed)?) high\b/gi]},
+    {y:'son', tr:/gözenek/, en:'porosity', yanlis:[/\bthe pores?\b/gi, /\bpores?\b/gi]}
+  ];
+  /* Türkçe I/İ tuzağı: toLowerCase ıskalar — tr yerel ayarıyla */
+  var kucuk=function(s){ return String(s||'').toLocaleLowerCase('tr'); };
+  /* İNGİLİZCE→TÜRKÇE TERİMLER (04.11.2026, ölçüldü): İngilizce terim çeviriden önce dokunulmaz işaretle (QZ0Z) değiştirilir,
+     Bergamot işareti korur, sonra Türkçe karşılık konur ve gelen ek ünlü uyumuyla düzeltilir. iy: belirtisiz isim tamlaması
+     (dava dilekçe-si) — ekten önce "n" kaynaştırması. Uzun terim önce (statement of claim, claim'den önce). */
+  var SOZLUK_EN=[
+    ['ICC|LCIA|UNCITRAL|FIDIC|DIAC|SIAC|ICSID','',0], ['case no\\.?|case number','Dava No',0],
+    ['statement of claim','dava dilekçesi',1], ['statement of defen[cs]e','cevap dilekçesi',1], ['arbitral tribunal','hakem heyeti',1],
+    ['arbitral award|final award','hakem kararı',1], ['terms of reference','görev belgesi',1], ['procedural order','usul kararı',1],
+    ['court of first instance','ilk derece mahkemesi',1], ['court of appeal','istinaf mahkemesi',1], ['governing law','uygulanacak hukuk',0],
+    ['cure period','giderme süresi',1], ['notice of termination','fesih bildirimi',1], ['liquidated damages','götürü tazminat',0],
+    ['letter of credit','akreditif',0], ['performance (?:bond|guarantee)','kesin teminat mektubu',1], ['advance payment guarantee','avans teminat mektubu',1],
+    ['witness statement','tanık beyanı',1], ['expert report','bilirkişi raporu',1], ['power of attorney','vekâletname',0], ['judgm?ent in default|default judgm?ent','gıyabi karar',0],
+    ['counter-?claim','karşı dava',0], ['claimants?','davacı',0], ['respondents?','davalı',0], ['defendants?','davalı',0], ['plaintiffs?','davacı',0], ['tribunal','hakem heyeti',1],
+    ['shop drawings?','imalat resmi',1], ['method statement','yöntem beyanı',1], ['inspection request','muayene talebi',1], ['non-?conformity report','uygunsuzluk raporu',1],
+    ['non-?conformit(?:y|ies)','uygunsuzluk',0], ['cable trays?','kablo tavası',1], ['rebars?|reinforcing bars?','donatı',0], ['formwork','kalıp',0],
+    ['scaffold(?:ing)?','iskele',0], ['near miss(?:es)?','ramak kala',0], ['work permit','iş izni',1], ['shear wall','perde duvar',0]
+  ].map(function(x){ return {re:new RegExp('\\b(?:'+x[0]+')\\b','gi'), tr:x[1], iy:!!x[2]}; });
+  var UNLU='aeıioöuü';
+  function ekUyum(terim, iy, ek){
+    var e=kucuk(ek); if(!e) return terim;
+    var sv=null; for(var i=terim.length-1;i>=0;i--){ var c=kucuk(terim[i]); if(UNLU.indexOf(c)>=0){ sv=c; break; } }
+    sv=sv||'e'; var kalin='aıou'.indexOf(sv)>=0, yuv='oöuü'.indexOf(sv)>=0, i4=kalin?(yuv?'u':'ı'):(yuv?'ü':'i'), e2=kalin?'a':'e';
+    var sonUnlu=UNLU.indexOf(kucuk(terim.slice(-1)))>=0, sert=/[fstkçşhp]$/.test(kucuk(terim));
+    var tip=/^n?[ıiuü]n$/.test(e)?'gen':/^y?[ıiuü]$/.test(e)?'acc':/^y?[ae]$/.test(e)?'dat':/^[dt][ae]$/.test(e)?'loc':/^[dt][ae]n$/.test(e)?'abl':/^y?l[ae]$/.test(e)?'ins':'';
+    if(!tip) return terim+e;
+    if(iy) return terim+{gen:'n'+i4+'n', acc:'n'+i4, dat:'n'+e2, loc:'nd'+e2, abl:'nd'+e2+'n', ins:'yl'+e2}[tip];
+    return terim+{gen:sonUnlu?'n'+i4+'n':i4+'n', acc:sonUnlu?'y'+i4:i4, dat:sonUnlu?'y'+e2:e2, loc:(sert?'t':'d')+e2, abl:(sert?'t':'d')+e2+'n', ins:(sonUnlu?'y':'')+'l'+e2}[tip];
+  }
+  var KISA=[];   /* kısaltmalar (ICC, FIDIC…) olduğu gibi kalır: QK işareti, çeviriden sonra aynen geri */
+  function enIsaretle(metin){ var har=[], t=metin;
+    SOZLUK_EN.forEach(function(g, i){ g.re.lastIndex=0; t=t.replace(g.re, function(tum){ har.push(i); return g.tr ? ' QZ'+i+'Z ' : ' QK'+(KISA.push(tum)-1)+'Z '; }); });
+    return {t:t.replace(/ {2,}/g,' ').replace(/ ([,.;:)])/g,'$1'), var:har.length>0}; }
+  function enCoz(cikti){
+    var t=cikti.replace(/QK(\d+)Z/g, function(tum, n){ return KISA[+n]!==undefined ? KISA[+n] : tum; });
+    t=t.replace(/QZ(\d+)Z(?:['’]?([a-zçğıöşü]{1,4})\b)?/gi, function(tum, n, ek){ var g=SOZLUK_EN[+n]; return g ? ekUyum(g.tr, g.iy, ek||'') : tum; });
+    /* cümle başı büyük harf (terim cümleye başladıysa) */
+    return t.replace(/^\s+/, '').replace(/(^|[.!?]\s+)([a-zçğıöşü])/g, function(tum, on, h){ return on+h.toLocaleUpperCase('tr'); }); }
+  function dilTahmin(s){ var t=kucuk(s);
+    if((String(s).match(/[\u0600-\u06FF]/g)||[]).length > (String(s).match(/[A-Za-z\u00C0-\u024F]/g)||[]).length) return 'ar';
+    if(/[çğışöüİı]/.test(String(s))) return 'tr';
+    var tr=(t.match(/\b(ve|ile|bir|bu|için|olarak|yapıl|edil|gözlen|tespit|değil|olmadan|sırasında)\w*/g)||[]).length;
+    var en=(t.match(/\b(the|and|was|were|has|have|with|without|during|of|is|are|not)\b/g)||[]).length;
+    return tr>=en ? 'tr' : 'en'; }
+  function surum(){ if(BG.surumSoz) return BG.surumSoz;
+    BG.surumSoz=fetch(LIB+'surum.json',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; });
+    return BG.surumSoz; }
+  function isci(){
+    if(BG.hazir) return BG.hazir;
+    BG.isci=new Worker(ISCI); BG.modeller={}; BG.sayac=0; BG.bekleyen={};
+    BG.isci.onmessage=function(e){ var d=e.data, a=d.id||d.tur, b=BG.bekleyen[a]; if(!b) return; delete BG.bekleyen[a]; d.tur==='hata'?b.red(new Error(d.hata)):b.coz(d); };
+    BG.isci.onerror=function(e){ Object.keys(BG.bekleyen).forEach(function(k){ BG.bekleyen[k].red(new Error('Çeviri motoru çalışmadı: '+((e&&e.message)||''))); }); BG.bekleyen={}; BG.hazir=null; };
+    BG.ileti=function(anahtar, veri, aktar){ var p=new Promise(function(coz,red){ BG.bekleyen[anahtar]={coz:coz, red:red}; }); BG.isci.postMessage(veri, aktar||[]); return p; };
+    BG.hazir=fetch(LIB+'bergamot-translator.wasm').then(function(r){ if(!r.ok) throw new Error('Çeviri motoru kurulu değil ('+LIB+')'); return r.arrayBuffer(); })
+      .then(function(w){ return BG.ileti('hazir',{tur:'baslat', wasm:w},[w]); });
+    BG.hazir.catch(function(){ BG.hazir=null; try{ BG.isci.terminate(); }catch(e){} });
+    return BG.hazir;
+  }
+  function model(cift, s){
+    if(!BG.modeller[cift]) BG.modeller[cift]=(function(){
+      var d=s.ciftler[cift].dosyalar, dos={}, adlar=Object.keys(d);
+      return Promise.all(adlar.map(function(tur){ return fetch(LIB+cift+'/'+encodeURIComponent(d[tur].ad)).then(function(r){ if(!r.ok) throw new Error('model dosyası yok: '+d[tur].ad); return r.arrayBuffer(); }).then(function(b){ dos[tur]=b; }); }))
+        .then(function(){ return BG.ileti('model-tamam',{tur:'model', cift:cift, dosyalar:dos}, adlar.map(function(k){ return dos[k]; })); });
+    })();
+    BG.modeller[cift].catch(function(){ delete BG.modeller[cift]; });
+    return BG.modeller[cift];
+  }
+  function onIsle(metin){ var t=metin;
+    SOZLUK.forEach(function(g){ if(g.y!=='on') return;
+      /* aramayı küçük harfli kopyada yap, değişikliği aynı konumda asıl metne uygula (uzunluk korunur: tr yerel küçültme harf sayısını değiştirmez) */
+      var k=kucuk(t), parca=[], son=0, m; g.tr.lastIndex=0;
+      while((m=g.tr.exec(k))){ parca.push(t.slice(son, m.index), g.en); son=m.index+m[0].length; if(!m[0].length) g.tr.lastIndex++; }
+      if(parca.length){ parca.push(t.slice(son)); t=parca.join(''); } });
+    return t; }
+  function sonIsle(kaynak, cikti){ var k=kucuk(kaynak), t=cikti;
+    SOZLUK.forEach(function(g){ if(g.y!=='son' || !g.tr.test(k)) return;
+      g.yanlis.forEach(function(re){ t=t.replace(re, function(tum, fiil){ return (g.en==='at height' && fiil) ? fiil+' at height' : g.en; }); }); });
+    return t; }
+  function cevir(metin, hedef, kaynak){
+    metin=String(metin==null?'':metin); if(!metin.trim()) return Promise.resolve(metin);
+    hedef=(hedef==='en')?'en':'tr'; kaynak=kaynak||dilTahmin(metin);
+    if(kaynak===hedef) return Promise.resolve(metin);
+    var cift=kaynak+hedef;
+    return surum().then(function(s){
+      if(!s || !s.ciftler || !s.ciftler[cift]) throw new Error('Bu bilgisayarda '+cift+' çeviri modeli kurulu değil (Ayarlar › Motorlar ve Güncellemeler).');
+      return isci().then(function(){ return model(cift, s); }).then(function(){
+        var satir=metin.replace(/\r/g,'').split('\n'), id='c'+(++BG.sayac);
+        KISA.length=0;   /* çağrı başına (çeviriler sırayla) */
+        var giden=(cift==='tren') ? satir.map(onIsle) : (cift==='entr') ? satir.map(function(s){ return enIsaretle(s).t; }) : satir;
+        return BG.ileti(id,{tur:'cevir', id:id, cift:cift, metinler:giden}).then(function(r){
+          return r.metinler.map(function(c,i){ return (cift==='tren')?sonIsle(satir[i], c):(cift==='entr')?enCoz(c):c; }).join('\n'); });
+      });
+    });
+  }
+  window.qhseCevir=cevir;
+  window.qhseDilTahmin=dilTahmin;
+  window.qhseCeviriDurum=function(){ return surum().then(function(s){ return {kurulu:!!(s&&s.motor), surum:s}; }); };
+  /* Motor kartı sınavı: sabit cümleler — sözlük ve iki yön birlikte sınanır */
+  window.qhseCeviriSinav=function(){
+    return cevir('Perde betonunda gözenek tespit edildi; ölçüm cihazının kalibrasyonu yapılmamış.','en','tr').then(function(a){
+      if(!/shear wall concrete/i.test(a) || !/calibrat/i.test(a)) throw new Error('Türkçe→İngilizce örnek beklenen sonucu vermedi: '+a);
+      return cevir('Concrete was poured without inspection.','tr','en').then(function(b){
+        if(!/beton/i.test(b)) throw new Error('İngilizce→Türkçe örnek beklenen sonucu vermedi: '+b);
+        return a+' · '+b; }); });
+  };
+})();
+</script>
+
 </body>
 </html>
