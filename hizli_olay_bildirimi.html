@@ -63,7 +63,12 @@ header .hbtn.acc:hover{background:var(--jcb-600)}
 .hdMarka{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:.04em;text-transform:uppercase;
   color:var(--jcb);white-space:nowrap;padding-left:16px;margin-left:2px;border-left:1px solid rgba(255,255,255,.18);
   line-height:22px;text-shadow:0 1px 0 rgba(0,0,0,.6),0 0 18px rgba(245,197,24,.18)}
-@media(max-width:640px){.hdMarka{display:none}}   /* telefonda üst bant dar: logo + düğmeler */
+@media(max-width:640px){.hdMarka{display:none}}
+/* ileri / geri (10.11.2026, HSE portalı gibi) */
+.hdGezin{display:flex;gap:6px;align-items:center;flex:none}
+.hdGezinBtn{width:34px;height:34px;border-radius:9px;border:1px solid #3a3a3a;background:#262626;color:#f0f0f0;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hdGezinBtn:hover:not(:disabled){border-color:var(--jcb);color:var(--jcb)}.hdGezinBtn:disabled{opacity:.35;cursor:default}
+@media(max-width:640px){.hdGezin{display:none}}   /* telefonda üst bant dar: logo + düğmeler */
 /* Oturum düğmesi: yalnız AD-SOYAD BAŞ HARFLERİ (basHarf) taşıyan yuvarlak düğme.
    Üzerine gelince kimlik kartı (.meIpucu), tıklayınca profil penceresi (profilAc).
    "header #meBox" seçicisi uygulama.css'teki eski .me dolgu kuralını ezer. */
@@ -1316,6 +1321,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
        onerror="this.style.display='none';document.getElementById('hdLogoFb').style.display='inline-flex'">
   <span class="logo" id="hdLogoFb" title="SİF JCB" style="display:none"><span class="lg-sif">SİF<sup>®</sup></span><span class="lg-jcb">JCB</span></span>
   <span class="hdMarka">Yönetim Portalı</span>
+  <div class="hdGezin"><button type="button" id="hdGeri" class="hdGezinBtn" onclick="gezin(-1)" disabled title="Geri" aria-label="Geri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><button type="button" id="hdIleri" class="hdGezinBtn" onclick="gezin(1)" disabled title="İleri" aria-label="İleri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button></div>
   <div class="spacer"></div>
   <button type="button" class="me" id="meBox" onclick="profilAc()" aria-label="Profil"></button>
   <button type="button" class="hbtn tgl hdZil" id="hdZil" onclick="zilAc(event)" title="Bildirimler" aria-label="Bildirimler" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg><span class="zilSay" style="display:none"></span></button>
@@ -2125,7 +2131,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.14';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.9.15';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6456,6 +6462,8 @@ function prsCsv(){ csv(['Sicil','Ad Soyad','Meslek kodu','Meslek','Görev','Yaka
   PRS.filter(prsGorebilir).map(p=>[p.sicil,p.ad,p.meslek,p.meslekAd||(meslekOf(p.meslek)||{}).ad||'',p.gorev,prsYaka(p),p.cinsiyet||'',lokAd(p.lok),p.sirket,p.iseGiris||'',p.durum==='ayrildi'?'Ayrıldı':'Aktif',prsEksik(p).length]),'personel.csv'); }
 function prsAc(id){ const p=PRS.find(x=>x.id===id); if(!p) return; if(!can('personel')){ toast('Personel bölümü için yetkiniz yok.'); return; }
   PRS_CUR=JSON.parse(JSON.stringify(p)); PRS_TC_GOSTER=false; PRS_ACILAN=p.id;
+  if(prsAktifGorunum()!=='personel'){ GEZ.kendi=true; try{ go('personel'); }finally{ GEZ.kendi=false; } }
+  gezKart('prs',p.id);
   if(((document.querySelector('.view.on')||{}).id||'')!=='v-personel') go('personel'); else prsRender(); window.scrollTo(0,0); }
 function prsListe(){ if(PRS_CUR && prsDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; PRS_CUR=null; prsRender(); }
 const prsDegisti = () => { const o=PRS_CUR&&PRS.find(x=>x.id===PRS_CUR.id); return PRS_CUR ? (!o || JSON.stringify(o)!==JSON.stringify(PRS_CUR)) : false; };
@@ -6707,7 +6715,7 @@ function makCsv(){ csv(['Envanter no','SAP no','Grup','Tür','Marka','Model','Se
   MAK.filter(makGorebilir).map(m=>{ const s=makSonKontrol(m), t=makTurOf(m.tur); return [m.envNo,m.sapNo||'',t.grup,t.ad,m.marka,m.model,m.seriNo,m.plaka,m.yil,m.kapasite,lokAd(m.lok),m.sahiplik,m.durum,s?s.tarih:'',s?s.sonraki:'',makKontrolEtiket(m),makEksik(m).map(x=>x.ad).join(', ')]; }),'makine_ekipman.csv'); }
 function makYeni(){ if(!can('makine')) return; go('makYeni'); }
 function makAc(id){ const m=MAK.find(x=>x.id===id); if(!m) return; if(!can('makine')){ toast('Makine bölümü için yetkiniz yok.'); return; }
-  MAK_CUR=JSON.parse(JSON.stringify(m)); if(makAktifGorunum()!=='makine') go('makine'); else makRender(); window.scrollTo(0,0); }
+  MAK_CUR=JSON.parse(JSON.stringify(m)); if(makAktifGorunum()!=='makine'){ GEZ.kendi=true; try{ go('makine'); }finally{ GEZ.kendi=false; } } else makRender(); gezKart('mak',m.id); window.scrollTo(0,0); }
 const makDegisti = () => { const o=MAK_CUR&&MAK.find(x=>x.id===MAK_CUR.id); return MAK_CUR ? (!o || JSON.stringify(o)!==JSON.stringify(MAK_CUR)) : false; };
 function makListe(){ if(MAK_CUR && makDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; MAK_CUR=null; makRender(); }
 function makSet(f,v,ciz){ if(!MAK_CUR) return; MAK_CUR[f]=v; if(ciz) makRender(); }
@@ -7129,7 +7137,7 @@ function egtAra(){ EGT_SUZ={no:$('egtNoA').value, tur:$('egtTurA').value, kat:$(
 function egtCsv(){ csv(['Eğitim no','Tarih','Saat','Eğitim türü','Eğitim adı','Kategori','Lokasyon','Yer','Eğitmen','Veren','Kurum','Süre (saat)','Katılımcı','Katılan','Adam·saat','Durum'],
   EGT.filter(egtGorebilir).map(s=>{ const t=egtTurOf(s.turKod), K=s.katilimci||[]; return [s.no,s.tarih,s.saat,t.ad,s.ad,t.kategori,lokAd(s.lok),s.yer,s.egitmen,s.veren,s.kurum,s.sure,K.length,K.filter(k=>k.katildi!==false).length,egtAdamSaat(s),EGT_DURUM[s.durum]]; }),'egitimler.csv'); }
 function egtAc(id){ const s=EGT.find(x=>x.id===id); if(!s) return; if(!can('egitim')){ toast('Eğitim bölümü için yetkiniz yok.'); return; }
-  EGT_CUR=JSON.parse(JSON.stringify(s)); if(egtAktifGorunum()!=='egitim') go('egitim'); else egtRender(); window.scrollTo(0,0); }
+  EGT_CUR=JSON.parse(JSON.stringify(s)); if(egtAktifGorunum()!=='egitim'){ GEZ.kendi=true; try{ go('egitim'); }finally{ GEZ.kendi=false; } } else egtRender(); gezKart('egt',s.id); window.scrollTo(0,0); }
 const egtDegisti = () => { const o=EGT_CUR&&EGT.find(x=>x.id===EGT_CUR.id); return EGT_CUR ? (!o || JSON.stringify(o)!==JSON.stringify(EGT_CUR)) : false; };
 function egtListe(){ if(EGT_CUR && egtDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; EGT_CUR=null; egtRender(); }
 function egtSet(f,v,ciz){ if(!EGT_CUR) return; EGT_CUR[f]=v;
@@ -9609,7 +9617,7 @@ function go(v, fromPop){
   }
   /* Tarayıcı ileri/geri: her görünüm geçişi history'ye yazılır (popstate'te tekrar yazma) */
   if(!fromPop && !(history.state && history.state.v===v)){
-    try{ history.pushState({v}, '', '#'+v); }catch(e){}
+    gezYaz({v});
   }
   navAktif(v);
   document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
@@ -9657,6 +9665,17 @@ document.querySelectorAll('#nav [data-v]').forEach(b=>b.onclick=()=>{
   if(b.dataset.v==='form') yeniBildirim(); else go(b.dataset.v);
   if(grp){ grp.classList.add('kapat'); b.blur(); }
 });
+/* ── İLERİ / GERİ (10.11.2026, kullanıcı: "tam ekran yapalım HSE portal gibi, ileri geri tuşları da yerleştir"):
+   uygulama penceresinde (Edge --app) tarayıcı düğmesi yok. Her görünüm geçişi ve kart açılışı (personel, makine, eğitim)
+   tarayıcı geçmişine sıra numarasıyla yazılır; üstteki ‹ › ve Alt+← / Alt+→ bunlar arasında gezer. Geri ile listeye
+   dönülür, ileri ile kart yeniden açılır. */
+const GEZ={i:0, max:0, kendi:false};
+function gezGuncelle(){ const g=$('hdGeri'), f=$('hdIleri'); if(g) g.disabled=GEZ.i<=0; if(f) f.disabled=GEZ.i>=GEZ.max; }
+function gezYaz(st){ if(GEZ.kendi) return; GEZ.i++; GEZ.max=GEZ.i; try{ history.pushState(Object.assign({},st,{i:GEZ.i}), '', '#'+st.v); }catch(e){} gezGuncelle(); }
+function gezKart(mod,id){ gezYaz({v:mod==='prs'?'personel':mod==='mak'?'makine':mod==='egt'?'egitim':mod, kart:[mod,id]}); }
+function gezin(n){ if(n<0&&GEZ.i>0) history.back(); else if(n>0&&GEZ.i<GEZ.max) history.forward(); }
+try{ history.replaceState(Object.assign({},history.state||{},{i:0}), ''); }catch(e){}
+window.addEventListener('keydown',e=>{ if(e.altKey&&!e.ctrlKey&&!e.shiftKey&&(e.key==='ArrowLeft'||e.key==='ArrowRight')&&SES){ e.preventDefault(); gezin(e.key==='ArrowLeft'?-1:1); } });
 /* Tarayıcı ileri/geri tuşları → görünüm geçişi (uygulamadan çıkmadan) */
 window.addEventListener('popstate', e=>{
   if(typeof SES==='undefined' || !SES) return;   // giriş yapılmadıysa dokunma
@@ -9666,7 +9685,12 @@ window.addEventListener('popstate', e=>{
   /* Telefon widget katmanları: önce liste, sonra düzenleme modu kapanır (sayfa değişmez) */
   if(document.body.classList.contains('wListeAcik')){ wListeKapat(); return; }
   if(document.body.classList.contains('wDuzen')){ wDuzenKapat(); return; }
+  if(e.state && typeof e.state.i==='number'){ GEZ.i=e.state.i; if(GEZ.i>GEZ.max) GEZ.max=GEZ.i; } gezGuncelle();
   const v=(e.state&&e.state.v) || (location.hash||'').replace(/^#/,'') || 'analiz';
+  const k=e.state&&e.state.kart;
+  /* kartsız adıma dönülünce o bölümün listesi açılır; kartlı adımda kart yeniden kurulur */
+  if(!k){ if(v==='personel') PRS_CUR=null; if(v==='makine') MAK_CUR=null; if(v==='egitim') EGT_CUR=null; }
+  if(k){ GEZ.kendi=true; try{ ({prs:prsAc, mak:makAc, egt:egtAc})[k[0]](k[1]); }catch(err){} finally{ GEZ.kendi=false; } return; }
   if(document.getElementById('v-'+v)) go(v, true);
 });
 /* Menüden fare çıkınca "kapat" durumunu sıfırla → tekrar hover'da açılabilsin */
@@ -12562,7 +12586,8 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     bgTazele(); return r; }; }
 
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.14':['Ayarlar › Genel › Demo Veri Yükle: tek tıkla tüm modüllere örnek kayıt (olaylar ve aksiyonlar, denetimler, personel, makine-ekipman, eğitimler)'],
+const SURUM_NOTU={'1.9.15':['Üst çubukta ileri / geri düğmeleri (Alt+← / Alt+→): ekranlar ve açılan kartlar arasında gezinme'],
+  '1.9.14':['Ayarlar › Genel › Demo Veri Yükle: tek tıkla tüm modüllere örnek kayıt (olaylar ve aksiyonlar, denetimler, personel, makine-ekipman, eğitimler)'],
   '1.9.13':['Deneme sitesinde parolasız giriş: şirket e-posta adresinizle (@sif.com.tr) doğrudan girersiniz; veriler yalnız kendi cihazınızda tutulur'],
   '1.9.12':['Yeni Ana Sayfa: İSG, Personel, Makine-Ekipman ve Eğitim Yönetimi bölümleri; giriş yetkiye bağlı; yaklaşanlar ajandası ve özet kutuları',
   'Personel Yönetimi: pano (birbirine bağlı grafikler), personel listesi, kişi kartı (vesikalık, belge grupları, son kullanma); meslek SGK kodu SAP dökümünden',
