@@ -2332,7 +2332,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.14.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.14.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -7667,7 +7667,15 @@ const QR_TABAN = 'https://trioms.github.io/SIF-ISG/hizli_olay_bildirimi.html';
 /* 11.11.2026: kodda kimliğin yanında envanter no da var (mak:<kimlik>:<envanter no>) — kayıtlar cihazda olduğu için başka
    cihazda kimlik bulunamazsa makine envanter numarasıyla bulunur (aynı envanter no ile girilmiş makine). Eski etiketler (yalnız
    kimlik) aynen çalışır. */
-const makQrAdres = m => QR_TABAN + '#git=mak:' + encodeURIComponent(m.id) + (m.envNo ? ':' + encodeURIComponent(m.envNo) : '');
+/* 11.11.2026 (kullanıcı: "Android'de okudu, bu makine bu cihazda kayıtlı değil dedi; aynı makine hem portalda hem app'te olmalı"
+   → seçim: "QR'dan makine kur"): kodun 3. parçası makinenin TANITIM bilgisi (tür, marka, model, seri, yıl, kapasite, plaka,
+   lokasyon, sahiplik; base64url JSON). Kişi verisi yok. Cihazda makine yoksa etiketteki bilgilerle AYNI kimlikle kurulur
+   (soru sorulur); geçmiş (kontrol, bakım, belge) gelmez — o, veri havuzu telefondan erişilebilir olunca (Azure). */
+const QR_TANIT = ['tur','marka','model','seriNo','yil','kapasite','plaka','lok','sahiplik','sapNo'];
+function qrB64(s){ const b=new TextEncoder().encode(s); let x=''; b.forEach(c=>x+=String.fromCharCode(c)); return btoa(x).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function qrB64Coz(s){ try{ const x=atob(String(s).replace(/-/g,'+').replace(/_/g,'/')); return new TextDecoder().decode(Uint8Array.from(x,c=>c.charCodeAt(0))); }catch(e){ return ''; } }
+const makQrAdres = m => { const t={}; QR_TANIT.forEach(k=>{ if(m[k]) t[k]=String(m[k]).slice(0,80); });
+  return QR_TABAN + '#git=mak:' + encodeURIComponent(m.id) + ':' + encodeURIComponent(m.envNo||'') + ':' + qrB64(JSON.stringify(t)); };
 function makQrBul(s){
   const p=String(s||'').split(':'), id=decodeURIComponent(p[0]||''), env=p[1]?decodeURIComponent(p[1]):'';
   return MAK.find(x=>x.id===id) || (env ? MAK.find(x=>esitTR(x.envNo,env)) : null) || null;
@@ -7724,12 +7732,27 @@ async function makQrYazdir(){
 }
 /* QR okutulunca (derin bağlantı): yetkili → tam kart; servis → servis sayfası */
 function makQrAc(id){
-  const m=MAK.find(x=>x.id===id) || makQrBul(id); if(m) id=m.id;
-  if(!m){ toast('Bu makine bu cihazda kayıtlı değil.'); return; }
+  const ham=id, m=MAK.find(x=>x.id===id) || makQrBul(id); if(m) id=m.id;
+  if(!m){ makQrKur(ham); return; }
   if(!lokGorebilir(m.lok)){ toast('Bu makinenin lokasyonu için yetkiniz yok.'); return; }
   if(can('makine')) return makAc(id);
   if(servisMi()) return servisAc(id);
   toast('Makine bölümü için yetkiniz yok.');
+}
+/* cihazda olmayan makine: etiketteki tanıtım bilgisiyle aynı kimlikle kurulur (yetki + lokasyon denetimiyle) */
+function makQrKur(ham){
+  const p=String(ham||'').split(':'), id=decodeURIComponent(p[0]||''), env=p[1]?decodeURIComponent(p[1]):'';
+  let t={}; try{ t=p[2]?JSON.parse(qrB64Coz(p[2])||'{}'):{}; }catch(e){ t={}; }
+  if(!id || !p[2] || !t.tur){ toast('Bu makine bu cihazda kayıtlı değil.'); return; }
+  if(!(can('makine') || servisMi())){ toast('Makine bölümü için yetkiniz yok.'); return; }
+  if(t.lok && !lokGorebilir(t.lok)){ toast('Bu makinenin lokasyonu için yetkiniz yok.'); return; }
+  const ad=[env, makTurOf(t.tur).ad, [t.marka,t.model].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+  if(!confirm('Bu makine bu cihazda kayıtlı değil.\n'+ad+'\n\nEtiketteki bilgilerle eklensin mi?')) return;
+  const yeni=Object.assign(makBos(), {id, envNo:env}); QR_TANIT.forEach(k=>{ if(t[k]!=null && t[k]!=='') yeni[k]=String(t[k]).slice(0,80); });
+  if(!t.lok || !lokGorebilir(yeni.lok)) yeni.lok=kapsamLoklari()[0]||yeni.lok;
+  yeni.qr={tarih:new Date().toISOString(), uretan:'etiket'}; yeni.kaynak='qr-etiket'; yeni.eklenme=new Date().toISOString(); yeni.ekleyen=SES?SES.ad:'';
+  MAK.push(yeni); saveMak(); toast('Makine etiketten eklendi');
+  if(can('makine')) makAc(id); else servisAc(id);
 }
 /* SERVİS SAYFASI: makine tanıtım bilgisi, yeni bakım kaydı, kendi girdiği bakım kayıtları, servis kataloğu — başka geçmiş yok */
 function servisAc(id){
@@ -7772,7 +7795,7 @@ function qrBulundu(s){
   const m=qrMetinCoz(s);
   if(!m){ toast('Bu kod bir makineye ait değil.'); return false; }
   qrDurdur(); closeOv('ovGrafik');
-  if(m.yok){ toast('Bu makine bu cihazda kayıtlı değil.'); return true; }
+  if(m.yok){ makQrAc(m.yok); return true; }
   makQrAc(m.id); return true;
 }
 async function qrOku(){
@@ -14957,7 +14980,7 @@ async function pencereKucult(){
   const mo=new MutationObserver(gor); document.querySelectorAll('.view').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
