@@ -853,6 +853,15 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 .hp-sag{display:flex;flex-direction:column;gap:16px;min-width:0}
 .hp-sag > :last-child{flex:1 1 auto}
 /* ASİSTAN (11.11.2026) — sağdan açılan sohbet penceresi; SİF siyah / sarı, gri zemin */
+/* AI DÜĞMESİ MENÜSÜ (11.11.2026): sağ alttaki AI düğmesinin üzerine gelince açılır — Analiz et + Asistan */
+.aiMenu{position:fixed;z-index:950;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 38px rgba(0,0,0,.22);overflow:hidden;animation:aiMenuAc .14s ease-out}
+.aiMenu[hidden]{display:none}
+@keyframes aiMenuAc{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.aiMenuBas{background:#141414;color:var(--jcb);font-weight:800;font-size:12.5px;letter-spacing:.4px;padding:9px 14px;border-bottom:3px solid var(--jcb)}
+.aiMenu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:11px 14px;font:inherit;font-size:13.5px;font-weight:600;color:var(--text);cursor:pointer;text-align:left}
+.aiMenu button + button{border-top:1px solid var(--border)}
+.aiMenu button:hover{background:var(--surface2)}.aiMenu button svg{width:18px;height:18px;flex:none}
+body.asAcik .aiFab{display:none!important}
 .hdDil{font-weight:800;font-size:12px;letter-spacing:.3px;min-width:34px}
 .asPanel{position:fixed;top:62px;right:12px;bottom:12px;width:min(420px,calc(100vw - 24px));z-index:900;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.22);overflow:hidden}
 .asPanel[hidden]{display:none}
@@ -1398,11 +1407,10 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
   <div class="hdGezin"><button type="button" id="hdGeri" class="hdGezinBtn" onclick="gezin(-1)" disabled title="Geri" aria-label="Geri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><button type="button" id="hdIleri" class="hdGezinBtn" onclick="gezin(1)" disabled title="İleri" aria-label="İleri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button></div>
   <div class="spacer"></div>
   <button type="button" class="me" id="meBox" onclick="profilAc()" aria-label="Profil"></button>
-  <button type="button" class="hbtn tgl" id="hdAsistan" onclick="asAc()" title="Asistan" aria-label="Asistan"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg></button>
-  <button type="button" class="hbtn tgl hdDil" id="hdDil" onclick="dilDegis()" title="Dil">TR</button>
   <button type="button" class="hbtn tgl hdZil" id="hdZil" onclick="zilAc(event)" title="Bildirimler" aria-label="Bildirimler" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg><span class="zilSay" style="display:none"></span></button>
   <div class="hdAiMod" id="hdAiMod" role="group" aria-label="AI analiz modu"></div>
   <button class="hbtn tgl" id="themeBtn" onclick="temaDegis()" title="Gece / Gündüz modu"></button>
+  <button type="button" class="hbtn tgl hdDil" id="hdDil" onclick="dilDegis()" title="Dil">TR</button>
   <button class="hbtn tgl" id="hdAyarBtn" onclick="go('set')" title="Ayarlar" aria-label="Ayarlar" style="display:none"></button>
   <button class="hbtn tgl" onclick="cikis()" title="Çıkış" aria-label="Çıkış"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   <input type="file" id="imp" accept=".json" style="display:none" onchange="restore(this)">
@@ -2264,7 +2272,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.10.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.10.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -14148,8 +14156,33 @@ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{}; }catch
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !$('asPanel').hidden && !document.querySelector('.ov.on')) asKapat(); });
 
 try{ dilUygula(); }catch(e){}
+/* AI DÜĞMESİ MENÜSÜ (11.11.2026, kullanıcı: "yukarıdaki asistan butonunu alt köşedeki AI butonu içine alalım; üzerine gelince analiz et ve
+   asistan seçenekleri oluşsun"): üst çubuktaki asistan düğmesi kaldırıldı. Sağ alttaki AI düğmesinin üzerine gelince menü: "Analiz et"
+   (o ekranın AI düğmesinin kendi işi) ve "Asistan". Düğmeye doğrudan tıklamak eskisi gibi analiz eder. Telefonda ilk dokunuş menüyü açar.
+   Kendi AI düğmesi olmayan ekranlarda (ana sayfa, listeler, formlar) aynı yerde genel AI düğmesi durur: yalnız Asistan. */
+(function(){
+  const m=document.createElement('div'); m.id='aiMenu'; m.className='aiMenu'; m.hidden=true; m.setAttribute('data-dil-yok',''); document.body.appendChild(m);
+  const g=document.createElement('button'); g.type='button'; g.className='aiFab aiGenel'; g.id='aiGenelFab'; g.textContent='AI'; g.style.display='none';
+  g.setAttribute('aria-label','AI'); g.onclick=()=>asAc(); document.body.appendChild(g);
+  const IKA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
+  const IKS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>';
+  let hedef=null, z=null;
+  const ac=f=>{ clearTimeout(z); hedef=f; const anl=f.id!=='aiGenelFab';
+    m.innerHTML=`<div class="aiMenuBas">SİF AI</div>${anl?`<button type="button" data-k="analiz">${IKA}<span>${esc(Ld('Analiz et','Analyse'))}</span></button>`:''}<button type="button" data-k="asistan">${IKS}<span>${esc(Ld('Asistan','Assistant'))}</span></button>`;
+    const r=f.getBoundingClientRect(); m.style.right=Math.max(8,innerWidth-r.right)+'px'; m.style.bottom=(innerHeight-r.top+10)+'px'; m.hidden=false; };
+  const kapat=()=>{ clearTimeout(z); z=setTimeout(()=>{ m.hidden=true; },250); };
+  const icinde=x=>x && x.closest && x.closest('.aiFab,#aiMenu');
+  document.addEventListener('mouseover',e=>{ const f=e.target.closest && e.target.closest('.aiFab'); if(f){ if(m.hidden||hedef!==f) ac(f); else clearTimeout(z); } else if(icinde(e.target)) clearTimeout(z); });
+  document.addEventListener('mouseout',e=>{ if(icinde(e.target) && !icinde(e.relatedTarget)) kapat(); });
+  m.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; m.hidden=true; if(b.dataset.k==='asistan') asAc(); else if(hedef) hedef.click(); });
+  document.addEventListener('touchstart',e=>{ const f=e.target.closest && e.target.closest('.aiFab'); if(f && m.hidden){ e.preventDefault(); ac(f); } else if(!icinde(e.target)) m.hidden=true; },{passive:false});
+  document.addEventListener('click',e=>{ if(!icinde(e.target)) m.hidden=true; });
+  const gor=()=>{ const v=document.querySelector('.view.on'); g.style.display=(SES && v && !v.querySelector('.aiFab')) ? '' : 'none'; if(!m.hidden && hedef && !hedef.offsetParent) m.hidden=true; };
+  const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
+})();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.10.0':['Asistan: portaldaki kayıtlarınız hakkında yazarak ya da konuşarak sorun; 👍 / 👎 ile öğrenir (üst çubuk ve ana sayfa)',
+const SURUM_NOTU={'1.10.1':['Asistan sağ alttaki AI düğmesinde: üzerine gelince Analiz et ve Asistan','Dil düğmesi (TR / EN) Ayarlar düğmesinin solunda'],
+  '1.10.0':['Asistan: portaldaki kayıtlarınız hakkında yazarak ya da konuşarak sorun; 👍 / 👎 ile öğrenir (üst çubuk ve ana sayfa)',
   'Dil seçimi TR / EN: menü, ana sayfa ve ekranlar İngilizce; asistan seçili dilde dinler ve konuşur',
   'Ayarlar › Genel: asistanın öğrendikleri'],
   '1.9.23':['Ana sayfa: İSG Yönetimi simgesi baret (yeni çizim)'],
