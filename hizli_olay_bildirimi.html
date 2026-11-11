@@ -2272,7 +2272,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.10.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.10.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -13825,6 +13825,8 @@ function cevIste(n, asil, t){
   if(!CEV_KUYRUK.has(t)) CEV_KUYRUK.set(t, []); CEV_KUYRUK.get(t).push([n, asil]);
   if(!CEV_CALISIYOR) cevCalis();
 }
+const cevKisiVar = t => { const k=t.toLocaleLowerCase('tr');
+  return [...(typeof PRS!=='undefined'?PRS:[]), ...(typeof USR!=='undefined'?USR:[]), ...(typeof PERS!=='undefined'?PERS:[])].some(p=>p&&p.ad&&String(p.ad).length>=4&&k.includes(String(p.ad).toLocaleLowerCase('tr'))); };
 async function cevCalis(){
   CEV_CALISIYOR=true;
   try{
@@ -13833,7 +13835,7 @@ async function cevCalis(){
       const [t, L]=CEV_KUYRUK.entries().next().value; CEV_KUYRUK.delete(t);
       let e=''; try{ e=String(await window.qhseCevir(t,'en','tr')||'').trim(); }catch(er){ CEV_VAR=false; CEV_KUYRUK.clear(); break; }
       if(!e) continue;
-      if(t.length<=80) CEV_BEL[t]=e; else CEV_UZUN[t]=e;
+      if(t.length<=80 && !cevKisiVar(t)) CEV_BEL[t]=e; else CEV_UZUN[t]=e;   /* G31: kişi adı geçen metin tarayıcıya yazılmaz */
       L.forEach(([n,asil])=>cevUygula(n, asil, t, e));
       clearTimeout(CEV_YAZ_Z); CEV_YAZ_Z=setTimeout(()=>{ const k=Object.keys(CEV_BEL); if(k.length>3000) k.slice(0,k.length-3000).forEach(x=>delete CEV_BEL[x]);
         try{ localStorage.setItem(K_CEVBEL, JSON.stringify(CEV_BEL)); }catch(er){} }, 1500);
@@ -14071,7 +14073,26 @@ function asCevapHtml(id, soru, c){
     ${bos?asOgretHtml(id):''}</div>`;
 }
 const asCumle = (m,K) => { const C=String(m||'').split(/(?<=[.!?])\s+/); return (C.find(c=>K.some(k=>asIcerir(c,k)))||C[0]||'').slice(0,180); };
-function asGit(git){ if(!git) return; if(window.innerWidth<900) asKapat(); try{ (new Function(git))(); }catch(e){} }
+/* GÜVENLİK (11.11.2026, G26): "ekrana git" bağlantısı KOD OLARAK ÇALIŞTIRILMAZ. Öğrenilen cevaplar ortak depoda (veri havuzunda herkes
+   yazabilir) — eskiden new Function ile çalışıyordu: biri öğrenilenlere kod yazsa başka kullanıcının tarayıcısında çalışırdı. Artık bağlantı
+   "işlev(argüman…)" olarak çözülür; yalnız izinli işlevler (ekran / kayıt açma), argümanlar yalnız kimlik karakterleri. */
+const AS_GIT_IZIN = ['go','regAc','prsAc','makAc','egtAc','denAc','anaKutuAc','openAct','dilDegis','sgkListeAc'];
+function asGitCoz(git){
+  const s=String(git||'').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&').trim();
+  const m=s.match(/^([A-Za-z]{2,20})\((.*)\)$/); if(!m || !AS_GIT_IZIN.includes(m[1])) return null;
+  const A=[], ic=m[2].trim(), re=/\s*(?:"([\w:.\-]{0,120})"|'([\w:.\-]{0,120})'|(true|false))\s*(,|$)/y;
+  while(re.lastIndex<ic.length){ const x=re.exec(ic); if(!x) return null; A.push(x[3]!=null ? x[3]==='true' : (x[1]!=null ? x[1] : x[2])); if(!x[4]) break; }
+  if(A.length>3) return null;
+  return {f:m[1], A};
+}
+function asGit(git){
+  const c=asGitCoz(git); if(!c) return;
+  if(window.innerWidth<900) asKapat();
+  try{ switch(c.f){
+    case 'go': return go(...c.A); case 'regAc': return regAc(...c.A); case 'prsAc': return prsAc(...c.A); case 'makAc': return makAc(...c.A);
+    case 'egtAc': return egtAc(...c.A); case 'denAc': return denAc(...c.A); case 'anaKutuAc': return anaKutuAc(...c.A); case 'openAct': return openAct(...c.A);
+    case 'dilDegis': return dilDegis(); case 'sgkListeAc': return sgkListeAc(); } }catch(e){}
+}
 /* ── öğrenme ── */
 function asOgrKaydet(soru, K, hedef){
   const D=asOgrDepo(), ac=hedef.tip+'|'+(hedef.soru||hedef.git||hedef.metin||'');
@@ -14181,7 +14202,8 @@ try{ dilUygula(); }catch(e){}
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.10.1':['Asistan sağ alttaki AI düğmesinde: üzerine gelince Analiz et ve Asistan','Dil düğmesi (TR / EN) Ayarlar düğmesinin solunda'],
+const SURUM_NOTU={'1.10.2':['Asistan: cevaptaki listeden kayda tıklayınca kayıt açılır','Güvenlik iyileştirmeleri (asistan bağlantıları, çeviri belleği)'],
+  '1.10.1':['Asistan sağ alttaki AI düğmesinde: üzerine gelince Analiz et ve Asistan','Dil düğmesi (TR / EN) Ayarlar düğmesinin solunda'],
   '1.10.0':['Asistan: portaldaki kayıtlarınız hakkında yazarak ya da konuşarak sorun; 👍 / 👎 ile öğrenir (üst çubuk ve ana sayfa)',
   'Dil seçimi TR / EN: menü, ana sayfa ve ekranlar İngilizce; asistan seçili dilde dinler ve konuşur',
   'Ayarlar › Genel: asistanın öğrendikleri'],
