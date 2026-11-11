@@ -686,6 +686,11 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 .prsPopS:hover{background:var(--surface2)}
 .prsCeviri{margin-top:8px;background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.5;max-height:220px;overflow:auto}
 .prsCeviri b{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}.prsPopS.vurgu{background:var(--surface2);box-shadow:inset 3px 0 0 var(--jcb)}.prsSayPil{cursor:pointer}.prsPopS.kilit{cursor:default}
+.kfKontrol{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px}
+.kfKs{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:10px;padding:6px 10px}.kfKs span{flex:1;font-size:12.5px}.kfKs select{flex:none;width:130px!important;min-width:0;font-size:12.5px;padding:4px 6px}
+.prsPopB.ekli{display:flex;align-items:flex-start;gap:8px}.prsPopB.ekli > span{flex:1;min-width:0}
+.prsPopEkle{flex:none;width:28px;height:28px;border-radius:50%;border:0;background:var(--jcb);color:#141414;font-size:18px;font-weight:800;line-height:1;cursor:pointer;display:grid;place-items:center}
+.prsPopEkle:hover{background:var(--jcb-600)}
 .prsPopIco{width:34px;height:34px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;flex:none;color:var(--text2);font-weight:700}
 .prsPopM{flex:1;min-width:0}.prsPopM b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prsPopM small{display:block;font-size:11.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2274,7 +2279,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.10.4';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.11.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6480,7 +6485,7 @@ function assistAraDizin(){
   g(1,'Toplam olay: '+V.length+' (yetkili lokasyonlar)'); g(2,'İnceleme bekleyen olay: '+V.filter(r=>r.durum==='bildirildi').length);
   g(3,'Açık aksiyon: '+A.filter(a=>!a.kapanis).length+', geciken aksiyon: '+A.filter(a=>!a.kapanis&&aksTerminDurum(a).gecikti).length);
   g(4,'SGK bildirimi bekleyen olay: '+V.filter(r=>sgkAcik(sgkDurum(r))).length); g(5,'Ciddi olay: '+V.filter(r=>ciddiAnaliz(r.sonuc)).length);
-  if(can('makine')) g(6,'Periyodik kontrolü geçmiş makine: '+makUyarilar().filter(u=>u.k==='doldu').length+', 30 gün içinde dolacak: '+makUyarilar().filter(u=>u.k==='yakin').length,'makine');
+  if(can('makine')) g(6,'Periyodik kontrolü geçmiş makine: '+makUyarilar().filter(u=>u.k==='doldu'&&u.tip!=='bakim').length+', 30 gün içinde dolacak: '+makUyarilar().filter(u=>u.k==='yakin'&&u.tip!=='bakim').length,'makine');
   if(can('personel')) g(7,'Süresi dolan personel belgesi: '+prsUyarilar().filter(u=>u.k==='doldu').length+', 30 gün içinde: '+prsUyarilar().filter(u=>u.k==='yakin').length,'personel');
   return R.filter(x=>x.no);
 }
@@ -6549,6 +6554,8 @@ function prsUyarilar(){
     (p.belgeler||[]).forEach(b=>ekle(b.tur||b.ad||'Belge',b.bitis,b.id));
     (p.egitimler||[]).forEach(e=>ekle('Eğitim: '+(e.ad||''),e.bitis,e.id));
     if(can('saglik')){ const m=prsSonMuayene(p); if(m) ekle('Periyodik sağlık muayenesi',m.sonraki,'muayene'); }
+    (p.gorevlendirmeler||[]).forEach(g=>{ if(g.gecerlilik) ekle('Yetki: '+(g.tur||''),g.gecerlilik,g.id); });
+    (p.kkdZimmet||[]).forEach(z=>{ if(z.iade) ekle('KKD yenileme: '+(z.kkd||''),z.iade,z.id); });
   });
   return out;
 }
@@ -6712,6 +6719,7 @@ function prsGrupVeri(p){
       ...egt.map(x=>{ const d=x.bitis?gecDurum(x.bitis):null; return {ad:x.ad+(x.sure?' · '+x.sure+' sa':''), dosya:x.dosya, d:x.dosya?d:null, alt:x.dosya?son(x.bitis,d):'belge eklenmedi', tik:`prsYukle('egitim',${jsA(x.ad)},0,${jsA(x.id)})`}; })], ekle:`prsYukle('egitim','',0)`},
     ozluk:{ad:'Özlük dosyası', alt:'İK özlük belgeleri', ico:PRS_BELGE_SVG, L:OZLUK_LISTE.map(ad=>{ const o=(p.ozluk||{})[ad]; return {ad, dosya:o&&o.dosya, alt:o&&o.dosya?trDate(o.tarih)+' yüklendi':'yüklenmedi', tik:`prsOzlukSec(${jsA(ad)})`}; })}
   };
+  G.kkd=kayitGrup('kkd',p); G.gorev=kayitGrup('gorev',p);
   if(can('saglik')){ const sm=prsSonMuayene(p); G.saglik={ad:'Sağlık muayenesi', alt:p.tehlike+' işyeri: '+(MUAYENE_AY[p.tehlike]/12)+' yılda bir', ico:PRS_SAGLIK_SVG,
     L:[{ad:'Periyodik muayene', dosya:sm&&sm.dosya, d:sm&&sm.dosya?gecDurum(sm.sonraki):null, alt:sm?('son '+trDate(sm.tarih)+' · sonraki '+trDate(sm.sonraki)):'yüklenmedi', tik:`prsYukle('saglik','Periyodik muayene',${MUAYENE_AY[p.tehlike]||12})`}]}; }
   return G;
@@ -6720,17 +6728,27 @@ const prsBelgeTamam = o => o.dosya && !(o.d && o.d.k==='doldu');
 function prsGruplarHtml(p,yaz){
   const G=prsGrupVeri(p);
   return Object.entries(G).map(([k,g])=>`<div class="prsGrup" data-k="${k}" onclick="prsGrupPop('${k}',this,event)"><span class="prsBkIco">${g.ico}</span>
-      <div class="prsBkMetin"><b>${g.ad}</b><small>${g.L.filter(prsBelgeTamam).length} / ${g.L.length} belge</small></div><span class="prsGrupOk">▾</span></div>`).join('')
+      <div class="prsBkMetin"><b>${g.ad}</b><small>${g.sayac||(g.L.filter(prsBelgeTamam).length+' / '+g.L.length+' belge')}</small></div><span class="prsGrupOk">▾</span></div>`).join('')
     +`<input type="file" id="prsOzlukGir" style="display:none" onchange="prsOzlukYukle(this.dataset.ad,this)">`;
 }
+/* BELGE LİSTESİ (11.11.2026, kullanıcı: "boşluğa tıklanınca da kapansın; yeşil tiklilerin yanına güncelle svgsi koy, tıklayınca dosya
+   seçelim"): dışarı tıklayınca kapanır. Tamam (✓) belgenin yanında güncelle simgesi: kart düzenleme kipine geçer (değişiklik
+   Düzenle kuralı), yükleme penceresi açılır ve dosya seçimi kendiliğinden başlar; seçilen dosya okunur, tarihler önerilir. */
+const KART_GNC_SVG='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg>';
+function kartGuncelleHazirla(k){ if(k==='mak'){ if(!MAK_DUZEN){ MAK_DUZEN=true; makRender(); } } else if(!PRS_DUZEN){ PRS_DUZEN=true; prsRender(); } }
+function kartDosyaSec(){ const i=$('pfDosya'); if(i) try{ i.click(); }catch(e){} }
+document.addEventListener('click', e=>{ const p=$('prsPop'); if(!p || p.contains(e.target) || (e.target.closest&&e.target.closest('.prsGrup'))) return;
+  p.remove(); document.querySelectorAll('.prsGrup.acik').forEach(x=>x.classList.remove('acik')); });
 function prsGrupPop(k,el,ev,kaynak){
   if(ev) ev.stopPropagation();
   const eski=$('prsPop'); if(eski){ const ayni=eski.dataset.k===k; eski.remove(); document.querySelectorAll('.prsGrup.acik').forEach(x=>x.classList.remove('acik')); if(ayni) return; }
   const mak=kaynak==='mak', egt=kaynak==='egt', g=(mak?makGrupVeri(MAK_CUR):egt?egtGrupVeri(EGT_CUR):prsGrupVeri(PRS_CUR))[k], yaz=can(mak?'makine':egt?'egitim':'personel')&&(egt||kartDuzenMi(mak?'mak':'prs')), VG=mak?MAK_VURGU:egt?[]:PRS_VURGU; if(!g) return;
   const m=document.createElement('div'); m.id='prsPop'; m.dataset.k=k;
-  m.innerHTML=`<div class="prsPopB">${esc(g.ad)}<small>${esc(g.alt)}</small></div>`+g.L.map(o=>`<div class="prsPopS${yaz?'':' kilit'}${VG.some(v=>v&&String(o.ad).startsWith(v))?' vurgu':''}" ${yaz?`onclick="document.getElementById('prsPop').remove();${o.tik}"`:''}>
+  const ekleIzin = g.ekle && (egt ? yaz : can(mak?'makine':'personel'));
+  m.innerHTML=`<div class="prsPopB${ekleIzin?' ekli':''}"><span>${esc(g.ad)}<small>${esc(g.alt)}</small></span>${ekleIzin?`<button type="button" class="prsPopEkle" title="${esc(g.ekleAd||'Yeni kayıt')}" aria-label="${esc(g.ekleAd||'Yeni kayıt')}" onclick="event.stopPropagation();document.getElementById('prsPop').remove();${egt?'':`kartGuncelleHazirla('${mak?'mak':'prs'}');`}${g.ekle}">+</button>`:''}</div>`+g.L.map(o=>`<div class="prsPopS${yaz?'':' kilit'}${VG.some(v=>v&&String(o.ad).startsWith(v))?' vurgu':''}" ${yaz?`onclick="document.getElementById('prsPop').remove();${o.tik}"`:''}>
       <span class="prsPopIco">${g.ico}</span><div class="prsPopM"><b>${esc(o.ad)}</b><small>${esc(o.alt)}</small></div>
       ${o.dosya?`<a class="prsPopGor" title="Belgeyi aç" onclick="event.stopPropagation();openFile(${jsA(o.dosya.id)})">${PRS_GOZ_SVG}</a>`:''}
+      ${!o.isaretYok&&prsBelgeTamam(o)&&o.tik&&!egt&&can(mak?'makine':'personel')?`<a class="prsPopGor prsPopGnc" title="Güncelle" onclick="event.stopPropagation();document.getElementById('prsPop').remove();kartGuncelleHazirla('${mak?'mak':'prs'}');${o.tik};kartDosyaSec()">${KART_GNC_SVG}</a>`:''}
       ${o.isaretYok?'':`<span class="prsPopIs ${prsBelgeTamam(o)?'ok':'yok'}">${prsBelgeTamam(o)?'✓':'✕'}</span>`}</div>`).join('')+(g.L.length?'':'<div class="prsPopS kilit"><div class="prsPopM"><small>Kayıt yok</small></div></div>')
     +(g.ekle&&yaz?`<div class="prsPopS" onclick="document.getElementById('prsPop').remove();${g.ekle}"><span class="prsPopIco">+</span><div class="prsPopM"><b>${g.ekleAd||'Eğitim ekle'}</b><small>${g.ekleAlt||'yeni eğitim kaydı'}</small></div></div>`:'');
   document.body.appendChild(m); el.classList.add('acik');
@@ -6997,6 +7015,7 @@ function makUyarilar(){
       if(g.k==='doldu'||g.k==='yakin') out.push({mid:m.id, id:'mak:'+m.id+':yuktest:'+son, kim, ne:'Kaldırma kapasitesiyle yük testi (azami 3 yıl)'+(yt?'':' — kayıt yok'), bitis:son, k:g.k, durum:g.ad, pil:g.pil, git});
     }
     (m.belgeler||[]).forEach(b=>{ const g=gecDurum(b.bitis); if(g.k==='doldu'||g.k==='yakin') out.push({mid:m.id, id:'mak:'+m.id+':'+b.id+':'+b.bitis, kim, ne:b.tur, bitis:b.bitis, k:g.k, durum:g.ad, pil:g.pil, git}); });
+    { const sb=makSonBakim(m); if(sb){ const g=gecDurum(sb.sonraki); if(g.k==='doldu'||g.k==='yakin') out.push({mid:m.id, tip:'bakim', id:'mak:'+m.id+':bakim:'+sb.sonraki, kim, ne:'Bakım — '+(sb.tur||'periyodik bakım'), bitis:sb.sonraki, k:g.k, durum:g.ad, pil:g.pil, git}); } }
   });
   return out;
 }
@@ -7065,7 +7084,8 @@ panoTanim('mak',{
     const per=kul.filter(m=>makPeriyot(m)), uy=per.filter(m=>['gecerli','yakin'].includes(makKontrolDurum(m).k)).length;
     const gec=kul.filter(m=>makKontrolDurum(m).k==='doldu').length, yak=kul.filter(m=>makKontrolDurum(m).k==='yakin').length;
     const tam=V.filter(m=>!makBelgeDurum(m).some(x=>x.d.k==='yok'||x.d.k==='doldu')).length;
-    const ids=new Set(V.map(m=>m.id)), U=makUyarilar().filter(u=>ids.has(u.mid)), bdol=U.filter(u=>u.k==='doldu'&&!/^Periyodik kontrol|yük testi/i.test(u.ne)).length;
+    const ids=new Set(V.map(m=>m.id)), U=makUyarilar().filter(u=>ids.has(u.mid)&&u.tip!=='bakim'), bdol=U.filter(u=>u.k==='doldu'&&!/^Periyodik kontrol|yük testi/i.test(u.ne)).length;
+    const bakG=kul.filter(m=>{ const s=makSonBakim(m); return s && gecDurum(s.sonraki).k==='doldu'; }), arz=V.filter(m=>makAcikAriza(m).length);
     const yt=kul.filter(m=>{ const y=makYukTest(m); return y&&y.d.k==='doldu'; }).length, yas=V.map(makYil).filter(x=>x!=null);
     const kd=k=>kul.filter(m=>makKontrolDurum(m).k===k), bEks=m=>makBelgeDurum(m).some(x=>x.d.k==='yok'||x.d.k==='doldu');
     const bdolL=V.filter(m=>U.some(u=>u.mid===m.id&&u.k==='doldu'&&!/^Periyodik kontrol|yük testi/i.test(u.ne)));
@@ -7075,6 +7095,8 @@ panoTanim('mak',{
       [yt,'Yük Testi Gecikmiş',yt?'color:var(--red)':'','kaldırma kapasitesiyle yük testi (azami 3 yıl)',kul.filter(m=>{ const y=makYukTest(m); return y&&y.d.k==='doldu'; })],
       [yuzde(tam,V.length),'Belge Uyumu',tam<V.length?'color:var(--red)':'',tam+' / '+V.length+' ekipmanda tam',V.filter(m=>!bEks(m))],[bdol,'Süresi Dolan Belge',bdol?'color:var(--red)':'','',bdolL],
       [V.filter(m=>m.durum==='Arızalı'||m.durum==='Bakımda').length,'Arızalı / Bakımda','','',V.filter(m=>m.durum==='Arızalı'||m.durum==='Bakımda')],
+      [bakG.length,'Bakımı Gecikmiş',bakG.length?'color:var(--red)':'','son bakım kaydındaki sonraki bakım tarihi geçmiş',bakG],
+      [arz.length,'Açık Arıza',arz.length?'color:var(--red)':'','giderilmemiş arıza bildirimi olan ekipman',arz],
       [yas.length?(yas.reduce((s,x)=>s+x,0)/yas.length).toFixed(1)+' yıl':'—','Ortalama Ekipman Yaşı']];
   }
 });
@@ -7195,11 +7217,16 @@ function makGrupVeri(m){
       L:[...bd.map(x=>{ const ds=x.son&&x.son.dosya, d=x.son?gecDurum(x.son.bitis):null;
         return {ad:x.g.ad, dosya:ds, d:ds?d:null, alt:ds?son(x.son.bitis,d):(x.son?'belge dosyası yok':'yüklenmedi'), tik:`makYukle('belge',${jsA(x.g.ad)},${x.g.ay||0})`}; }), ...ekstra],
       ekle:`makYukle('belge','',0)`, ekleAd:'Belge ekle', ekleAlt:'diğer belge / sertifika'},
-    bakim:{ad:'Bakım kayıtları', alt:'Bakım, onarım ve arıza kayıtları', ico:MAK_BAKIM_SVG, sayac:bak.length+' kayıt',
-      L:bak.map(b=>({ad:(b.is||'Bakım')+' · '+trDate(b.tarih), gecmis:1, dosya:b.dosya, alt:[b.yapan,b.dosya?'':'belge dosyası yok'].filter(Boolean).join(' · ')||'kayıt', tik:b.dosya?`openFile(${jsA(b.dosya.id)})`:'void 0'})),
-      ekle:`makYukle('bakim','',0)`, ekleAd:'Bakım kaydı ekle', ekleAlt:'yapılan bakım / onarım'},
+    bakim:{ad:'Bakım kayıtları', alt:'Bakım, onarım ve arıza kayıtları', ico:MAK_BAKIM_SVG, sayac:bak.length+' kayıt'+(makSonBakim(m)?' · sonraki '+trDate(makSonBakim(m).sonraki):''),
+      L:bak.map(b=>({ad:(b.tur&&b.tur!==b.is?b.tur+' — ':'')+(b.is||'Bakım')+' · '+trDate(b.tarih), gecmis:1, isaretYok:1, dosya:b.dosya,
+        alt:[b.yapan, b.sayac?b.sayac+' '+(b.sayacBirim||'saat'):'', b.sonraki?'sonraki '+trDate(b.sonraki):''].filter(Boolean).join(' · ')||'kayıt',
+        tik:(m.bakimlar||[]).some(x=>x.id===b.id)?`makBakimForm(${jsA(b.id)})`:(b.dosya?`openFile(${jsA(b.dosya.id)})`:'void 0')})),
+      ekle:`makBakimForm()`, ekleAd:'Yeni bakım kaydı', ekleAlt:'bakım, onarım, arıza — ekrandan'},
+    gunluk:kayitGrup('gunluk',m),
+    ariza:Object.assign(kayitGrup('ariza',m),{sayac:makAcikAriza(m).length+' açık · '+(m.arizalar||[]).length+' kayıt'}),
+    sayac:kayitGrup('sayac',m),
     olay:{ad:'İlgili olaylar', alt:'Bu ekipmana bağlı olay bildirimleri', ico:MAK_OLAY_SVG, sayac:O.length+' olay',
-      L:O.map(r=>({ad:r.no+' · '+turAd(r), isaretYok:1, alt:trDate(r.tarih), tik:`regAc(${jsA(r.id)})`}))}
+      L:O.map(r=>({ad:r.no+' · '+turAd(r), isaretYok:1, alt:trDate(r.tarih), tik:`regAc(${jsA(r.id)})`})), ekle:can('kayit')?`makOlayYeni(${jsA(m.id)})`:'', ekleAd:'Yeni olay bildirimi', ekleAlt:'bu ekipmanla'}
   };
 }
 function makGruplarHtml(m){
@@ -7256,6 +7283,137 @@ function makYukle(tip,ad,ay,id,yuk){
       ${tip!=='bakim'?`<div class="denAlan"><label>${tip==='kontrol'?'Sonraki kontrol':'Son kullanma (geçerlilik)'}</label>${tarihKutu('','','id="pfBitis"')}</div>`:''}
     </div><div class="bar" style="margin-top:12px;justify-content:flex-end;gap:8px"><button class="denHapBtn" onclick="closeOv('ovGrafik')">Vazgeç</button><button class="denHapBtn acc" onclick="makBelgeKaydet()">Kaydet</button></div></div>`;
   ovAc('ovGrafik');
+}
+/* ══ EKRANDAN KAYIT (11.11.2026, kullanıcı: "sürekli girilmesi gereken kayıtlar ... ekrandan da girmek istiyoruz; bu düzeni makine
+   tarafında kuralım; diğer taraflar için de gerekecekse sıraya al" → devam) ══
+   Tek düzen: KAYIT_SEMA (alanlar) → kartta grup (başlıkta "+", satıra tıklayınca aynı form dolu açılır), kayıt kartın içinde dizi.
+   Belge dosyası her kayıtta isteğe bağlı. Silme yok (kayıtlar kalır). Makine: vardiya öncesi kontrol, arıza bildirimi, sayaç / yakıt.
+   Personel: KKD zimmet, görevlendirme / yetki (geçerlilik dolunca uyarı). */
+const GUNLUK_KONTROL = ['Frenler ve el freni','Direksiyon','Lastik / palet','Hidrolik kaçak, hortum','Yağ, yakıt, soğutma suyu seviyesi','Işıklar, korna, geri vites alarmı',
+  'Emniyet kemeri, kabin, ROPS / FOPS','Aynalar, kamera','Kova / ataşman, pim ve emniyet','Yangın söndürücü','Uyarı etiketleri, kapasite tablosu'];
+const KKD_TUR = ['Baret','İş ayakkabısı','Reflektörlü yelek','İş eldiveni','Koruyucu gözlük','Kulak koruyucu','Toz maskesi','Yüz siperi','Paraşüt tipi emniyet kemeri','Kaynakçı önlüğü','Yağmurluk / mont','Diğer'];
+const GOREV_TUR = ['Forklift kullanma yetkisi','İş makinesi kullanma yetkisi','Vinç / sapancı yetkisi','Kilitleme-etiketleme (LOTO) yetkilisi','Yüksekte çalışma yetkisi','Sıcak iş yetkilisi',
+  'Kapalı alan giriş yetkisi','Elektrik işi yetkisi','İlk yardımcı','Yangınla mücadele ekibi','Arama-kurtarma ekibi','Tahliye ekibi','Çalışan temsilcisi','Diğer'];
+const KAYIT_SEMA = {
+  gunluk:{mod:'mak', dizi:'gunlukKontroller', ad:'Vardiya öncesi kontrol', grup:'Vardiya öncesi kontroller', alt:'Operatörün günlük kontrol listesi',
+    alanlar:[{k:'tarih',ad:'Tarih',tip:'tarih',z:1},{k:'operator',ad:'Operatör',tip:'kisi',z:1},{k:'sayac',ad:'Sayaç (saat / km)',tip:'sayi'},
+      {k:'liste',ad:'Kontrol listesi',tip:'kontrol',ops:GUNLUK_KONTROL},{k:'not',ad:'Not',tip:'uzun',genis:1}],
+    satir:o=>{ const u=Object.values(o.liste||{}).filter(x=>x==='Uygun değil').length; return {ad:'Kontrol · '+trDate(o.tarih), alt:[o.operator, u?u+' madde uygun değil':'tümü uygun', o.sayac?o.sayac+' sa':''].filter(Boolean).join(' · ')}; }},
+  ariza:{mod:'mak', dizi:'arizalar', ad:'Arıza bildirimi', grup:'Arıza bildirimleri', alt:'Sahadan bildirilen arızalar',
+    alanlar:[{k:'tarih',ad:'Tarih',tip:'tarih',z:1},{k:'bildiren',ad:'Bildiren',tip:'kisi',z:1},{k:'tanim',ad:'Arıza tanımı',tip:'uzun',z:1,genis:1},
+      {k:'isDurdu',ad:'Ekipman durduruldu mu?',tip:'secim',ops:['Hayır','Evet']},{k:'durum',ad:'Durum',tip:'secim',ops:['Açık','Onarımda','Giderildi'],z:1},{k:'not',ad:'Not / yapılan',tip:'uzun',genis:1}],
+    satir:o=>({ad:(o.durum||'Açık')+' · '+String(o.tanim||'').slice(0,60), alt:[trDate(o.tarih), o.bildiren, o.isDurdu==='Evet'?'ekipman durduruldu':''].filter(Boolean).join(' · ')})},
+  sayac:{mod:'mak', dizi:'sayacKayit', ad:'Sayaç / yakıt kaydı', grup:'Sayaç ve yakıt', alt:'Çalışma saati / km ve alınan yakıt',
+    alanlar:[{k:'tarih',ad:'Tarih',tip:'tarih',z:1},{k:'sayac',ad:'Sayaç (saat / km)',tip:'sayi',z:1},{k:'yakit',ad:'Alınan yakıt (litre)',tip:'sayi'},{k:'kaydeden',ad:'Kaydeden',tip:'kisi'},{k:'not',ad:'Not',tip:'metin'}],
+    satir:o=>({ad:trDate(o.tarih)+' · '+(o.sayac||'—')+' sa/km', alt:[o.yakit?o.yakit+' L yakıt':'', o.kaydeden].filter(Boolean).join(' · ')||'kayıt'})},
+  kkd:{mod:'prs', dizi:'kkdZimmet', ad:'KKD zimmet', grup:'KKD zimmet', alt:'Teslim edilen kişisel koruyucu donanım',
+    alanlar:[{k:'tarih',ad:'Teslim tarihi',tip:'tarih',z:1},{k:'kkd',ad:'KKD',tip:'secim',ops:KKD_TUR,z:1},{k:'beden',ad:'Beden / numara',tip:'metin'},{k:'adet',ad:'Adet',tip:'sayi'},
+      {k:'teslimEden',ad:'Teslim eden',tip:'kisi'},{k:'iade',ad:'İade / yenileme tarihi',tip:'tarih'},{k:'not',ad:'Not',tip:'metin'}],
+    satir:o=>({ad:(o.kkd||'KKD')+(o.adet&&o.adet>1?' × '+o.adet:'')+' · '+trDate(o.tarih), alt:[o.beden?'beden '+o.beden:'', o.iade?'iade '+trDate(o.iade):'', o.teslimEden].filter(Boolean).join(' · ')||'zimmet'})},
+  gorev:{mod:'prs', dizi:'gorevlendirmeler', ad:'Görevlendirme / yetki', grup:'Görevlendirme ve yetkiler', alt:'Yetki belgeleri, acil durum ekipleri', uyari:'gecerlilik',
+    alanlar:[{k:'tur',ad:'Görev / yetki',tip:'secim',ops:GOREV_TUR,z:1},{k:'tarih',ad:'Atama tarihi',tip:'tarih',z:1},{k:'gecerlilik',ad:'Geçerlilik (bitiş)',tip:'tarih'},
+      {k:'atayan',ad:'Atayan',tip:'kisi'},{k:'not',ad:'Not',tip:'metin'}],
+    satir:o=>{ const d=o.gecerlilik?gecDurum(o.gecerlilik):null; return {ad:(o.tur||'Görev')+' · '+trDate(o.tarih), d, alt:o.gecerlilik?('geçerlilik '+trDate(o.gecerlilik)+(d&&d.k!=='gecerli'?' · '+d.ad:'')):'süresiz'}; }}
+};
+const kayitKart = mod => mod==='mak' ? MAK_CUR : PRS_CUR;
+/* karttaki grup verisi (makGrupVeri / prsGrupVeri'ye eklenir) */
+function kayitGrup(tur, kart){
+  const S=KAYIT_SEMA[tur], L=(kart[S.dizi]||[]).slice().sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''));
+  return {ad:S.grup, alt:S.alt, ico:S.mod==='mak'?MAK_BAKIM_SVG:PRS_BELGE_SVG, sayac:L.length+' kayıt',
+    L:L.map(o=>{ const s=S.satir(o); return {ad:s.ad, alt:s.alt, gecmis:1, isaretYok:1, dosya:o.dosya||null, tik:`kayitForm('${tur}',${jsA(o.id)})`}; }),
+    ekle:`kayitForm('${tur}')`, ekleAd:'Yeni: '+S.ad.toLocaleLowerCase('tr'), ekleAlt:'ekrandan kayıt'};
+}
+let KAYIT_FORM=null;
+function kayitForm(tur, id){
+  const S=KAYIT_SEMA[tur], kart=kayitKart(S.mod); if(!kart || !can(S.mod==='mak'?'makine':'personel')) return;
+  const o=id ? (kart[S.dizi]||[]).find(x=>x.id===id) : null; if(id && !o) return;
+  KAYIT_FORM={tur, id:id||''}; PF_BAGLAM=null; PF_ONER=null; YB_SON=null;
+  const v=k=>(o&&o[k]!=null)?o[k]:'', e=esc;
+  const alan=a=>{ const ad=`${e(a.ad)}${a.z?' <span class="req">*</span>':''}`, idA=`kf_${a.k}`;
+    if(a.tip==='tarih') return `<div class="denAlan"><label>${ad}</label>${tarihKutu(o?v(a.k):(a.k==='tarih'?sgkBugun():''),'',`id="${idA}"`)}</div>`;
+    if(a.tip==='uzun') return `<div class="denAlan genis"><label>${ad}</label><textarea id="${idA}" rows="2">${e(v(a.k))}</textarea></div>`;
+    if(a.tip==='secim') return `<div class="denAlan"><label>${ad}</label><select id="${idA}">${a.ops.map(x=>`<option${v(a.k)===x?' selected':''}>${e(x)}</option>`).join('')}</select></div>`;
+    if(a.tip==='sayi') return `<div class="denAlan"><label>${ad}</label><input type="number" min="0" step="any" id="${idA}" value="${e(v(a.k))}"></div>`;
+    if(a.tip==='kisi') return `<div class="denAlan"><label>${ad}</label><input type="text" id="${idA}" list="dlAd" value="${e(v(a.k))}"></div>`;
+    if(a.tip==='kontrol'){ const L=v(a.k)||{}; return `<div class="denAlan genis"><label>${ad}</label><div class="kfKontrol">${a.ops.map((m,i)=>`<div class="kfKs"><span>${e(m)}</span>
+        <select id="${idA}_${i}">${['Uygun','Uygun değil','Yok / uygulanmaz'].map(x=>`<option${(L[m]||'Uygun')===x?' selected':''}>${x}</option>`).join('')}</select></div>`).join('')}</div></div>`; }
+    return `<div class="denAlan${a.genis?' genis':''}"><label>${ad}</label><input type="text" id="${idA}" value="${e(v(a.k))}"></div>`; };
+  $('gpBaslik').textContent=(o?S.ad+' · '+trDate(o.tarih):'Yeni: '+S.ad.toLocaleLowerCase('tr'));
+  $('gpGovde').innerHTML=`<div class="prsForm yumusak"><div class="denIzgara">${S.alanlar.map(alan).join('')}
+      <div class="denAlan genis"><label>Belge dosyası (isteğe bağlı)${o&&o.dosya&&o.dosya.id?` — <a class="prsLink" onclick="openFile(${jsA(o.dosya.id)})">${e(o.dosya.ad||'mevcut belge')}</a>`:''}</label><input type="file" id="kfDosya"></div>
+    </div><div class="bar" style="margin-top:12px;justify-content:flex-end;gap:8px"><button class="denHapBtn" onclick="closeOv('ovGrafik')">Vazgeç</button><button class="denHapBtn acc" onclick="kayitKaydet()">Kaydet</button></div></div>`;
+  ovAc('ovGrafik');
+}
+async function kayitKaydet(){
+  const F=KAYIT_FORM; if(!F) return; const S=KAYIT_SEMA[F.tur], kart=kayitKart(S.mod); if(!kart || !can(S.mod==='mak'?'makine':'personel')) return;
+  const deger={};
+  for(const a of S.alanlar){ const idA='kf_'+a.k;
+    if(a.tip==='tarih') deger[a.k]=dtOku(idA)||'';
+    else if(a.tip==='kontrol'){ const L={}; a.ops.forEach((m,i)=>{ const s=$(idA+'_'+i); if(s) L[m]=s.value; }); deger[a.k]=L; }
+    else if(a.tip==='sayi'){ const x=($(idA)||{}).value; deger[a.k]=x===''||x==null?'':+x; }
+    else deger[a.k]=String(($(idA)||{}).value||'').trim();
+    if(a.z && (deger[a.k]==='' || deger[a.k]==null)){ toast(a.ad+' girin.'); return; } }
+  const f=(($('kfDosya')||{}).files||[])[0]; let dosya=null; if(f){ const fid=uid(); await putFile(fid,f); dosya={id:fid, ad:f.name, boyut:f.size}; }
+  const L=kart[S.dizi]=kart[S.dizi]||[], i=F.id ? L.findIndex(x=>x.id===F.id) : -1;
+  if(i>=0) L[i]=Object.assign({}, L[i], deger, dosya?{dosya}:{}, {guncelleme:new Date().toISOString(), guncelleyen:SES?SES.ad:''});
+  else L.push(Object.assign({id:uid(), eklenme:new Date().toISOString(), ekleyen:SES?SES.ad:''}, deger, {dosya}));
+  /* vardiya öncesi kontrolde "uygun değil" madde → arıza bildirimi önerilir */
+  if(F.tur==='gunluk' && i<0){ const U=Object.entries(deger.liste||{}).filter(([,x])=>x==='Uygun değil').map(([m])=>m);
+    if(U.length && confirm(U.length+' madde uygun değil:\n• '+U.join('\n• ')+'\n\nArıza bildirimi açılsın mı?')){
+      (kart.arizalar=kart.arizalar||[]).push({id:uid(), eklenme:new Date().toISOString(), ekleyen:SES?SES.ad:'', tarih:deger.tarih, bildiren:deger.operator, tanim:'Vardiya öncesi kontrol: '+U.join(', '), isDurdu:'Hayır', durum:'Açık', not:''}); } }
+  /* arıza: ekipman durduruldu ve açıksa → durum Arızalı */
+  if(F.tur==='ariza' && deger.isDurdu==='Evet' && deger.durum!=='Giderildi' && kart.durum!=='Hizmet dışı') kart.durum='Arızalı';
+  closeOv('ovGrafik'); KAYIT_FORM=null;
+  const yazildi = S.mod==='mak' ? makOtoKaydet() : prsOtoKaydet();
+  if(S.mod==='mak') makRender(); else prsRender();
+  toast(yazildi?'Kaydedildi':'Eklendi — kartı Kaydet ile kaydedin');
+}
+/* makine: sonraki bakım (son bakım kaydındaki tarih) */
+function makSonBakim(m){ return (m.bakimlar||[]).filter(b=>b.sonraki).sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''))[0]||null; }
+function makAcikAriza(m){ return (m.arizalar||[]).filter(a=>a.durum!=='Giderildi'); }
+/* BAKIM KAYDI EKRANDAN (11.11.2026, kullanıcı: "bakım kayıtları gibi sürekli girilmesi gereken kayıtlar için başlığın yanına +;
+   şimdilik doküman gibi ama ekrandan da girmek istiyoruz"): belge isteğe bağlı; tür, yapılan iş, tarih, sayaç (saat / km), yapan,
+   değişen parça, maliyet, sonraki bakım, bakım sonrası ekipman durumu. Kayıt satırına tıklayınca aynı form dolu açılır (düzeltme).
+   Silme yok (kayıtlar kalır). Dosya eklenirse belge motoru okur ve öğrenir (Bakım kaydı). */
+const MAK_BAKIM_TUR = ['Periyodik bakım','Arıza onarımı','Parça değişimi','Yağ / filtre değişimi','Lastik / palet','Hasar onarımı','Diğer'];
+function makBakimForm(id){
+  if(!MAK_CUR || !can('makine')) return;
+  const b=id ? (MAK_CUR.bakimlar||[]).find(x=>x.id===id) : null; if(id && !b) return;
+  MAK_FORM={tip:'bakim', ay:0, id:id||''}; PF_ONER=null; YB_SON=null; PF_BAGLAM={mod:'mak', tip:'bakim', ad:'Bakım kaydı', ay:0};
+  const v=f=>esc((b&&b[f])||''), e=esc;
+  $('gpBaslik').textContent=b ? 'Bakım kaydı · '+trDate(b.tarih) : 'Yeni bakım kaydı';
+  $('gpGovde').innerHTML=`<div class="prsForm yumusak"><div class="denIzgara">
+      <div class="denAlan"><label>Tür <span class="req">*</span></label><select id="bkTur">${MAK_BAKIM_TUR.map(x=>`<option${(b?b.tur:'Periyodik bakım')===x?' selected':''}>${e(x)}</option>`).join('')}</select></div>
+      <div class="denAlan"><label>Bakım tarihi <span class="req">*</span></label>${tarihKutu(b?b.tarih:sgkBugun(),'','id="pfTarih"')}</div>
+      <div class="denAlan genis"><label>Yapılan iş <span class="req">*</span></label><textarea id="bkIs" rows="2" placeholder="Ör. 500 saat bakımı; hidrolik hortum değişimi">${v('is')}</textarea></div>
+      <div class="denAlan"><label>Sayaç</label><div style="display:flex;gap:6px"><input type="number" id="bkSayac" min="0" value="${v('sayac')}" placeholder="çalışma saati / km" style="flex:1"><select id="bkBirim" style="width:auto">${['saat','km'].map(x=>`<option${(b&&b.sayacBirim||'saat')===x?' selected':''}>${x}</option>`).join('')}</select></div></div>
+      <div class="denAlan"><label>Yapan (kişi / servis)</label><input type="text" id="bkYapan" value="${v('yapan')}"></div>
+      <div class="denAlan genis"><label>Değişen parça / malzeme</label><input type="text" id="bkParca" value="${v('parca')}" placeholder="Ör. yağ filtresi, hidrolik hortum"></div>
+      <div class="denAlan"><label>Maliyet (TL)</label><input type="number" id="bkMaliyet" min="0" step="0.01" value="${v('maliyet')}"></div>
+      <div class="denAlan"><label>Sonraki bakım</label>${tarihKutu(b?b.sonraki:'','','id="pfBitis"')}</div>
+      <div class="denAlan"><label>Bakım sonrası durum</label><select id="bkDurum"><option value="">— değişmez (${e(MAK_CUR.durum||'Aktif')}) —</option>${MAK_DURUM.map(x=>`<option${b&&b.durumSonra===x?' selected':''}>${e(x)}</option>`).join('')}</select></div>
+      <div class="denAlan genis"><label>Belge dosyası (isteğe bağlı)${b&&b.dosya?` — <a class="prsLink" onclick="openFile(${jsA(b.dosya.id)})">${e(b.dosya.ad||'mevcut belge')}</a>`:''}</label><input type="file" id="pfDosya" onchange="prsBelgedenOku()"><span class="hint" id="pfOku"></span></div>
+    </div><div class="bar" style="margin-top:12px;justify-content:flex-end;gap:8px"><button class="denHapBtn" onclick="closeOv('ovGrafik')">Vazgeç</button><button class="denHapBtn acc" onclick="makBakimKaydet()">Kaydet</button></div></div>`;
+  ovAc('ovGrafik');
+}
+async function makBakimKaydet(){
+  const m=MAK_CUR; if(!m || !can('makine')) return;
+  const tarih=dtOku('pfTarih'), is=($('bkIs').value||'').trim(); if(!tarih){ toast('Bakım tarihini girin.'); return; } if(!is){ toast('Yapılan işi yazın.'); return; }
+  const f=($('pfDosya').files||[])[0]; let dosya=null; if(f){ const fid=uid(); await putFile(fid,f); dosya={id:fid, ad:f.name, boyut:f.size}; ybOgren('Bakım kaydı'); }
+  const sayac=$('bkSayac').value, mal=$('bkMaliyet').value, durum=$('bkDurum').value;
+  const alan={tur:$('bkTur').value, is, tarih, sayac:sayac===''?'':+sayac, sayacBirim:$('bkBirim').value, yapan:($('bkYapan').value||'').trim(), parca:($('bkParca').value||'').trim(),
+    maliyet:mal===''?'':+mal, sonraki:dtOku('pfBitis')||'', durumSonra:durum};
+  const L=m.bakimlar=m.bakimlar||[], i=MAK_FORM.id ? L.findIndex(x=>x.id===MAK_FORM.id) : -1;
+  if(i>=0){ L[i]=Object.assign({}, L[i], alan, dosya?{dosya}:{}, {guncelleme:new Date().toISOString(), guncelleyen:SES?SES.ad:''}); }
+  else L.push(Object.assign({id:uid(), eklenme:new Date().toISOString(), ekleyen:SES?SES.ad:''}, alan, {dosya}));
+  if(durum) m.durum=durum;
+  closeOv('ovGrafik'); PF_ONER=null; const yazildi=makOtoKaydet(); makRender(); toast(yazildi?'Bakım kaydı kaydedildi':'Eklendi — kartı Kaydet ile kaydedin');
+}
+/* ilgili olaylar grubunda "+": bu ekipmanla yeni olay bildirimi (form açılır, ekipman bağlı gelir) */
+function makOlayYeni(id){
+  if(!can('kayit')){ toast('Kayıt açma yetkiniz yok.'); return; }
+  const m=MAK.find(x=>x.id===id); if(!m) return;
+  newRec(); cur.makineler=[{id:m.id, envNo:m.envNo, ad:makAd(m)}]; try{ olayMakYaz(); }catch(e){}
 }
 function makBitisOner(){
   const t=dtOku('pfTarih'), a = MAK_FORM.tip==='kontrol' ? makPeriyot(MAK_CUR) : MAK_FORM.ay;
@@ -7368,6 +7526,7 @@ K.egtTur = K.rec.replace(/records$/,'egitim_tur');
 const EGT_TUR_VARSAYILAN = [
   {kod:'isg-temel', ad:'Temel İSG eğitimi', kategori:'İSG (zorunlu)', herkes:true, meslek:[], sure:'tehlike', yenile:'tehlike', dayanak:'6331 md.17 · Çalışanların İSG Eğitimleri Yön.'},
   {kod:'ise-baslama', ad:'İşe başlama İSG bilgilendirmesi', kategori:'İSG (zorunlu)', herkes:true, meslek:[], sure:'2', yenile:'0', dayanak:'Çalışanların İSG Eğitimleri Yön.'},
+  {kod:'toolbox', ad:'Toolbox (saha) eğitimi', kategori:'Saha', herkes:false, meslek:[], sure:'0.25', yenile:'0', dayanak:'İş başı konuşması (vardiya başı kısa bilgilendirme)'},
   {kod:'acil-durum', ad:'Yangın ve acil durum eğitimi', kategori:'İSG (zorunlu)', herkes:true, meslek:[], sure:'2', yenile:'12', dayanak:'İşyerlerinde Acil Durumlar Hk. Yön.'},
   {kod:'ilk-yardim', ad:'İlk yardım eğitimi', kategori:'İSG (zorunlu)', herkes:false, meslek:[], sure:'16', yenile:'36', dayanak:'İlk Yardım Yön. (ilk yardımcı sayısı tehlike sınıfına göre)'},
   {kod:'ise-donus', ad:'İşe dönüş ilave eğitimi', kategori:'İSG (zorunlu)', herkes:false, meslek:[], sure:'2', yenile:'0', dayanak:'6331 md.17/3 (iş kazası / meslek hastalığı sonrası)'},
@@ -7382,6 +7541,8 @@ const EGT_TUR_VARSAYILAN = [
   {kod:'elle-tasima', ad:'Elle taşıma ve ergonomi eğitimi', kategori:'Genel', herkes:false, meslek:['4321','9'], sure:'2', yenile:'24', dayanak:'Elle Taşıma İşleri Yön.'}
 ];
 let EGT = store.get(K.egt, []), EGT_TUR = store.get(K.egtTur, null) || JSON.parse(JSON.stringify(EGT_TUR_VARSAYILAN));
+/* 11.11.2026: toolbox türü eski kayıtlı tür listesinde yoksa eklenir (hızlı saha eğitimi kaydı için) */
+if(Array.isArray(EGT_TUR) && !EGT_TUR.some(t=>t.kod==='toolbox')) EGT_TUR.push(JSON.parse(JSON.stringify(EGT_TUR_VARSAYILAN.find(t=>t.kod==='toolbox'))));
 const saveEgt = () => { store.set(K.egt, EGT); refreshCounts(); };
 const saveEgtTur = () => setYaz(K.egtTur, EGT_TUR);
 const EGT_KATEGORI = ['İSG (zorunlu)','Mesleki','Genel'], EGT_DURUM = {planli:'Planlı', tamamlandi:'Tamamlandı', iptal:'İptal'};
@@ -7505,7 +7666,7 @@ function egtPlanHtml(){
   /* planlanması gerekenler: süresi dolmuş / hiç almamış / 60 gün içinde dolacak ve planı olmayanlar, türe göre */
   const sinir=sgkGunEkle(b,60), M=egtMatris().filter(x=>!x.plan && (x.k==='yok'||x.k==='doldu'||(x.bitis&&x.bitis<=sinir)));
   const G=EGT_TUR.map(t=>({t, L:M.filter(x=>x.t.kod===t.kod)})).filter(g=>g.L.length).sort((p,q)=>q.L.length-p.L.length);
-  return `<div class="bar" style="margin-bottom:12px"><h2 style="font-size:19px;flex:1">Eğitim Planı</h2>${yaz?`<button class="btn acc sm" onclick="egtYeniTarih('')">+ Yeni Eğitim</button>`:''}</div>
+  return `<div class="bar" style="margin-bottom:12px"><h2 style="font-size:19px;flex:1">Eğitim Planı</h2>${yaz?`<button class="btn sm" onclick="egtToolbox()" style="margin-right:6px">+ Toolbox (saha) eğitimi</button><button class="btn acc sm" onclick="egtYeniTarih('')">+ Yeni Eğitim</button>`:''}</div>
     <div class="egtTakvimDuzen">
       <div class="egtTakvim"><div class="egtTkUst"><button onclick="egtAyGit(-1)" title="Önceki ay">‹</button><b>${esc(ayAd)}</b><button onclick="egtAyGit(1)" title="Sonraki ay">›</button><button class="bugunBtn" onclick="EGT_AY=null;egtPlanRender()">Bugün</button></div>
         <div class="egtTkGun">${['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map(g=>`<div class="bas">${g}</div>`).join('')}${hucreler.join('')}</div></div>
@@ -7519,6 +7680,8 @@ function egtPlanHtml(){
 function egtAyGit(n){ const [y,a]=(EGT_AY||sgkBugun().slice(0,7)).split('-').map(Number), d=new Date(y,a-1+n,1); EGT_AY=d.getFullYear()+'-'+pad(d.getMonth()+1,2); egtPlanRender(); }
 function egtPlanRender(){ const w=$('egtPlanWrap'); if(w) w.innerHTML=egtPlanHtml(); }
 function egtYeniTarih(iso){ if(!can('egitim')) return; EGT_YENI=egtBos(iso||''); go('egtYeni'); }
+/* TOOLBOX (11.11.2026): vardiya başı kısa saha eğitimi hızlı kaydı — bugün, şimdi, 15 dk, tamamlandı; konu ve katılımcılar girilir */
+function egtToolbox(){ if(!can('egitim')) return; const s=egtBos(sgkBugun(),'toolbox'); s.durum='tamamlandi'; s.saat=new Date().toTimeString().slice(0,5); s.ad='Toolbox: '; EGT_YENI=s; go('egtYeni'); }
 /* ── LİSTE / KART yönlendirme (personel / makine ile aynı) ── */
 function egtRender(){
   const yeni=egtAktifGorunum()==='egtYeni';
@@ -7534,7 +7697,7 @@ function egtListeHtml(){
   const kpi=(v,l,s,f)=>`<div class="kpi${f!==undefined?' clk':''}${f&&f===S.dur?' on':''}"${f!==undefined?` onclick="EGT_SUZ={dur:${jsA(f)}};egtRender()"`:''}><div class="v" style="${s||''}">${v}</div><div class="l">${l}</div></div>`;
   const op=(L,v)=>L.map(([k,a])=>`<option value="${esc(k)}"${k===v?' selected':''}>${esc(a)}</option>`).join('');
   const tam=V.filter(s=>s.durum==='tamamlandi');
-  return `<h2 style="font-size:19px;margin-bottom:14px">Eğitim Kayıtları${can('egitim')?`<span style="float:right"><button class="btn acc sm" onclick="egtYeniTarih('')">+ Yeni Eğitim</button></span>`:''}</h2>
+  return `<h2 style="font-size:19px;margin-bottom:14px">Eğitim Kayıtları${can('egitim')?`<span style="float:right"><button class="btn sm" onclick="egtToolbox()" style="margin-right:6px">+ Toolbox (saha) eğitimi</button><button class="btn acc sm" onclick="egtYeniTarih('')">+ Yeni Eğitim</button></span>`:''}</h2>
     <div class="kpis">${kpi(V.length,'Eğitim Oturumu','','')}${kpi(V.filter(s=>s.durum==='planli').length,'Planlı','','planli')}${kpi(tam.length,'Tamamlanan','','tamamlandi')}
       ${kpi(Math.round(tam.reduce((t,s)=>t+egtAdamSaat(s),0)),'Toplam Adam·Saat')}${kpi(V.filter(s=>s.durum==='iptal').length,'İptal','','iptal')}</div>
     <div class="regLayout">
@@ -14322,7 +14485,8 @@ try{ dilUygula(); }catch(e){}
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
+const SURUM_NOTU={'1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
+  '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
   '1.10.3':['Personel ve makine kartı salt okunur açılır; değişiklik belge gruplarının altındaki Düzenle ile (Vazgeç / Kaydet)','Kartın üstündeki Klasöre yaz ve Kaydet düğmeleri kaldırıldı; silme yok, pasife alınır (Ayrıldı / Hizmet dışı)'],
   '1.10.2':['Asistan: cevaptaki listeden kayda tıklayınca kayıt açılır','Güvenlik iyileştirmeleri (asistan bağlantıları, çeviri belleği)'],
   '1.10.1':['Asistan sağ alttaki AI düğmesinde: üzerine gelince Analiz et ve Asistan','Dil düğmesi (TR / EN) Ayarlar düğmesinin solunda'],
