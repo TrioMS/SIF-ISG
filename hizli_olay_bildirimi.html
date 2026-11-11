@@ -852,6 +852,7 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 .anaPop{max-height:60vh;overflow:auto;padding-right:4px}
 .hp-sag{display:flex;flex-direction:column;gap:16px;min-width:0}
 .hp-sag > :last-child{flex:1 1 auto}
+.kartIslem{display:flex;align-items:center;gap:8px;margin-top:12px;grid-column:1 / -1}
 /* ASİSTAN (11.11.2026) — sağdan açılan sohbet penceresi; SİF siyah / sarı, gri zemin */
 /* AI DÜĞMESİ MENÜSÜ (11.11.2026): sağ alttaki AI düğmesinin üzerine gelince açılır — Analiz et + Asistan */
 .aiMenu{position:fixed;z-index:950;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 38px rgba(0,0,0,.22);overflow:hidden;animation:aiMenuAc .14s ease-out}
@@ -2272,7 +2273,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.10.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.10.3';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6724,7 +6725,7 @@ function prsGruplarHtml(p,yaz){
 function prsGrupPop(k,el,ev,kaynak){
   if(ev) ev.stopPropagation();
   const eski=$('prsPop'); if(eski){ const ayni=eski.dataset.k===k; eski.remove(); document.querySelectorAll('.prsGrup.acik').forEach(x=>x.classList.remove('acik')); if(ayni) return; }
-  const mak=kaynak==='mak', egt=kaynak==='egt', g=(mak?makGrupVeri(MAK_CUR):egt?egtGrupVeri(EGT_CUR):prsGrupVeri(PRS_CUR))[k], yaz=can(mak?'makine':egt?'egitim':'personel'), VG=mak?MAK_VURGU:egt?[]:PRS_VURGU; if(!g) return;
+  const mak=kaynak==='mak', egt=kaynak==='egt', g=(mak?makGrupVeri(MAK_CUR):egt?egtGrupVeri(EGT_CUR):prsGrupVeri(PRS_CUR))[k], yaz=can(mak?'makine':egt?'egitim':'personel')&&(egt||kartDuzenMi(mak?'mak':'prs')), VG=mak?MAK_VURGU:egt?[]:PRS_VURGU; if(!g) return;
   const m=document.createElement('div'); m.id='prsPop'; m.dataset.k=k;
   m.innerHTML=`<div class="prsPopB">${esc(g.ad)}<small>${esc(g.alt)}</small></div>`+g.L.map(o=>`<div class="prsPopS${yaz?'':' kilit'}${VG.some(v=>v&&String(o.ad).startsWith(v))?' vurgu':''}" ${yaz?`onclick="document.getElementById('prsPop').remove();${o.tik}"`:''}>
       <span class="prsPopIco">${g.ico}</span><div class="prsPopM"><b>${esc(o.ad)}</b><small>${esc(o.alt)}</small></div>
@@ -6741,7 +6742,7 @@ function prsGrupPop(k,el,ev,kaynak){
   setTimeout(()=>document.addEventListener('click',function kapat(e){ const q=$('prsPop'); if(q&&!q.contains(e.target)){ q.remove(); document.querySelectorAll('.prsGrup.acik').forEach(x=>x.classList.remove('acik')); } document.removeEventListener('click',kapat); }),0);
 }
 function prsKartHtml(){
-  const p=PRS_CUR, e=esc, m=meslekOf(p.meslek), yaz=can('personel'), dis=yaz?'':' disabled', kayitli=PRS.some(x=>x.id===p.id);
+  const p=PRS_CUR, e=esc, m=meslekOf(p.meslek), kayitli=PRS.some(x=>x.id===p.id), yaz=can('personel')&&(PRS_DUZEN||!kayitli), dis=yaz?'':' disabled';
   const alan=(et,ic,cls,zor)=>`<div class="denAlan${cls?' '+cls:''}"><label>${et}${zor?' <span class="req">*</span>':''}</label>${ic}</div>`;
   const inp=(f,ph,ek)=>`<input type="text" value="${e(p[f]||'')}" oninput="prsSet('${f}',this.value)" placeholder="${e(ph||'')}"${ek||''}${dis}>`;
   const sec=(f,L)=>`<select onchange="prsSet('${f}',this.value)"${dis}><option value="">—</option>${L.map(x=>`<option${x===p[f]?' selected':''}>${e(x)}</option>`).join('')}</select>`;
@@ -6761,8 +6762,7 @@ function prsKartHtml(){
   const okS=sert.filter(x=>x.son&&x.son.dosya&&x.d.k!=='doldu').length;
   return `<div class="denUstBant prsBant">
       <div class="prsBantSol">${prsFotoHtml(p,'buyuk')}<div><div class="denNo">${e(p.ad||'Yeni personel')}</div><div class="denAltYazi">${e([p.sicil?'Sicil '+p.sicil:'',meslekAd(p),lokAd(p.lok),prsYaka(p)].filter(Boolean).join(' · ')||'bilgileri girin')}</div></div></div>
-      <div class="denUstSag">${kayitli?`<button class="denHapBtn koyu" onclick="prsListe()">← Liste</button>`:''}
-        ${kayitli&&yaz?`<button class="denHapBtn koyu" onclick="prsKlasor()">Klasöre yaz</button>`:''}${yaz?`<button class="denHapBtn acc" onclick="prsKaydet()">Kaydet</button>`:''}</div></div>
+      <div class="denUstSag">${kayitli?`<button class="denHapBtn koyu" onclick="prsListe()">← Liste</button>`:''}</div></div>
     <div class="prsDuzen">
       <div class="prsVesika${yaz?'':' kilit'}" ${yaz?`onclick="$('prsFotoGir').click()"`:''} title="${p.foto?'Fotoğrafı değiştir':'Vesikalık ekle'}">
         ${p.foto?`<img data-fid="${e(p.foto.id)}" alt="">`:PRS_SIL_SVG}<span>${p.foto?'Değiştir':'Vesikalık ekle'}</span>
@@ -6779,7 +6779,7 @@ function prsKartHtml(){
         ${alan('Durum',`<select onchange="prsSet('durum',this.value,true)"${dis}><option value="aktif"${p.durum!=='ayrildi'?' selected':''}>Aktif</option><option value="ayrildi"${p.durum==='ayrildi'?' selected':''}>Ayrıldı</option></select>`)}
         ${p.durum==='ayrildi'?alan('Ayrılış tarihi',tarihKutu(p.ayrilis,"prsSet('ayrilis',this.dataset.iso)")):''}
       </div>
-      <div class="prsGrupDikey">${prsGruplarHtml(p,yaz)}</div>
+      <div class="prsGrupDikey">${prsGruplarHtml(p,yaz)}${kartIslemHtml('prs',kayitli)}</div>
     </div>`;
 }
 /* yükleme: özlük → doğrudan dosya seçimi; belge / eğitim / muayene → yumuşak pencere (dosya seçilince tarihler okunur) */
@@ -6864,11 +6864,11 @@ function prsAra(){ PRS_SUZ={no:$('prsNo').value, ad:$('prsAd').value, lok:$('prs
 function prsCsv(){ csv(['Sicil','Ad Soyad','Meslek kodu','Meslek','Görev','Yaka','Cinsiyet','Lokasyon','Şirket','İşe giriş','Durum','Eksik zorunlu belge'],
   PRS.filter(prsGorebilir).map(p=>[p.sicil,p.ad,p.meslek,p.meslekAd||(meslekOf(p.meslek)||{}).ad||'',p.gorev,prsYaka(p),p.cinsiyet||'',lokAd(p.lok),p.sirket,p.iseGiris||'',p.durum==='ayrildi'?'Ayrıldı':'Aktif',prsEksik(p).length]),'personel.csv'); }
 function prsAc(id){ const p=PRS.find(x=>x.id===id); if(!p) return; if(!can('personel')){ toast('Personel bölümü için yetkiniz yok.'); return; }
-  PRS_CUR=JSON.parse(JSON.stringify(p)); PRS_TC_GOSTER=false; PRS_ACILAN=p.id;
+  PRS_CUR=JSON.parse(JSON.stringify(p)); PRS_TC_GOSTER=false; PRS_ACILAN=p.id; PRS_DUZEN=false;
   if(prsAktifGorunum()!=='personel'){ GEZ.kendi=true; try{ go('personel'); }finally{ GEZ.kendi=false; } }
   gezKart('prs',p.id);
   if(((document.querySelector('.view.on')||{}).id||'')!=='v-personel') go('personel'); else prsRender(); window.scrollTo(0,0); }
-function prsListe(){ if(PRS_CUR && prsDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; PRS_CUR=null; prsRender(); }
+function prsListe(){ if(PRS_CUR && prsDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; PRS_CUR=null; PRS_DUZEN=false; prsRender(); }
 const prsDegisti = () => { const o=PRS_CUR&&PRS.find(x=>x.id===PRS_CUR.id); return PRS_CUR ? (!o || JSON.stringify(o)!==JSON.stringify(PRS_CUR)) : false; };
 function prsSet(f,v,ciz){ if(!PRS_CUR) return; PRS_CUR[f]=v; if(ciz) prsRender(); }
 function prsSapAktar(){
@@ -6886,6 +6886,25 @@ function prsSapAktar(){
   mes.forEach(([p,k,a])=>{ p.meslek=k; p.meslekAd=a; });
   savePrs(); prsRender(); toast([yeni.length?yeni.length+' kart açıldı':'', mes.length?mes.length+' kartın mesleği güncellendi':''].filter(Boolean).join(' · '));
 }
+/* KART DÜZENLEME (11.11.2026, kullanıcı: "bu bölüme personelde ve makine tarafında düzenle butonu koy; tıklayınca sil ve kaydet
+   butonları da gelecek, oradan yapılacak tüm düzeltmeler; yukarıdaki klasöre yaz ve kaydet butonlarını kaldır"): kayıtlı kart açılınca
+   SALT OKUNUR (alanlar, vesikalık, belge yükleme kapalı; belgeyi görme açık). Belge gruplarının altındaki "Düzenle" kartı açar; o zaman
+   Vazgeç / Kaydet gelir. SİLME YOK (kullanıcı: "silinse bile kayıtların kalması gerekiyor; pasif yapabiliriz") — personel Durum › Ayrıldı,
+   ekipman durumuyla pasife alınır. Yeni kartta doğrudan Kaydet. Üstteki "Klasöre yaz" kaldırıldı (dosyalar kişinin / ekipmanın kendi
+   klasörüne veri havuzuyla gidecek). */
+let PRS_DUZEN=false, MAK_DUZEN=false;
+const kartDuzenMi = k => k==='mak' ? (MAK_DUZEN || !(MAK_CUR && MAK.some(x=>x.id===MAK_CUR.id))) : (PRS_DUZEN || !(PRS_CUR && PRS.some(x=>x.id===PRS_CUR.id)));
+function kartIslemHtml(k, kayitli){
+  if(!can(k==='mak'?'makine':'personel')) return '';
+  const p=k==='mak'?'mak':'prs', duz=k==='mak'?MAK_DUZEN:PRS_DUZEN;
+  return `<div class="kartIslem">${!kayitli ? `<span style="flex:1"></span><button type="button" class="denHapBtn acc" onclick="${p}Kaydet()">Kaydet</button>`
+    : duz ? `<span style="flex:1"></span><button type="button" class="denHapBtn" onclick="${p}Vazgec()">Vazgeç</button><button type="button" class="denHapBtn acc" onclick="${p}Kaydet()">Kaydet</button>`
+    : `<span style="flex:1"></span><button type="button" class="denHapBtn acc" onclick="${p}Duzenle()">Düzenle</button>`}</div>`;
+}
+function prsDuzenle(){ if(!can('personel')||!PRS_CUR) return; PRS_DUZEN=true; prsRender(); }
+function prsVazgec(){ const o=PRS_CUR&&PRS.find(x=>x.id===PRS_CUR.id); if(o) PRS_CUR=JSON.parse(JSON.stringify(o)); PRS_DUZEN=false; PRS_TC_GOSTER=false; prsRender(); }
+function makDuzenle(){ if(!can('makine')||!MAK_CUR) return; MAK_DUZEN=true; makRender(); }
+function makVazgec(){ const o=MAK_CUR&&MAK.find(x=>x.id===MAK_CUR.id); if(o) MAK_CUR=JSON.parse(JSON.stringify(o)); MAK_DUZEN=false; makRender(); }
 function prsKaydet(){
   const p=PRS_CUR; if(!p||!can('personel')) return;
   if(!String(p.ad||'').trim()){ toast('Ad Soyad girin.'); return; }
@@ -6893,7 +6912,7 @@ function prsKaydet(){
   if(p.sicil && PRS.some(x=>x.id!==p.id && String(x.sicil).trim()===String(p.sicil).trim())){ toast('Bu sicil başka bir kartta var.'); return; }
   p.guncelleme=new Date().toISOString();
   const i=PRS.findIndex(x=>x.id===p.id), k=JSON.parse(JSON.stringify(p)); if(i<0) PRS.push(k); else PRS[i]=k;
-  savePrs(); PRS_TC_GOSTER=false; toast('Kaydedildi: '+(p.ad||''));
+  savePrs(); PRS_TC_GOSTER=false; PRS_DUZEN=false; toast('Kaydedildi: '+(p.ad||''));
   if(prsAktifGorunum()==='prsYeni'){ PRS_CUR=JSON.parse(JSON.stringify(k)); go('personel'); } else prsRender();
 }
 function prsBitisOner(ay,tip){
@@ -7120,9 +7139,9 @@ function makCsv(){ csv(['Envanter no','SAP no','Grup','Tür','Marka','Model','Se
   MAK.filter(makGorebilir).map(m=>{ const s=makSonKontrol(m), t=makTurOf(m.tur); return [m.envNo,m.sapNo||'',t.grup,t.ad,m.marka,m.model,m.seriNo,m.plaka,m.yil,m.kapasite,lokAd(m.lok),m.sahiplik,m.durum,s?s.tarih:'',s?s.sonraki:'',makKontrolEtiket(m),makEksik(m).map(x=>x.ad).join(', ')]; }),'makine_ekipman.csv'); }
 function makYeni(){ if(!can('makine')) return; go('makYeni'); }
 function makAc(id){ const m=MAK.find(x=>x.id===id); if(!m) return; if(!can('makine')){ toast('Makine bölümü için yetkiniz yok.'); return; }
-  MAK_CUR=JSON.parse(JSON.stringify(m)); if(makAktifGorunum()!=='makine'){ GEZ.kendi=true; try{ go('makine'); }finally{ GEZ.kendi=false; } } else makRender(); gezKart('mak',m.id); window.scrollTo(0,0); }
+  MAK_CUR=JSON.parse(JSON.stringify(m)); MAK_DUZEN=false; if(makAktifGorunum()!=='makine'){ GEZ.kendi=true; try{ go('makine'); }finally{ GEZ.kendi=false; } } else makRender(); gezKart('mak',m.id); window.scrollTo(0,0); }
 const makDegisti = () => { const o=MAK_CUR&&MAK.find(x=>x.id===MAK_CUR.id); return MAK_CUR ? (!o || JSON.stringify(o)!==JSON.stringify(MAK_CUR)) : false; };
-function makListe(){ if(MAK_CUR && makDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; MAK_CUR=null; makRender(); }
+function makListe(){ if(MAK_CUR && makDegisti() && !confirm('Kaydedilmemiş değişiklikler var. Listeye dönülsün mü?')) return; MAK_CUR=null; MAK_DUZEN=false; makRender(); }
 function makSet(f,v,ciz){ if(!MAK_CUR) return; MAK_CUR[f]=v; if(ciz) makRender(); }
 function makKaydet(){
   const m=MAK_CUR; if(!m||!can('makine')) return;
@@ -7131,7 +7150,7 @@ function makKaydet(){
   if(MAK.some(x=>x.id!==m.id && x.envNo===m.envNo)){ toast('Bu envanter no başka bir kartta var.'); return; }
   m.guncelleme=new Date().toISOString();
   const i=MAK.findIndex(x=>x.id===m.id), k=JSON.parse(JSON.stringify(m)); if(i<0) MAK.push(k); else MAK[i]=k;
-  saveMak(); toast('Kaydedildi: '+m.envNo);
+  saveMak(); MAK_DUZEN=false; toast('Kaydedildi: '+m.envNo);
   if(makAktifGorunum()==='makYeni'){ MAK_CUR=JSON.parse(JSON.stringify(k)); go('makine'); } else makRender();
 }
 function makEnvNo(m){ const pre=`${GEN.kod}-${m.lok||'GEN'}-EKP-`; let mx=0; MAK.forEach(x=>{ if((x.envNo||'').startsWith(pre)){ const n=parseInt(x.envNo.slice(pre.length),10); if(n>mx) mx=n; } }); return pre+pad(mx+1,4); }
@@ -7189,14 +7208,14 @@ function makGruplarHtml(m){
       <div class="prsBkMetin"><b>${g.ad}</b><small>${g.sayac||(Z.length?Z.filter(prsBelgeTamam).length+' / '+Z.length+' belge':'zorunlu belge yok')}</small></div><span class="prsGrupOk">▾</span></div>`; }).join('');
 }
 function makKartHtml(){
-  const m=MAK_CUR, e=esc, t=makTurOf(m.tur), yaz=can('makine'), dis=yaz?'':' disabled', kayitli=MAK.some(x=>x.id===m.id);
+  const m=MAK_CUR, e=esc, t=makTurOf(m.tur), kayitli=MAK.some(x=>x.id===m.id), yaz=can('makine')&&(MAK_DUZEN||!kayitli), dis=yaz?'':' disabled';
   const alan=(et,ic,cls,zor)=>`<div class="denAlan${cls?' '+cls:''}"><label>${et}${zor?' <span class="req">*</span>':''}</label>${ic}</div>`;
   const inp=(f,ph)=>`<input type="text" value="${e(m[f]||'')}" oninput="makSet('${f}',this.value)" placeholder="${e(ph||'')}"${dis}>`;
   const gruplar=[...new Set(MAKINE_TUR.map(x=>x.grup))], d=makKontrolDurum(m), op=t.op?meslekOf(t.op):null, s=makSonKontrol(m);
   return `<div class="denUstBant prsBant">
       <div class="prsBantSol">${m.foto?`<img class="prsFoto buyuk" data-fid="${e(m.foto.id)}" alt="">`:`<span class="prsFoto bos buyuk">${MAK_KONTROL_SVG}</span>`}<div><div class="denNo">${e(m.envNo||'Yeni makine / ekipman')}</div>
         <div class="denAltYazi">${e([m.tur?t.ad:'',[m.marka,m.model].filter(Boolean).join(' '),lokAd(m.lok),m.durum].filter(Boolean).join(' · ')||'bilgileri girin')}</div></div></div>
-      <div class="denUstSag">${m.tur?`<span class="pill ${d.pil}">${e(d.k==='doldu'&&s?'kontrol gecikmiş':d.ad)}</span>`:''}${kayitli?`<button class="denHapBtn koyu" onclick="makListe()">← Liste</button>`:''}${yaz?`<button class="denHapBtn acc" onclick="makKaydet()">Kaydet</button>`:''}</div></div>
+      <div class="denUstSag">${m.tur?`<span class="pill ${d.pil}">${e(d.k==='doldu'&&s?'kontrol gecikmiş':d.ad)}</span>`:''}${kayitli?`<button class="denHapBtn koyu" onclick="makListe()">← Liste</button>`:''}</div></div>
     <div class="prsDuzen">
       <div class="prsVesika${yaz?'':' kilit'}" ${yaz?`onclick="$('makFotoGir').click()"`:''} title="${m.foto?'Fotoğrafı değiştir':'Fotoğraf ekle'}">
         ${m.foto?`<img data-fid="${e(m.foto.id)}" alt="">`:MAK_SIL_SVG}<span>${m.foto?'Değiştir':'Fotoğraf ekle'}</span>
@@ -7214,7 +7233,7 @@ function makKartHtml(){
         ${alan('Operatör yeterliliği',`<div class="prsTc">${e(op?op.ad:'—')}</div>`)}
         ${m.tur?alan('Dayanak',`<div class="prsTc">${e(t.ay?`Ek-III ${(t.grup.match(/Tablo-\d/)||[''])[0]} · ${t.std||''}`:(t.std||'—'))}</div>`,'genis'):''}
       </div>
-      <div class="prsGrupDikey">${m.tur?makGruplarHtml(m):''}</div>
+      <div class="prsGrupDikey">${m.tur?makGruplarHtml(m):''}${kartIslemHtml('mak',kayitli)}</div>
     </div>`;
 }
 /* yükleme penceresi (personel ile aynı): dosya seçilince tarihler okunup önerilir */
@@ -13593,7 +13612,7 @@ const SOZ_EN = {
   'SGK bildirimi':'SSI notification','bildirilmesi bekleyen olay':'incidents awaiting notification','Personel belgesi':'Personnel documents','Makine kontrolü':'Equipment inspection',
   'Eğitim':'Training','Ajanda':'Agenda','Bugün':'Today','Yarın':'Tomorrow','Bu hafta':'This week','Sonra':'Later','Bu ay':'This month','Son olaylar':'Recent incidents',
   'olay':'incidents','ramak kala':'near misses','kapanan aksiyon':'closed actions','eğitim adam·saat':'training man-hours','Kayıt yok.':'No records.',
-  'Listeye git →':'Go to list →','Kaydet':'Save','İptal':'Cancel','Kapat':'Close','Ara':'Search','Temizle':'Clear','Sil':'Delete','Düzenle':'Edit','Yazdır':'Print','Gönder':'Send',
+  'Listeye git →':'Go to list →','Kaydet':'Save','Vazgeç':'Cancel','İptal':'Cancel','Kapat':'Close','Ara':'Search','Temizle':'Clear','Sil':'Delete','Düzenle':'Edit','Yazdır':'Print','Gönder':'Send',
   'Bulgular':'Findings','Aksiyon Planı':'Action Plan','Strateji Planı':'Strategy Plan','Analiz Geçmişi':'Analysis History','Açık':'Open','Aksiyonda':'In action','Tümü':'All',
   'Tüm kaynaklar':'All sources','açık bulgu':'open findings','aksiyonda':'in action','planda bekleyen':'waiting in plan','açılan aksiyon':'actions opened','geciken':'overdue',
   'Aksiyon aç':'Open action','Aksiyon planına ekle':'Add to action plan','Personel Panosu':'Personnel Dashboard','Makine-Ekipman Panosu':'Equipment Dashboard','Eğitim Panosu':'Training Dashboard',
@@ -14202,7 +14221,8 @@ try{ dilUygula(); }catch(e){}
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.10.2':['Asistan: cevaptaki listeden kayda tıklayınca kayıt açılır','Güvenlik iyileştirmeleri (asistan bağlantıları, çeviri belleği)'],
+const SURUM_NOTU={'1.10.3':['Personel ve makine kartı salt okunur açılır; değişiklik belge gruplarının altındaki Düzenle ile (Vazgeç / Kaydet)','Kartın üstündeki Klasöre yaz ve Kaydet düğmeleri kaldırıldı; silme yok, pasife alınır (Ayrıldı / Hizmet dışı)'],
+  '1.10.2':['Asistan: cevaptaki listeden kayda tıklayınca kayıt açılır','Güvenlik iyileştirmeleri (asistan bağlantıları, çeviri belleği)'],
   '1.10.1':['Asistan sağ alttaki AI düğmesinde: üzerine gelince Analiz et ve Asistan','Dil düğmesi (TR / EN) Ayarlar düğmesinin solunda'],
   '1.10.0':['Asistan: portaldaki kayıtlarınız hakkında yazarak ya da konuşarak sorun; 👍 / 👎 ile öğrenir (üst çubuk ve ana sayfa)',
   'Dil seçimi TR / EN: menü, ana sayfa ve ekranlar İngilizce; asistan seçili dilde dinler ve konuşur',
