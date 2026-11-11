@@ -820,7 +820,8 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 .anaModuller .hava-simdi{min-width:0}.anaModuller .hava-yer{width:auto;flex:1 1 auto}
 .anaModuller .hava-gunler{gap:8px;padding-left:10px;flex:none}
 .anaModuller .hava-gun{gap:0;line-height:1.15}.anaModuller .hava-gun svg{width:16px;height:16px}
-@media(max-width:900px){ .anaModuller .hava{width:auto} }
+.anaModuller.tek .hava{width:auto}
+.hava.kisa .hava-gunler{display:none}.hava.kisa .hava-yer{width:auto}
 /* 11.11.2026: ajanda solda geniş, satırlar tek satır; kutular sağda ikişerli; iki sütun aynı hizada biter (Assist kuralı) */
 .hp-pano{grid-template-columns:minmax(0,1fr) minmax(280px,380px)!important;align-items:stretch!important}
 #anaAjanda{display:flex;flex-direction:column;min-height:0}
@@ -831,7 +832,7 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 #anaAjanda .hp-oge .m small,.anaPop .hp-oge .m small{display:inline;flex:none;max-width:34%;margin:0;overflow:hidden;text-overflow:ellipsis}
 /* 10.11.2026 (kullanıcı: "ekranı daha verimli yapalım"): kutular modüllerin altında tek sıra kısa şerit; ajanda tam genişlik */
 .hp-serit{display:grid;grid-template-columns:repeat(var(--sut,4),minmax(0,1fr));gap:10px;margin-bottom:12px}
-@media(max-width:900px){.hp-serit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* 11.11.2026: sütun sayısı genişliğe göre JS'te (anaDuzen) — @media yerine; kutular, hava ve sağ sütun hep aynı ızgarada */
 .hp-serit .hp-kutu{display:grid;grid-template:"s e" auto "s a" auto / auto minmax(0,1fr);column-gap:12px;align-items:center;padding:10px 14px}
 .hp-serit .hp-kutu .s{grid-area:s;font-size:26px;margin:0;min-width:34px}
 .hp-serit .hp-kutu .e{grid-area:e;align-self:end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -840,7 +841,8 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 /* kutular, ajanda ve sağ sütun AYNI ızgarada: sağ sütun son kutu sütunuyla hizalı (kullanıcı: "hepsi hizalı olsun") */
 .hp-gov .hp-pano{grid-template-columns:repeat(var(--sut,4),minmax(0,1fr))!important;gap:10px!important}
 .hp-gov #anaAjanda{grid-column:1 / -2}.hp-gov .hp-sag{grid-column:-2 / -1;gap:10px}
-@media(max-width:900px){.hp-gov .hp-pano{grid-template-columns:1fr!important}.hp-gov #anaAjanda,.hp-gov .hp-sag{grid-column:auto}}
+.hp-gov.dar .hp-pano{grid-template-columns:minmax(0,1fr)!important}.hp-gov.dar #anaAjanda,.hp-gov.dar .hp-sag{grid-column:auto}
+.hp-gov .hp-pano > *{min-width:0}   /* uzun ajanda satırı ızgarayı taşırmasın */
 /* kutu rengi (kullanıcı): rakam SİF sarısı, başlık siyah, alt yazı aynı */
 .hp-serit .hp-kutu .s,.hp-serit .hp-kutu.uyari .s{color:var(--jcb)}
 .hp-serit .hp-kutu .e,.hp-serit .hp-kutu.uyari .e{color:var(--text)}
@@ -1420,7 +1422,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
   <button class="hbtn tgl" id="themeBtn" onclick="temaDegis()" title="Gece / Gündüz modu"></button>
   <button type="button" class="hbtn tgl hdDil" id="hdDil" onclick="dilDegis()" title="Dil">TR</button>
   <button class="hbtn tgl" id="hdAyarBtn" onclick="go('set')" title="Ayarlar" aria-label="Ayarlar" style="display:none"></button>
-  <button type="button" class="hbtn tgl" id="hdKucult" onclick="pencereKucult()" title="Simge durumuna küçült" aria-label="Simge durumuna küçült" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M5 19h14"/></svg></button>
+  <button type="button" class="hbtn tgl" id="hdKucult" onclick="pencereKucult()" title="Saatin yanına küçült" aria-label="Saatin yanına küçült" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M5 19h14"/></svg></button>
   <button class="hbtn tgl" onclick="cikis()" title="Çıkış" aria-label="Çıkış"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   <input type="file" id="imp" accept=".json" style="display:none" onchange="restore(this)">
 </header>
@@ -2280,7 +2282,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.11.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.11.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6334,6 +6336,21 @@ function anaYanHtml(){
       ${mini(olay,'olay',once?(fark>0?'+'+fark:fark)+' geçen aya göre':'')}${mini(nm,'ramak kala')}${mini(kap,'kapanan aksiyon')}${as!=null?mini(as,'eğitim adam·saat'):''}</div></div>
     <div class="hp-kart"><h3>Son olaylar</h3><div class="hp-liste">${sonO.map(r=>`<div class="hp-oge" onclick="regAc(${jsA(r.id)})"><span class="t">${anaGun(r.tarih)}</span><div class="m"><span class="u">${esc((r.no||'')+' — '+turAd(r))}</span><small>${esc(lokAd(r.lokasyon))}</small></div></div>`).join('')||'<div class="hp-bos">Kayıt yok.</div>'}</div></div>`;
 }
+/* ANA SAYFA DÜZENİ (11.11.2026, kullanıcı: "laptop ekranında da ana sayfa kutuları birbiriyle hizalı olsun; interaktif olacak, her
+   ekranda Assist ve Hukuk kutuları gibi"): sütun sayısı ekran genişliğinden — ≥1050 px 4, ≥780 px 3, ≥520 px 2, altı 1 (kutu sayısına
+   göre üst sınır). Kutular, hava durumu ve ajanda + sağ sütun AYNI sütunlara oturur; 3'ün altında ajanda tam genişlik, sağ sütun altına.
+   Pencere boyu değişince yeniden hesaplanır. */
+function anaDuzen(){
+  const g=document.querySelector('#v-ana .hp-gov'); if(!g) return;
+  const n=g.querySelectorAll('.hp-serit .hp-kutu').length, mx=n>4?Math.ceil(n/2):Math.max(n,1), w=g.clientWidth||innerWidth;
+  const s=Math.max(1, Math.min(mx, w>=1050?4:w>=780?3:w>=520?2:1));
+  g.style.setProperty('--sut',s); g.classList.toggle('dar', s<3);
+  const m=document.querySelector('#v-ana .anaModuller'); if(m){ m.style.setProperty('--sut',s); m.classList.toggle('dar', s<3); m.classList.toggle('tek', s<2); }
+  const h=document.getElementById('anaHava'); if(h) h.classList.toggle('kisa', !s || (w/s)<300);   /* dar sÃ¼tunda 3 gÃ¼nlÃ¼k tahmin gizlenir, Åehir adÄ± sÄ±ÄsÄ±n */
+}
+{ let z=null; const tetik=()=>{ clearTimeout(z); z=setTimeout(anaDuzen,60); };
+  addEventListener('resize',tetik);
+  try{ const ro=new ResizeObserver(tetik); const izle=()=>{ const v=document.getElementById('v-ana'); if(v) ro.observe(v); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',izle); else izle(); }catch(e){} }
 function anaRender(){
   const w=$('anaWrap'); if(!w||!SES) return;
   setTimeout(()=>{ if(HAVA_HTML) havaYaz(); else havaYukle(); },0);
@@ -6360,6 +6377,7 @@ function anaRender(){
           :`<div class="hp-bos">Önümüzdeki ${ANA_GUN} günde planlı iş yok.</div>`}</div></div>
       <div class="hp-sag">${anaYanHtml()}</div>
     </div></div>`;
+  anaDuzen();
 }
 /* ── HAVA DURUMU (11.11.2026, kullanıcı: "sağ tarafa Assist gibi hava durumu") — Assist ile aynı: Open-Meteo, anahtar gerekmez;
    tarayıcı yalnız şehrin koordinatını gönderir, kişisel veri gitmez. 30 dk'da bir tazelenir; ulaşılamazsa kutu gizlenir.
@@ -13768,7 +13786,7 @@ const SOZ_EN = {
   'Aksiyonlar':'Actions','Yeni Aksiyon':'New Action','Aksiyon Listesi':'Action List','Denetim':'Inspection','Saha İnceleme':'Site Inspection','Planlı Denetim':'Planned Audit',
   'Personel Listesi':'Personnel List','Yeni Personel':'New Employee','Makine Listesi':'Equipment List','Yeni Makine':'New Equipment',
   'Eğitim Planı':'Training Plan','Eğitim Kayıtları':'Training Records','Yeni Eğitim':'New Training',
-  'Bildirimler':'Notifications','Simge durumuna küçült':'Minimise','Ayarlar':'Settings','Çıkış':'Sign out','Profil':'Profile','Gece / Gündüz modu':'Dark / Light mode','Asistan':'Assistant',
+  'Bildirimler':'Notifications','Simge durumuna küçült':'Minimise','Saatin yanına küçült':'Minimise to tray','Ayarlar':'Settings','Çıkış':'Sign out','Profil':'Profile','Gece / Gündüz modu':'Dark / Light mode','Asistan':'Assistant',
   'YÖNETİM PORTALI':'MANAGEMENT PORTAL','Yönetim Portalı':'Management Portal',
   'İSG Yönetimi':'HSE Management','Personel Yönetimi':'Personnel Management','Makine-Ekipman Yönetimi':'Equipment Management','Eğitim Yönetimi':'Training Management',
   'Açık aksiyon':'Open actions','yetkili olduğunuz modüllerde':'in modules you can access','Geciken':'Overdue','termini geçmiş aksiyon':'actions past due date',
@@ -14464,7 +14482,12 @@ try{ dilUygula(); }catch(e){}
 /* SİMGE DURUMUNA KÜÇÜLT (11.11.2026, kullanıcı: "simge durumunda küçült butonu koy"): uygulama penceresinde (Edge --app, yerel sunucu)
    sayfa kendi penceresini küçültemez; başlığa geçici işaret konur, yerel sunucu (/__sif_pencere) o başlıktaki pencereyi küçültür.
    Düğme yalnız yerel sunucuda (8090) görünür; telefonda / deneme sitesinde yok. */
+/* 11.11.2026 (kullanıcı: "saatin oraya atsın"): saatin yanındaki SİF yardımcısıyla (sif_tepsi.ps1, ?tepsi=1) açıldıysa başlığa
+   " · Tepside" eklenir, yardımcı pencereyi saatin yanına indirir (HSE ile aynı sözleşme). Yardımcı yoksa sunucu ucuyla görev çubuğuna küçülür. */
+const TEPSI_ACIK = /[?&]tepsi=1(&|$)/.test(location.search);
 async function pencereKucult(){
+  if(TEPSI_ACIK){ const t=document.title.replace(/ · Tepside$/,''); document.title=t+' · Tepside';
+    setTimeout(()=>{ if(/ · Tepside$/.test(document.title)) document.title=t; }, 1500); return; }
   const eski=document.title, is='SIFKUCULT'+Math.random().toString(16).slice(2,12).padEnd(10,'0');
   document.title=eski+' '+is;
   try{
@@ -14502,7 +14525,8 @@ async function pencereKucult(){
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
+const SURUM_NOTU={'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+  '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
   '1.10.3':['Personel ve makine kartı salt okunur açılır; değişiklik belge gruplarının altındaki Düzenle ile (Vazgeç / Kaydet)','Kartın üstündeki Klasöre yaz ve Kaydet düğmeleri kaldırıldı; silme yok, pasife alınır (Ayrıldı / Hizmet dışı)'],
