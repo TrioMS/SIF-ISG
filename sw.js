@@ -12,7 +12,7 @@
      yanıtı saklanmaz. Olay kayıtları zaten uygulamanın kendi deposunda
      (localStorage / IndexedDB) durur; bu katman onlara dokunmaz.
    • Kabuk dosyaları değişince SURUM'ü yükselt: eski önbellek silinir. */
-const SURUM = 'sif-isg-2026.11.11b';   /* 11.11.2026: telefon ana sayfa (uygulama.css) - eski kabuk onbellegi silinsin */
+const SURUM = 'sif-isg-2026.11.11c';   /* 11.11.2026: telefon QR yerlesimi (uygulama.css) - eski kabuk onbellegi silinsin */
 const KABUK = [
   'hizli_olay_bildirimi.html',
   'manifest.json',

@@ -321,3 +321,13 @@
   .anaModuller .anaSor{display:flex!important;flex:1 1 100%;max-width:none;margin:0;order:5}
   .anaModuller .hava{order:6}
 }
+/* 11.11.2026 (kullanıcı: "app'te makine fotosunun sağına al QR kodu"): telefonda makine kartında fotoğraf solda, QR + Yazdır sağında */
+@media(max-width:640px){
+  .prsDuzen .makSol{display:grid;grid-template-columns:140px 140px;grid-template-rows:auto 1fr;column-gap:12px;row-gap:8px;width:auto;justify-content:center;align-items:start;margin:0 auto}
+  .prsDuzen .makSol .prsVesika{grid-column:1;grid-row:1 / span 2;width:140px;margin:0}
+  .prsDuzen .makSol .makQr,.prsDuzen .makSol .makQrBtn{grid-column:2}
+  .prsDuzen .makSol .makQr{grid-row:1;padding:6px}
+  .prsDuzen .makSol .makQrBtn{align-self:start}
+}
+/* QR oku düğmesi ana sayfada yalnız uygulamada (telefon + dokunmatik tablet); masaüstü portalda gizli (portal sayfası kuralı) */
+@media(max-width:640px),(hover:none) and (pointer:coarse){ .anaModuller .anaQr{display:flex} }

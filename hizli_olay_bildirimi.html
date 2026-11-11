@@ -1030,6 +1030,7 @@ body.asAcik .aiFab{display:none!important}
 .makQrKod svg{width:100%;height:auto;display:block}.makQr small{display:block;font-size:10.5px;font-weight:700;color:var(--text2);margin-top:4px;word-break:break-all}
 .makQrBtn{width:100%;justify-content:center}
 .anaQr .anaIco{background:#141414;color:var(--jcb)}
+.anaModuller .anaQr{display:none}   /* 11.11.2026 (kullanıcı: "portalda ana sayfada QR oku balonuna gerek yok, app tarafında olacak"): yalnız telefon / dokunmatik tablette, uygulama.css */
 .servisQrAlan{display:flex;flex-direction:column;align-items:center;gap:12px;margin:8vh auto 0;text-align:center}
 .servisQrBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:220px;height:220px;border-radius:32px;border:0;background:#141414;color:var(--jcb);font:inherit;font-size:20px;font-weight:800;cursor:pointer;box-shadow:0 14px 34px rgba(0,0,0,.25)}
 .servisQrBtn svg{width:96px;height:96px}.servisQrAlan small{color:var(--text3);font-size:13px}
@@ -1037,6 +1038,8 @@ body.asAcik .aiFab{display:none!important}
 .qrVideo video{width:100%;height:100%;object-fit:cover;display:block}
 .qrCerceve{position:absolute;inset:18%;border:3px solid var(--jcb);border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
 .qrElle{display:flex;gap:8px}.qrElle input{flex:1;min-width:0}
+.prsQrBtnlar{display:flex;flex-direction:column;gap:6px}
+.prsQrBas{display:flex;align-items:center;gap:12px;margin-bottom:6px}.prsQrBas b{display:block;font-size:16px}.prsQrBas span{font-size:12.5px;color:var(--text2)}
 .servisBas b{display:block;font-size:16px}.servisBas span{font-size:12.5px;color:var(--text2)}
 .denHaplar{display:flex;gap:6px;flex-wrap:wrap}
 .denHap{border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
@@ -2332,7 +2335,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.14.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.15.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6448,7 +6451,7 @@ function anaRender(){
     can('egitim')?kutu('egt','Eğitim','eksik / süresi dolan / '+UYARI_GUN+' gün içinde',1):''
   ].filter(Boolean).join('');
   const SUT=(n=>n>4?Math.ceil(n/2):Math.max(n,1))((kutular.match(/class="hp-kutu/g)||[]).length);
-  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller" style="--sut:${SUT}">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}${can('makine')?`<button type="button" class="anaMod anaQr" onclick="qrOku()" aria-label="QR oku"><span class="anaIco">${QR_OKU_SVG}</span><span class="anaIpucu">QR oku</span></button>`:''}<form class="anaSor" onsubmit="event.preventDefault();asAc(this.q.value);this.q.value=''"><input name="q" type="text" autocomplete="off" maxlength="300" placeholder="${esc(Ld('Asistana sorun: kaç açık aksiyon var?','Ask the assistant: how many open actions?'))}"><button type="button" title="${esc(Ld('Konuşarak sor','Ask by voice'))}" onclick="asAc();asMik()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button type="submit" title="${esc(Ld('Sor','Ask'))}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/></svg></button></form><div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
+  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller" style="--sut:${SUT}">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}${qrOkuYetki()?`<button type="button" class="anaMod anaQr" onclick="qrOku()" aria-label="QR oku"><span class="anaIco">${QR_OKU_SVG}</span><span class="anaIpucu">QR oku</span></button>`:''}<form class="anaSor" onsubmit="event.preventDefault();asAc(this.q.value);this.q.value=''"><input name="q" type="text" autocomplete="off" maxlength="300" placeholder="${esc(Ld('Asistana sorun: kaç açık aksiyon var?','Ask the assistant: how many open actions?'))}"><button type="button" title="${esc(Ld('Konuşarak sor','Ask by voice'))}" onclick="asAc();asMik()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button type="submit" title="${esc(Ld('Sor','Ask'))}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/></svg></button></form><div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
     <div class="hp-gov" style="--sut:${SUT}"><div class="hp-serit">${kutular}</div>
     <div class="hp-pano">
       <div class="hp-kart" id="anaAjanda"><h3>Ajanda<small>Yaklaşanlar · önümüzdeki ${ANA_GUN} gün</small></h3>
@@ -6608,7 +6611,7 @@ function hedefAc(h){
   if(h.startsWith('olay:')){ const r=RECS.find(x=>x.id===h.slice(5)); if(r) regAc(r.id); else toast('Olay bulunamadı.'); }
   else if(h.startsWith('aks:')){ go('act'); openActByNo(h.slice(4)); }
   else if(h.startsWith('den:')) denAc(h.slice(4));
-  else if(h.startsWith('prs:')) prsAc(h.slice(4));
+  else if(h.startsWith('prs:')) prsQrAc(decodeURIComponent(h.slice(4)));
   else if(h.startsWith('mak:')) makQrAc(h.slice(4));
   else if(h==='personel'||h==='makine'||h==='ana') go(h);
   else if(h==='pano') go('analiz');
@@ -6673,7 +6676,7 @@ function prsRender(){
   const yeni=prsAktifGorunum()==='prsYeni';
   const w=$(yeni?'prsYeniWrap':'personelWrap'), o=$(yeni?'personelWrap':'prsYeniWrap'); if(o) o.innerHTML=''; if(!w) return;
   w.innerHTML = PRS_CUR ? prsKartHtml() : prsListeHtml();
-  denFotoYukle(w);
+  denFotoYukle(w); qrDoldur(w);
   if(!PRS_CUR) requestAnimationFrame(()=>requestAnimationFrame(listeBoy));
 }
 function prsYeni(){ if(!can('personel')) return; go('prsYeni'); }
@@ -6818,6 +6821,7 @@ function prsGrupVeri(p){
     ozluk:{ad:'Özlük dosyası', alt:'İK özlük belgeleri', ico:PRS_BELGE_SVG, L:OZLUK_LISTE.map(ad=>{ const o=(p.ozluk||{})[ad]; return {ad, dosya:o&&o.dosya, alt:o&&o.dosya?trDate(o.tarih)+' yüklendi':'yüklenmedi', tik:`prsOzlukSec(${jsA(ad)})`}; })}
   };
   G.kkd=kayitGrup('kkd',p); G.gorev=kayitGrup('gorev',p);
+  G.perf=prsPerfGrup(p); G.odul=kayitGrup('odul',p); G.disiplin=kayitGrup('disiplin',p);
   if(can('saglik')){ const sm=prsSonMuayene(p); G.saglik={ad:'Sağlık muayenesi', alt:p.tehlike+' işyeri: '+(MUAYENE_AY[p.tehlike]/12)+' yılda bir', ico:PRS_SAGLIK_SVG,
     L:[{ad:'Periyodik muayene', dosya:sm&&sm.dosya, d:sm&&sm.dosya?gecDurum(sm.sonraki):null, alt:sm?('son '+trDate(sm.tarih)+' · sonraki '+trDate(sm.sonraki)):'yüklenmedi', tik:`prsYukle('saglik','Periyodik muayene',${MUAYENE_AY[p.tehlike]||12})`}]}; }
   return G;
@@ -6881,9 +6885,9 @@ function prsKartHtml(){
       <div class="prsBantSol">${prsFotoHtml(p,'buyuk')}<div><div class="denNo">${e(p.ad||'Yeni personel')}</div><div class="denAltYazi">${e([p.sicil?'Sicil '+p.sicil:'',meslekAd(p),lokAd(p.lok),prsYaka(p)].filter(Boolean).join(' · ')||'bilgileri girin')}</div></div></div>
       <div class="denUstSag"></div></div>
     <div class="prsDuzen">
-      <div class="prsVesika${yaz?'':' kilit'}" ${yaz?`onclick="$('prsFotoGir').click()"`:''} title="${p.foto?'Fotoğrafı değiştir':'Vesikalık ekle'}">
+      <div class="makSol"><div class="prsVesika${yaz?'':' kilit'}" ${yaz?`onclick="$('prsFotoGir').click()"`:''} title="${p.foto?'Fotoğrafı değiştir':'Vesikalık ekle'}">
         ${p.foto?`<img data-fid="${e(p.foto.id)}" alt="">`:PRS_SIL_SVG}<span>${p.foto?'Değiştir':'Vesikalık ekle'}</span>
-        <input type="file" id="prsFotoGir" accept="image/*" style="display:none" onchange="prsFotoEkle(this)"></div>
+        <input type="file" id="prsFotoGir" accept="image/*" style="display:none" onchange="prsFotoEkle(this)"></div>${prsQrHtml(p)}</div>
       <div class="prsBilgi">
         ${alan('Ad soyad',inp('ad','Ad Soyad'),'',1)}${alan('Sicil no',inp('sicil','SAP sicil',' onchange="prsSicilSap(this.value)"'))}${alan('TC kimlik no',tcAlan)}
         ${alan('Cinsiyet',sec('cinsiyet',CINSIYET))}${alan('Doğum tarihi',tarihKutu(p.dogum,"prsSet('dogum',this.dataset.iso)"))}${alan('İşe giriş',tarihKutu(p.iseGiris,"prsSet('iseGiris',this.dataset.iso)"))}
@@ -7536,7 +7540,21 @@ const GUNLUK_KONTROL = ['Frenler ve el freni','Direksiyon','Lastik / palet','Hid
 const KKD_TUR = ['Baret','İş ayakkabısı','Reflektörlü yelek','İş eldiveni','Koruyucu gözlük','Kulak koruyucu','Toz maskesi','Yüz siperi','Paraşüt tipi emniyet kemeri','Kaynakçı önlüğü','Yağmurluk / mont','Diğer'];
 const GOREV_TUR = ['Forklift kullanma yetkisi','İş makinesi kullanma yetkisi','Vinç / sapancı yetkisi','Kilitleme-etiketleme (LOTO) yetkilisi','Yüksekte çalışma yetkisi','Sıcak iş yetkilisi',
   'Kapalı alan giriş yetkisi','Elektrik işi yetkisi','İlk yardımcı','Yangınla mücadele ekibi','Arama-kurtarma ekibi','Tahliye ekibi','Çalışan temsilcisi','Diğer'];
+/* ÖDÜL / DİSİPLİN (11.11.2026, kullanıcı: "personel dosyasına ödül, disiplin seçenekleri, onların da belgeleri eklenecek; hangi
+   olaylardan ceza almış veya ödül almış, bunlar da performansta takip edilecek"): ilgili olay seçilir (yetkili olduğu olaylar),
+   belge isteğe bağlı; Performans balonunda sayılır. Personel yetkisi olan görür / girer; silme yok. */
+const ODUL_TUR = ['Teşekkür belgesi','Takdir belgesi','Başarı ödülü','Güvenli davranış ödülü','Prim / ikramiye','Diğer'];
+const DISIPLIN_TUR = ['Sözlü uyarı','Yazılı uyarı','Kınama','Ücret kesme','Geçici görevden uzaklaştırma','İş sözleşmesinin feshi','Diğer'];
+const olayEt = id => { const r=id && RECS.find(x=>x.id===id); return r ? (r.no||'')+' — '+turAd(r) : ''; };
 const KAYIT_SEMA = {
+  odul:{mod:'prs', dizi:'oduller', ad:'Ödül', grup:'Ödüller', alt:'Teşekkür, takdir, ödül, prim',
+    alanlar:[{k:'tarih',ad:'Tarih',tip:'tarih',z:1},{k:'tur',ad:'Ödül',tip:'secim',ops:ODUL_TUR,z:1},{k:'olay',ad:'İlgili olay',tip:'olay'},
+      {k:'gerekce',ad:'Gerekçe',tip:'uzun',z:1,genis:1},{k:'veren',ad:'Veren',tip:'kisi'}],
+    satir:o=>({ad:(o.tur||'Ödül')+' · '+trDate(o.tarih), alt:[olayEt(o.olay), String(o.gerekce||'').slice(0,70)].filter(Boolean).join(' · ')||'ödül'})},
+  disiplin:{mod:'prs', dizi:'disiplinler', ad:'Disiplin kaydı', grup:'Disiplin', alt:'Uyarı, kınama ve diğer disiplin işlemleri',
+    alanlar:[{k:'tarih',ad:'Tarih',tip:'tarih',z:1},{k:'tur',ad:'İşlem',tip:'secim',ops:DISIPLIN_TUR,z:1},{k:'olay',ad:'İlgili olay',tip:'olay'},
+      {k:'gerekce',ad:'Gerekçe',tip:'uzun',z:1,genis:1},{k:'karar',ad:'Karar veren (kurul / kişi)',tip:'metin'},{k:'not',ad:'Not',tip:'metin'}],
+    satir:o=>({ad:(o.tur||'Disiplin')+' · '+trDate(o.tarih), alt:[olayEt(o.olay), String(o.gerekce||'').slice(0,70)].filter(Boolean).join(' · ')||'disiplin'})},
   gunluk:{mod:'mak', dizi:'gunlukKontroller', ad:'Vardiya öncesi kontrol', grup:'Vardiya öncesi kontroller', alt:'Operatörün günlük kontrol listesi',
     alanlar:[{k:'tarih',ad:'Tarih',tip:'tarih',z:1},{k:'operator',ad:'Operatör',tip:'kisi',z:1},{k:'sayac',ad:'Sayaç (saat / km)',tip:'sayi'},
       {k:'liste',ad:'Kontrol listesi',tip:'kontrol',ops:GUNLUK_KONTROL},{k:'not',ad:'Not',tip:'uzun',genis:1}],
@@ -7576,6 +7594,8 @@ function kayitForm(tur, id){
     if(a.tip==='uzun') return `<div class="denAlan genis"><label>${ad}</label><textarea id="${idA}" rows="2">${e(v(a.k))}</textarea></div>`;
     if(a.tip==='secim') return `<div class="denAlan"><label>${ad}</label><select id="${idA}">${a.ops.map(x=>`<option${v(a.k)===x?' selected':''}>${e(x)}</option>`).join('')}</select></div>`;
     if(a.tip==='sayi') return `<div class="denAlan"><label>${ad}</label><input type="number" min="0" step="any" id="${idA}" value="${e(v(a.k))}"></div>`;
+    if(a.tip==='olay'){ const L=gorunurKayitlar().slice().sort((x,y)=>(y.tarih||'').localeCompare(x.tarih||'')).slice(0,400);
+      return `<div class="denAlan genis"><label>${ad}</label><select id="${idA}"><option value="">— yok —</option>${L.map(r=>`<option value="${e(r.id)}"${v(a.k)===r.id?' selected':''}>${e((r.no||'')+' — '+turAd(r)+' · '+trDate(r.tarih))}</option>`).join('')}</select></div>`; }
     if(a.tip==='kisi') return `<div class="denAlan"><label>${ad}</label><input type="text" id="${idA}" list="dlAd" value="${e(v(a.k))}"></div>`;
     if(a.tip==='kontrol'){ const L=v(a.k)||{}; return `<div class="denAlan genis"><label>${ad}</label><div class="kfKontrol">${a.ops.map((m,i)=>`<div class="kfKs"><span>${e(m)}</span>
         <select id="${idA}_${i}">${['Uygun','Uygun değil','Yok / uygulanmaz'].map(x=>`<option${(L[m]||'Uygun')===x?' selected':''}>${x}</option>`).join('')}</select></div>`).join('')}</div></div>`; }
@@ -7739,6 +7759,128 @@ function makQrAc(id){
   if(servisMi()) return servisAc(id);
   toast('Makine bölümü için yetkiniz yok.');
 }
+/* ══ PERSONEL PERFANSI (11.11.2026, kullanıcı: "kim hangi aksiyonu ne kadar sürede çözmüş, kendisine atanan görevi (aksiyonu) zamanında
+   tamamlamış mı, personel performans balonunda gözüksün" + ödül / disiplin) ══
+   Kaynak: allActions() (yetkili olunan olayların aksiyonları + bağımsız aksiyonlar); kişiye ait = sorumlu e-postası ya da adı eşleşen.
+   Taslak / iptal sayılmaz. Çözüm süresi = açılış (olusturma) → kapanış tarihi; zamanında = kapanış ≤ termin (termin yoksa zamanında).
+   Açık ve termini geçmiş aksiyon "gecikmiş açık". Ödül / disiplin sayıları aynı balonda. */
+const PRS_PERF_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/></svg>';
+function prsAksiyonlari(p){
+  const m=String(p.mail||'').toLowerCase(), ad=String(p.ad||'').toLocaleLowerCase('tr').trim();
+  return allActions().filter(({a})=>!a.iptal && !(a.taslak && !a.kapanis) && (
+    (m && String(a.sorumluMail||'').toLowerCase()===m) || (ad.length>=3 && String(a.sorumlu||'').toLocaleLowerCase('tr').trim()===ad)));
+}
+function prsPerf(p){
+  const L=prsAksiyonlari(p), b=sgkBugun();
+  const kap=L.filter(x=>x.a.kapanis && x.a.kapanis.tarih), acik=L.filter(x=>!x.a.kapanis);
+  const zam=kap.filter(x=>!x.a.termin || x.a.kapanis.tarih<=x.a.termin);
+  const sure=kap.map(x=>x.a.olusturma ? Math.max(0,Math.round((new Date(x.a.kapanis.tarih+'T12:00:00')-new Date(String(x.a.olusturma).slice(0,10)+'T12:00:00'))/864e5)) : null).filter(x=>x!=null);
+  return {L, kap, acik, zam, acikGec:acik.filter(x=>x.a.termin && x.a.termin<b), ort:sure.length?Math.round(sure.reduce((s,x)=>s+x,0)/sure.length*10)/10:null,
+    oran:kap.length?Math.round(zam.length/kap.length*100):null, odul:(p.oduller||[]).length, dis:(p.disiplinler||[]).length};
+}
+function prsPerfGrup(p){
+  const P=prsPerf(p), sat=(ad,alt)=>({ad, alt, isaretYok:1, gecmis:1, tik:'void 0'});
+  const L=[
+    sat('Atanan aksiyon: '+P.L.length, P.acik.length+' açık'+(P.acikGec.length?' ('+P.acikGec.length+' termini geçmiş)':'')+' · '+P.kap.length+' kapandı'),
+    sat('Zamanında tamamlama: '+(P.oran==null?'—':'%'+P.oran), P.kap.length?(P.zam.length+' / '+P.kap.length+' aksiyon termininde kapandı'):'kapanan aksiyon yok'),
+    sat('Ortalama çözüm süresi: '+(P.ort==null?'—':P.ort+' gün'), 'açılıştan kapanışa'),
+    sat('Ödül: '+P.odul+' · Disiplin: '+P.dis, 'Ödüller ve Disiplin balonlarında')
+  ];
+  P.L.slice().sort((x,y)=>String(y.a.olusturma||'').localeCompare(String(x.a.olusturma||''))).slice(0,20).forEach(({a,no})=>{
+    let alt;
+    if(a.kapanis && a.kapanis.tarih){ const g=a.olusturma?Math.max(0,Math.round((new Date(a.kapanis.tarih+'T12:00:00')-new Date(String(a.olusturma).slice(0,10)+'T12:00:00'))/864e5)):null;
+      const gec=a.termin && a.kapanis.tarih>a.termin ? Math.round((new Date(a.kapanis.tarih)-new Date(a.termin))/864e5) : 0;
+      alt=(g!=null?g+' günde kapandı':'kapandı '+trDate(a.kapanis.tarih))+' · '+(gec>0?gec+' gün gecikmeli':'zamanında'); }
+    else alt='açık'+(a.termin?' · termin '+trDate(a.termin)+(a.termin<sgkBugun()?' (geçti)':''):'');
+    L.push({ad:no+' — '+String(a.tanim||'').slice(0,60), alt, isaretYok:1, gecmis:1, tik:`openActByNo(${jsA(no)})`});
+  });
+  return {ad:'Performans', alt:'Atanan aksiyonlar, zamanında tamamlama, ödül / disiplin', ico:PRS_PERF_SVG,
+    sayac:(P.oran==null?P.L.length+' aksiyon':'%'+P.oran+' zamanında · '+P.L.length+' aksiyon'), L};
+}
+/* ══ PERSONEL QR KODU (11.11.2026, kullanıcı: "personel tarafında da QR üret; hem ID karta basılabilsin hem de sticker olarak baret
+   vs. kullanılsın; tüm bilgileri, eğitim geçmişi vs. okutulunca ekranda dökülsün, hem app hem portalda, tabii yetkiler dahilinde") ══
+   Kod = uygulama adresi + "#git=prs:<kimlik>" — KİŞİ VERİSİ YOK (makine etiketinden farkı: ad, sicil, TC koda yazılmaz; KVKK).
+   Bu yüzden kişi okutulan cihazda kayıtlı değilse etiketten kurulamaz (veri havuzu telefondan erişilebilir olunca çözülür).
+   Okutunca özet pencere, yetkiye göre: kimlik satırı (personel / eğitim / sağlık yetkisinden biri + lokasyon), eğitim geçmişi ve
+   zorunlu eğitim durumu (eğitim ya da personel), belgeler + KKD + görevlendirme (personel), periyodik muayene tarihleri (sağlık;
+   bulgu yok). "Kartı aç" yalnız personel yetkisiyle. Baskı: ID kart (CR80, 85,6 × 54 mm: vesikalık, ad, görev, sicil, QR) ve
+   baret etiketi (30 × 36 mm: yalnız QR + SİF; kişi adı yazılmaz). */
+const prsQrAdres = p => QR_TABAN + '#git=prs:' + encodeURIComponent(p.id);
+const qrOkuYetki = () => can('makine') || can('personel') || can('egitim') || can('saglik');
+function prsQrHtml(p){
+  if(!can('personel')) return '';
+  if(!p.qr) return `<button type="button" class="denHapBtn makQrBtn" onclick="prsQrUret()">QR üret</button>`;
+  return `<div class="makQr"><div class="makQrKod" data-qr="${esc(prsQrAdres(p))}"></div></div>
+    <div class="prsQrBtnlar"><button type="button" class="denHapBtn makQrBtn" onclick="prsQrYazdir('kart')">ID kart</button><button type="button" class="denHapBtn makQrBtn" onclick="prsQrYazdir('etiket')">Baret etiketi</button></div>`;
+}
+async function prsQrUret(){
+  const p=PRS_CUR; if(!p || !can('personel')) return;
+  try{ await qrYukle(); }catch(e){ toast(e.message); return; }
+  const qr={tarih:new Date().toISOString(), uretan:SES?SES.ad:''};
+  p.qr=qr; const o=PRS.find(x=>x.id===p.id); if(o){ o.qr=qr; savePrs(); }   /* yalnız QR işareti; kaydedilmemiş düzenleme yazılmaz */
+  prsRender();
+}
+const blobUri = b => new Promise(r=>{ const f=new FileReader(); f.onload=()=>r(f.result); f.onerror=()=>r(''); f.readAsDataURL(b); });
+function qrBas(html){
+  const f=document.createElement('iframe'); f.style.cssText='position:fixed;left:-9999px;top:0;width:900px;height:600px;border:0;visibility:hidden';
+  document.body.appendChild(f);
+  f.onload=()=>{ setTimeout(()=>{ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(x){} setTimeout(()=>f.remove(),60000); },400); };
+  f.srcdoc=html;
+}
+async function prsQrYazdir(tur){
+  const p=PRS_CUR; if(!p || !can('personel')) return;
+  try{ await qrYukle(); }catch(e){ toast(e.message); return; }
+  const e=esc, kod=qrSvg(prsQrAdres(p)), sari='#F5C518';
+  if(tur==='etiket'){
+    qrBas(`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>QR</title><style>@page{size:30mm 36mm;margin:0}*{box-sizing:border-box;margin:0}
+      body{font-family:'Segoe UI',Arial,sans-serif}.e{width:30mm;height:36mm;padding:1.5mm;display:flex;flex-direction:column;align-items:center;gap:.8mm;border-bottom:2mm solid ${sari}}
+      .q{width:27mm;height:27mm}.q svg{width:100%;height:100%}.e b{font-size:7pt;letter-spacing:.3px}</style></head>
+      <body><div class="e"><div class="q">${kod}</div><b>SİF</b></div></body></html>`);
+    return;
+  }
+  let foto=''; if(p.foto){ const b=await getFile(p.foto.id); if(b) foto=await blobUri(b); }
+  qrBas(`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${e(p.ad||'ID')}</title><style>@page{size:85.6mm 54mm;margin:0}*{box-sizing:border-box;margin:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#141414}
+    .k{width:85.6mm;height:54mm;display:flex;flex-direction:column;overflow:hidden}
+    .ust{background:#141414;height:9mm;display:flex;align-items:center;padding:0 3mm;border-bottom:1.2mm solid ${sari}}.ust img{height:6mm}
+    .g{flex:1;display:flex;gap:2.5mm;padding:2.5mm 3mm;align-items:center}
+    .f{width:20mm;height:25mm;flex:none;border-radius:1.5mm;overflow:hidden;background:#E7EAEE;display:grid;place-items:center;font-weight:800;font-size:14pt;color:#8A94A3}.f img{width:100%;height:100%;object-fit:cover}
+    .b{flex:1;min-width:0;display:flex;flex-direction:column;gap:.8mm;font-size:7pt;line-height:1.25}.b b{font-size:9.5pt;line-height:1.15}.b small{font-size:6pt;color:#5A6472}
+    .q{width:22mm;height:22mm;flex:none}.q svg{width:100%;height:100%}</style></head>
+    <body><div class="k"><div class="ust"><img src="sif_jcb_logo.png" alt=""></div><div class="g">
+      <div class="f">${foto?`<img src="${foto}" alt="">`:e(prsHarf(p.ad))}</div>
+      <div class="b"><b>${e(p.ad||'')}</b><span>${e(meslekAd(p))}</span>${p.sicil?`<span>Sicil: ${e(p.sicil)}</span>`:''}<small>${e(lokAd(p.lok))}</small></div>
+      <div class="q">${kod}</div></div></div></body></html>`);
+}
+/* okutulunca: yetkiye göre özet */
+function prsQrAc(id){
+  const p=PRS.find(x=>x.id===id);
+  if(!p){ toast('Bu kişi bu cihazda kayıtlı değil.'); return; }
+  if(!prsGorebilir(p)){ toast('Bu kişinin lokasyonu için yetkiniz yok.'); return; }
+  const P=can('personel'), E=can('egitim')||P, S=can('saglik');
+  if(!(P||E||S)){ toast('Personel bilgileri için yetkiniz yok.'); return; }
+  const e=esc, sat=(ad,alt,d)=>`<div class="hp-oge"><div class="m"><span class="u">${e(ad)}</span><small>${e(alt||'')}</small></div>${d?`<span class="pill ${d.pil||'p-gry'}">${e(d.ad)}</span>`:''}</div>`;
+  let h=`<div class="prsForm yumusak"><div class="prsQrBas">${prsFotoHtml(p,'buyuk')}<div><b>${e(p.ad||'')}</b><span>${e([meslekAd(p),p.sicil?'Sicil '+p.sicil:'',lokAd(p.lok),p.durum==='ayrildi'?'ayrıldı':''].filter(Boolean).join(' · '))}</span></div></div>`;
+  if(E){
+    const Z=egtGerekli(p).map(t=>egtKisiDurum(p,t)), eks=Z.filter(z=>z.k==='yok'||z.k==='doldu');
+    h+=`<div class="kfBolum">Zorunlu eğitimler</div>`+(Z.length?Z.map(z=>sat(z.t.ad, z.son?('son '+trDate(z.son.tarih)+(z.bitis?' · geçerli '+trDate(z.bitis):'')):'kayıt yok', {ad:z.ad, pil:z.k==='gecerli'?'p-grn':z.k==='yakin'?'p-amb':'p-red'})).join(''):'<div class="hp-bos">Mesleği için zorunlu eğitim tanımlı değil.</div>');
+    const G=(p.egitimler||[]).slice().sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''));
+    h+=`<div class="kfBolum">Eğitim geçmişi · ${G.length}</div>`+(G.length?G.map(x=>sat(x.ad, [trDate(x.tarih), x.sure?x.sure+' sa':'', x.bitis?'geçerli '+trDate(x.bitis):''].filter(Boolean).join(' · '), x.bitis?gecDurum(x.bitis):null)).join(''):'<div class="hp-bos">Kayıt yok.</div>');
+    if(eks.length) h+=`<div class="hp-bos" style="color:var(--red)">${eks.length} zorunlu eğitim eksik ya da süresi dolmuş.</div>`;
+  }
+  if(P){
+    const B=prsBelgeDurum(p).filter(x=>!x.g.egitim);
+    h+=`<div class="kfBolum">Belgeler</div>`+(B.length?B.map(x=>sat(x.g.ad, x.son?(x.son.bitis?'geçerli '+trDate(x.son.bitis):'süresiz'):'yüklenmedi', x.d)).join(''):'<div class="hp-bos">Zorunlu belge yok.</div>');
+    const Kk=(p.kkdZimmet||[]), Gr=(p.gorevlendirmeler||[]);
+    if(Kk.length) h+=`<div class="kfBolum">KKD zimmet</div>`+Kk.map(z=>sat((z.kkd||'KKD')+(z.adet>1?' × '+z.adet:''), [trDate(z.tarih), z.iade?'yenileme '+trDate(z.iade):''].filter(Boolean).join(' · '), z.iade?gecDurum(z.iade):null)).join('');
+    { const Pf=prsPerf(p); h+=`<div class="kfBolum">Performans</div>`+sat('Atanan aksiyon: '+Pf.L.length+' · zamanında '+(Pf.oran==null?'—':'%'+Pf.oran), (Pf.ort==null?'':'ortalama '+Pf.ort+' gün · ')+'ödül '+Pf.odul+' · disiplin '+Pf.dis); }
+    if(Gr.length) h+=`<div class="kfBolum">Görevlendirme ve yetkiler</div>`+Gr.map(g=>sat(g.tur||'Görev', [trDate(g.tarih), g.gecerlilik?'geçerli '+trDate(g.gecerlilik):'süresiz'].join(' · '), g.gecerlilik?gecDurum(g.gecerlilik):null)).join('');
+  }
+  if(S){ const sm=prsSonMuayene(p); h+=`<div class="kfBolum">Periyodik muayene</div>`+(sm?sat('Son muayene '+trDate(sm.tarih), 'sonraki '+trDate(sm.sonraki), gecDurum(sm.sonraki)):'<div class="hp-bos">Kayıt yok.</div>'); }
+  h+=(P?`<div class="bar" style="margin-top:12px;justify-content:flex-end"><button class="denHapBtn acc" onclick="closeOv('ovGrafik');prsAc(${jsA(p.id)})">Kartı aç</button></div>`:'')+'</div>';
+  $('gpBaslik').textContent=Ld('Personel','Personnel');
+  $('gpGovde').innerHTML=h; denFotoYukle($('gpGovde')); ovAc('ovGrafik');
+}
 /* cihazda olmayan makine: etiketteki tanıtım bilgisiyle aynı kimlikle kurulur (yetki + lokasyon denetimiyle) */
 function makQrKur(ham){
   const p=String(ham||'').split(':'), id=decodeURIComponent(p[0]||''), env=p[1]?decodeURIComponent(p[1]):'';
@@ -7787,7 +7929,9 @@ const QR_OKU_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" 
 let QR_AKIS=null, QR_DONGU=0;
 function qrDurdur(){ cancelAnimationFrame(QR_DONGU); QR_DONGU=0; if(QR_AKIS){ QR_AKIS.getTracks().forEach(t=>t.stop()); QR_AKIS=null; } }
 function qrMetinCoz(s){
-  s=String(s||'').trim(); const m=s.match(/#git=mak:([^#&\s]+)/);
+  s=String(s||'').trim(); const pk=s.match(/#git=prs:([^#&\s:]+)/);
+  if(pk){ const id=decodeURIComponent(pk[1]); return {prs:id}; }
+  const m=s.match(/#git=mak:([^#&\s]+)/);
   if(m) return makQrBul(m[1]) || {yok:m[1]};
   return MAK.find(x=>esitTR(x.envNo,s) || (x.sapNo && String(x.sapNo)===s)) || null;
 }
@@ -7795,18 +7939,19 @@ function qrBulundu(s){
   const m=qrMetinCoz(s);
   if(!m){ toast('Bu kod bir makineye ait değil.'); return false; }
   qrDurdur(); closeOv('ovGrafik');
+  if(m.prs){ prsQrAc(m.prs); return true; }
   if(m.yok){ makQrAc(m.yok); return true; }
   makQrAc(m.id); return true;
 }
 async function qrOku(){
-  if(!(can('makine') || servisMi())){ toast('Makine bölümü için yetkiniz yok.'); return; }
+  if(!(qrOkuYetki() || servisMi())){ toast('Bu işlem için yetkiniz yok.'); return; }
   qrDurdur();
   const destek = ('BarcodeDetector' in window) && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
   $('gpBaslik').textContent='QR oku';
   $('gpGovde').innerHTML=`<div class="prsForm yumusak qrOkuForm">
     ${destek?`<div class="qrVideo"><video id="qrVideo" playsinline muted></video><span class="qrCerceve"></span></div>`
       :`<div class="hp-bos">Bu cihazda uygulama içinden kamera okuması yok. Telefonun kamerasıyla okutun ya da etiketteki envanter numarasını yazın.</div>`}
-    <form class="qrElle" onsubmit="event.preventDefault();qrBulundu(this.q.value)"><input name="q" type="text" autocomplete="off" placeholder="Envanter no"><button type="submit" class="denHapBtn acc">Aç</button></form>
+    <form class="qrElle" onsubmit="event.preventDefault();qrBulundu(this.q.value)"><input name="q" type="text" autocomplete="off" placeholder="${esc(Ld('Envanter no','Inventory no'))}"><button type="submit" class="denHapBtn acc">Aç</button></form>
   </div>`;
   ovAc('ovGrafik');
   if(!destek) return;
@@ -14196,7 +14341,7 @@ const SOZ_EN = {
   'SGK bildirimi':'SSI notification','bildirilmesi bekleyen olay':'incidents awaiting notification','Personel belgesi':'Personnel documents','Makine kontrolü':'Equipment inspection',
   /* periyodik kontrol dijital formu (11.11.2026) */
   'Süresi Yaklaşan Belge':'Documents Expiring Soon','Kontrolü Yaklaşan':'Inspection Due Soon','Kontrolü / Belgesi Yaklaşan':'Inspection / Document Due Soon','Yenilemesi Yaklaşan':'Renewal Due Soon',
-  'Menü':'Menu','AI analiz':'AI analysis','Gece / gündüz':'Dark / light','Dil':'Language','Çıkış':'Sign out','QR oku':'Scan QR','Envanter no':'Inventory no','Aç':'Open','Makinenin üzerindeki QR kodunu okutun':'Scan the QR code on the machine','QR üret':'Generate QR','Yazdır':'Print','Yeni bakım kaydı':'New maintenance record','Servis kataloğu':'Service catalogue','Girdiğim bakım kayıtları':'My maintenance records','Servis / Bakım Firması':'Service / Maintenance Company','Makineler':'Machines',
+  'Menü':'Menu','AI analiz':'AI analysis','Gece / gündüz':'Dark / light','Dil':'Language','Çıkış':'Sign out','Performans':'Performance','Ödüller':'Awards','Disiplin':'Discipline','İlgili olay':'Related incident','Gerekçe':'Reason','ID kart':'ID card','Baret etiketi':'Helmet sticker','Kartı aç':'Open card','Zorunlu eğitimler':'Mandatory trainings','Eğitim geçmişi':'Training history','Görevlendirme ve yetkiler':'Assignments and authorisations','Periyodik muayene':'Periodic health check','QR oku':'Scan QR','Envanter no':'Inventory no','Aç':'Open','Makinenin üzerindeki QR kodunu okutun':'Scan the QR code on the machine','QR üret':'Generate QR','Yazdır':'Print','Yeni bakım kaydı':'New maintenance record','Servis kataloğu':'Service catalogue','Girdiğim bakım kayıtları':'My maintenance records','Servis / Bakım Firması':'Service / Maintenance Company','Makineler':'Machines',
   'Rapor dosyası yükle':'Upload report file','Ekrandan doldur':'Fill in on screen','Yetkili kişi':'Competent person','Unvan':'Title','EKİPNET / yetki kayıt no':'EKİPNET / registration no',
   'Kontrol yöntemi / standart':'Inspection method / standard','Test ve ölçümler':'Tests and measurements','Tespit edilen eksiklikler / öneriler':'Deficiencies found / recommendations',
   'Sonuç (kullanımında sakınca)':'Result (fit for use)','İmzalı rapor dosyası (isteğe bağlı)':'Signed report file (optional)','Uygulanmaz':'Not applicable','Kontrol formu':'Inspection form',
@@ -14965,7 +15110,7 @@ async function pencereKucult(){
     h+='</div><div class="telMenuAyrac"></div><div class="telMenuIzgara">';
     if(aiF) h+=satir(Ld('AI analiz','AI analysis'), IK.ai, ()=>{ const f=aiF.onclick; if(f) f.call(aiF); else aiF.click(); }, 'ai');
     h+=satir(Ld('Asistan','Assistant'), IK.as, ()=>asAc(), 'ai');
-    if(typeof qrOku==='function' && (can('makine') || (typeof servisMi==='function' && servisMi()))) h+=satir(Ld('QR oku','Scan QR'), QR_OKU_SVG, ()=>qrOku());
+    if(typeof qrOku==='function' && (qrOkuYetki() || (typeof servisMi==='function' && servisMi()))) h+=satir(Ld('QR oku','Scan QR'), QR_OKU_SVG, ()=>qrOku());
     h+=satir(Ld('Gece / gündüz','Dark / light'), IK.tema, ()=>temaDegis());
     h+=satir(Ld('Dil','Language')+' · '+(DIL==='en'?'EN':'TR'), '<b class="telMenuDil">'+(DIL==='en'?'TR':'EN')+'</b>', ()=>dilDegis());
     const ay=$('hdAyarBtn'); if(ay && ay.style.display!=='none') h+=satir(Ld('Ayarlar','Settings'), IK.ayar, ()=>go('set'));
@@ -14980,7 +15125,7 @@ async function pencereKucult(){
   const mo=new MutationObserver(gor); document.querySelectorAll('.view').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.15.0':['Personel QR kodu: ID kart ve baret etiketi baskısı; okutunca yetkiye göre eğitim geçmişi, belgeler, KKD, görevlendirme, muayene tarihleri','Personel kartında Performans: atanan aksiyonlar, zamanında tamamlama, ortalama çözüm süresi; Ödüller ve Disiplin kayıtları (ilgili olay, belge)','QR oku yalnız uygulamada; telefonda makine QR kodu fotoğrafın sağında'],'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
