@@ -851,6 +851,7 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 .hp-gov .hp-pano > *{min-width:0}   /* uzun ajanda satırı ızgarayı taşırmasın */
 /* kutu rengi (kullanıcı): rakam SİF sarısı, başlık siyah, alt yazı aynı */
 .hp-serit .hp-kutu .s,.hp-serit .hp-kutu.uyari .s{color:var(--jcb)}
+.hp-kutu .hpGec{color:var(--red);font-weight:800}
 .hp-serit .hp-kutu .e,.hp-serit .hp-kutu.uyari .e{color:var(--text)}
 .hpKazasiz{display:flex!important;flex-direction:row!important;align-items:center;gap:14px;cursor:pointer;border-left:4px solid var(--jcb)!important}
 .hpKazasiz .kz-s{font-size:40px;font-weight:900;line-height:1;min-width:56px;text-align:center}
@@ -1023,6 +1024,12 @@ body.asAcik .aiFab{display:none!important}
 .kfSec button.on{background:#141414;color:var(--jcb);border-color:#141414}
 .kfBolum{grid-column:1 / -1;font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--text3);margin:8px 0 -2px;border-bottom:1px solid var(--border);padding-bottom:4px}
 .kfKs select.uyd{border-color:var(--red);color:var(--red)}
+/* makine QR (11.11.2026): fotoğrafın altında kod + düğme */
+.makSol{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:150px}
+.makQr{background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px;text-align:center}
+.makQrKod svg{width:100%;height:auto;display:block}.makQr small{display:block;font-size:10.5px;font-weight:700;color:var(--text2);margin-top:4px;word-break:break-all}
+.makQrBtn{width:100%;justify-content:center}
+.servisBas b{display:block;font-size:16px}.servisBas span{font-size:12.5px;color:var(--text2)}
 .denHaplar{display:flex;gap:6px;flex-wrap:wrap}
 .denHap{border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
 .denHap:hover{border-color:var(--text3)}
@@ -2316,7 +2323,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.12.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.13.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2601,6 +2608,7 @@ const POZ_SEED = [
   {kod:'operator',ad:'Operatör',                      aciklama:'Yalnız olay bildirir; aksiyon güncellemez',       kapsam:'own', kayit:true,  aksiyon:false, inceleme:false, ayar:false, saglik:false},
   {kod:'tesis',   ad:'Tesis / Lokasyon Yöneticisi',   aciklama:'Kayıt açmaz, aksiyon takip eder ve kapatır',      kapsam:'own', kayit:false, aksiyon:true,  inceleme:false, ayar:false, saglik:false, makine:true},
   {kod:'hekim',   ad:'İşyeri Hekimi',                 aciklama:'Sağlık verisini görür, kayıt/aksiyon girmez',     kapsam:'own', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:true, personel:true},
+  {kod:'servis',  ad:'Servis / Bakım Firması',        aciklama:'Dış servis: makineyi QR ile açar, yalnız bakım kaydı girer ve servis kataloğunu görür', kapsam:'own', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:false},
   {kod:'yonetim', ad:'Üst Yönetim',                   aciklama:'Tüm lokasyonlar — salt okuma',                    kapsam:'all', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:false}
 ];
 const YETKI_ALAN = ['kayit','aksiyon','inceleme','ayar','saglik','personel','makine','egitim'];
@@ -2902,6 +2910,8 @@ if(POZ.some(p=>!('inceleme' in p))){
     const s=POZ_SEED.find(x=>x.kod===p.kod); p.inceleme = s ? !!s.inceleme : false; } });
   store.set(K.poz,POZ);
 }
+/* Göç (11.11.2026): "Servis / Bakım Firması" pozisyonu kayıtlı listede yoksa eklenir */
+if(!POZ.some(p=>p.kod==='servis')){ POZ.push({...POZ_SEED.find(x=>x.kod==='servis')}); store.set(K.poz,POZ); }
 let GEN  = store.get(K.gen, null);  if(!GEN)  { GEN = {...GEN_SEED}; store.set(K.gen,GEN); }
 if(GEN.yaklasanGun==null){ GEN.yaklasanGun=7; store.set(K.gen,GEN); }
 /* ── ŞİRKET E-POSTASI ŞARTI (kullanıcı kararı, 16.10.2026) ─────────────────
@@ -6286,7 +6296,7 @@ const MAKINE_TUR = [
   {kod:'hid-test',   grup:'Ek-III dışı', ad:'Hidrolik test tezgâhı', ay:null, std:'Üretici bakım programı; basınçlı kısımları varsa Tablo-1'}
 ];
 const makTurOf = k => MAKINE_TUR.find(t=>t.kod===k) || {kod:k, ad:k||'—', grup:'', ay:null};
-const MAK_BELGE = ['Ruhsat / tescil','Zorunlu mali sorumluluk sigortası','CE uygunluk beyanı','Kullanım kılavuzu','Bakım kaydı','Kiralama sözleşmesi'];
+const MAK_BELGE = ['Ruhsat / tescil','Zorunlu mali sorumluluk sigortası','CE uygunluk beyanı','Kullanım kılavuzu','Servis kataloğu','Bakım kaydı','Kiralama sözleşmesi'];
 const MAK_DURUM = ['Aktif','Bakımda','Arızalı','Hizmet dışı'];
 const SAHIPLIK = ['Öz mal','Kiralık','Taşeron'];
 const ayEkle = (iso,ay) => { if(!iso||!ay) return ''; const d=new Date(iso+'T12:00:00'); d.setMonth(d.getMonth()+ay); return d.toLocaleDateString('sv'); };
@@ -6410,6 +6420,7 @@ function anaSigdir(g, dar){
   try{ const ro=new ResizeObserver(tetik); const izle=()=>{ const v=document.getElementById('v-ana'); if(v) ro.observe(v); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',izle); else izle(); }catch(e){} }
 function anaRender(){
   const w=$('anaWrap'); if(!w||!SES) return;
+  if(servisMi()){ w.innerHTML=servisAnaHtml(); return; }
   setTimeout(()=>{ if(HAVA_HTML) havaYaz(); else havaYukle(); },0);
   const mod=(m,ad,ico)=>{ const ok=modYetki(m);
     return `<button type="button" class="anaMod${ok?'':' kapali'}" ${ok?`onclick="anaGit('${m}')"`:'disabled'} aria-label="${ad}"><span class="anaIco">${ico}</span><span class="anaIpucu">${ad}</span></button>`; };
@@ -6420,7 +6431,8 @@ function anaRender(){
   const kutular=[
     kutu('acik','Açık aksiyon','yetkili olduğunuz modüllerde',0), kutu('gec','Geciken','termini geçmiş aksiyon',1), kutu('onay','Onayımı bekleyen','onayınıza gelen aksiyon',1),
     can('inceleme')?kutu('inc','Açık inceleme','incelemesi başlamamış olay',1):'',
-    sgkYetki()?kutu('sgk','SGK bildirimi','bildirilmesi bekleyen olay',1):'',
+    sgkYetki()?(()=>{ const g=anaKutuListe('sgk').filter(o=>o.gec).length;   /* 11.11.2026 (kullanıcı): gecikenler başlıkta */
+      return kutu('sgk', g?`SGK bildirimi · <span class="hpGec">${g} geciken</span>`:'SGK bildirimi','bildirilmesi bekleyen olay',1); })():'',
     can('personel')?kutu('prs','Personel belgesi','süresi dolan / '+UYARI_GUN+' gün içinde',1):'',
     can('makine')?kutu('mak','Makine kontrolü','geçmiş / '+UYARI_GUN+' gün içinde',1):'',
     can('egitim')?kutu('egt','Eğitim','eksik / süresi dolan / '+UYARI_GUN+' gün içinde',1):''
@@ -6587,7 +6599,7 @@ function hedefAc(h){
   else if(h.startsWith('aks:')){ go('act'); openActByNo(h.slice(4)); }
   else if(h.startsWith('den:')) denAc(h.slice(4));
   else if(h.startsWith('prs:')) prsAc(h.slice(4));
-  else if(h.startsWith('mak:')) makAc(h.slice(4));
+  else if(h.startsWith('mak:')) makQrAc(decodeURIComponent(h.slice(4)));
   else if(h==='personel'||h==='makine'||h==='ana') go(h);
   else if(h==='pano') go('analiz');
 }
@@ -6751,7 +6763,7 @@ panoTanim('prs',{
       [yuzde(tam,V.length),'Zorunlu Belge Uyumu',tam<V.length?'color:var(--red)':'',tam+' / '+V.length+' kişide tam',V.filter(p=>!prsEksik(p).length)],
       [giren,yil+' Yılında İşe Giren','','',Tf.filter(p=>(p.iseGiris||'').startsWith(yil))],[ayr,yil+' Yılında Ayrılan','','',Tf.filter(p=>p.durum==='ayrildi'&&(p.ayrilis||'').startsWith(yil))],
       [yuzde(ayr,V.length+ayr),'Personel Devir Oranı','','ayrılan ÷ (aktif + ayrılan), '+yil],
-      [dol,'Süresi Dolan Belge',dol?'color:var(--red)':'','',vD],[yak,UYARI_GUN+' Gün İçinde Dolacak',yak?'color:var(--red)':'','',vY]];
+      [dol,'Süresi Dolan Belge',dol?'color:var(--red)':'','',vD],[yak,'Süresi Yaklaşan Belge',yak?'color:var(--red)':'',UYARI_GUN+' gün içinde süresi dolacak',vY]];
   }
 });
 const prsPanoSec=(k,v)=>panoSec('prs',k,v), prsPanoTemizle=()=>panoTemizle('prs'), prsPanoRender=()=>panoRender('prs');
@@ -6923,7 +6935,7 @@ function prsListeHtml(){
   const op=(L,v)=>L.map(([k,a])=>`<option value="${esc(k)}"${k===v?' selected':''}>${esc(a)}</option>`).join('');
   return `<h2 style="font-size:19px;margin-bottom:14px">Personel Listesi${can('personel')?`<span style="float:right;display:flex;gap:8px">${PERS.length?`<button class="btn sm" onclick="prsSapAktar()">SAP listesinden aktar</button>`:''}<button class="btn acc sm" onclick="prsYeni()">+ Yeni Personel</button></span>`:''}</h2>
     <div class="kpis">${kpi(V.length,'Görünür Kayıt','','')}${kpi(V.filter(p=>p.durum!=='ayrildi').length,'Aktif','','aktif')}${kpi(eksikN,'Eksik / Süresi Dolmuş Belgeli',eksikN?'color:var(--red)':'','eksik')}
-      ${kpi(V.filter(p=>p.durum==='ayrildi').length,'Ayrılan','','ayrildi')}${kpi(U.filter(u=>u.k==='yakin').length,UYARI_GUN+' Gün İçinde Dolacak Belge',U.some(u=>u.k==='yakin')?'color:var(--red)':'')}</div>
+      ${kpi(V.filter(p=>p.durum==='ayrildi').length,'Ayrılan','','ayrildi')}${kpi(U.filter(u=>u.k==='yakin').length,'Süresi Yaklaşan Belge',U.some(u=>u.k==='yakin')?'color:var(--red)':'')}</div>
     <div class="regLayout">
      <aside class="srcPanel">
       <h4>Arama</h4>
@@ -7166,7 +7178,7 @@ panoTanim('mak',{
     const kd=k=>kul.filter(m=>makKontrolDurum(m).k===k), bEks=m=>makBelgeDurum(m).some(x=>x.d.k==='yok'||x.d.k==='doldu');
     const bdolL=V.filter(m=>U.some(u=>u.mid===m.id&&u.k==='doldu'&&!/^Periyodik kontrol|yük testi/i.test(u.ne)));
     return [[V.length,'Kayıtlı Ekipman','','',V],[kul.length,'Kullanımda','',V.length-kul.length+' hizmet dışı',kul],
-      [gec,'Kontrolü Gecikmiş',gec?'color:var(--red)':'','periyodik kontrol tarihi geçmiş ya da raporu olmayan',kd('doldu')],[yak,UYARI_GUN+' Gün İçinde Kontrol',yak?'color:var(--red)':'','',kd('yakin')],
+      [gec,'Kontrolü Gecikmiş',gec?'color:var(--red)':'','periyodik kontrol tarihi geçmiş ya da raporu olmayan',kd('doldu')],[yak,'Kontrolü Yaklaşan',yak?'color:var(--red)':'',UYARI_GUN+' gün içinde periyodik kontrolü dolacak',kd('yakin')],
       [yuzde(uy,per.length),'Kontrol Uyum Oranı',uy<per.length?'color:var(--red)':'',uy+' / '+per.length+' ekipmanın kontrolü geçerli',per.filter(m=>['gecerli','yakin'].includes(makKontrolDurum(m).k))],
       [yt,'Yük Testi Gecikmiş',yt?'color:var(--red)':'','kaldırma kapasitesiyle yük testi (azami 3 yıl)',kul.filter(m=>{ const y=makYukTest(m); return y&&y.d.k==='doldu'; })],
       [yuzde(tam,V.length),'Belge Uyumu',tam<V.length?'color:var(--red)':'',tam+' / '+V.length+' ekipmanda tam',V.filter(m=>!bEks(m))],[bdol,'Süresi Dolan Belge',bdol?'color:var(--red)':'','',bdolL],
@@ -7182,7 +7194,7 @@ function makRender(){
   const yeni=makAktifGorunum()==='makYeni';
   const w=$(yeni?'makYeniWrap':'makineWrap'), o=$(yeni?'makineWrap':'makYeniWrap'); if(o) o.innerHTML=''; if(!w) return;
   w.innerHTML = MAK_CUR ? makKartHtml() : makListeHtml();
-  denFotoYukle(w);
+  denFotoYukle(w); qrDoldur(w);
   if(!MAK_CUR) requestAnimationFrame(()=>requestAnimationFrame(listeBoy));
 }
 let MAK_VURGU = [];
@@ -7204,7 +7216,7 @@ function makListeHtml(){
   const gruplar=[...new Set(MAKINE_TUR.map(t=>t.grup))];
   return `<h2 style="font-size:19px;margin-bottom:14px">Makine Listesi${can('makine')?`<span style="float:right;display:flex;gap:8px">${MAKSAP.length?`<button class="btn sm" onclick="makSapAktar()">SAP listesinden aktar</button>`:''}<button class="btn acc sm" onclick="makYeni()">+ Yeni Makine / Ekipman</button></span>`:''}</h2>
     <div class="kpis">${kpi(V.length,'Görünür Kayıt','','')}${kpi(kul.length,'Kullanımda')}${kpi(eksN,'Eksik / Gecikmiş Kontrol ya da Belgeli',eksN?'color:var(--red)':'','eksik')}
-      ${kpi(yakN,UYARI_GUN+' Gün İçinde Dolacak',yakN?'color:var(--red)':'','yakin')}${kpi(V.filter(m=>m.durum==='Arızalı'||m.durum==='Bakımda').length,'Arızalı / Bakımda')}</div>
+      ${kpi(yakN,'Kontrolü / Belgesi Yaklaşan',yakN?'color:var(--red)':'','yakin')}${kpi(V.filter(m=>m.durum==='Arızalı'||m.durum==='Bakımda').length,'Arızalı / Bakımda')}</div>
     <div class="regLayout">
      <aside class="srcPanel">
       <h4>Arama</h4>
@@ -7323,9 +7335,9 @@ function makKartHtml(){
         <div class="denAltYazi">${e([m.tur?t.ad:'',[m.marka,m.model].filter(Boolean).join(' '),lokAd(m.lok),m.durum].filter(Boolean).join(' · ')||'bilgileri girin')}</div></div></div>
       <div class="denUstSag"></div></div>
     <div class="prsDuzen">
-      <div class="prsVesika${yaz?'':' kilit'}" ${yaz?`onclick="$('makFotoGir').click()"`:''} title="${m.foto?'Fotoğrafı değiştir':'Fotoğraf ekle'}">
+      <div class="makSol"><div class="prsVesika${yaz?'':' kilit'}" ${yaz?`onclick="$('makFotoGir').click()"`:''} title="${m.foto?'Fotoğrafı değiştir':'Fotoğraf ekle'}">
         ${m.foto?`<img data-fid="${e(m.foto.id)}" alt="">`:MAK_SIL_SVG}<span>${m.foto?'Değiştir':'Fotoğraf ekle'}</span>
-        <input type="file" id="makFotoGir" accept="image/*" style="display:none" onchange="makFotoEkle(this)"></div>
+        <input type="file" id="makFotoGir" accept="image/*" style="display:none" onchange="makFotoEkle(this)"></div>${makQrHtml(m)}</div>
       <div class="prsBilgi">
         ${alan('Tür',`<select onchange="makSet('tur',this.value,true)"${dis}><option value="">— seçiniz —</option>${gruplar.map(g=>`<optgroup label="${e(g)}">${MAKINE_TUR.filter(x=>x.grup===g).map(x=>`<option value="${x.kod}"${x.kod===m.tur?' selected':''}>${e(x.ad)}</option>`).join('')}</optgroup>`).join('')}</select>`,'genis',1)}
         ${alan('Envanter no',inp('envNo','boşsa otomatik'))}${alan('SAP ekipman no',`<input type="text" value="${e(m.sapNo||'')}" oninput="makSet('sapNo',this.value)" onchange="makSapDoldur(this.value)" placeholder="SAP"${dis}>`)}
@@ -7597,7 +7609,7 @@ function makAcikAriza(m){ return (m.arizalar||[]).filter(a=>a.durum!=='Giderildi
    Silme yok (kayıtlar kalır). Dosya eklenirse belge motoru okur ve öğrenir (Bakım kaydı). */
 const MAK_BAKIM_TUR = ['Periyodik bakım','Arıza onarımı','Parça değişimi','Yağ / filtre değişimi','Lastik / palet','Hasar onarımı','Diğer'];
 function makBakimForm(id){
-  if(!MAK_CUR || !can('makine')) return;
+  if(!MAK_CUR || !(can('makine') || servisMi())) return;
   const b=id ? (MAK_CUR.bakimlar||[]).find(x=>x.id===id) : null; if(id && !b) return;
   MAK_FORM={tip:'bakim', ay:0, id:id||''}; PF_ONER=null; YB_SON=null; PF_BAGLAM={mod:'mak', tip:'bakim', ad:'Bakım kaydı', ay:0};
   const v=f=>esc((b&&b[f])||''), e=esc;
@@ -7617,7 +7629,7 @@ function makBakimForm(id){
   ovAc('ovGrafik');
 }
 async function makBakimKaydet(){
-  const m=MAK_CUR; if(!m || !can('makine')) return;
+  const m=MAK_CUR; if(!m || !(can('makine') || servisMi())) return;
   const tarih=dtOku('pfTarih'), is=($('bkIs').value||'').trim(); if(!tarih){ toast('Bakım tarihini girin.'); return; } if(!is){ toast('Yapılan işi yazın.'); return; }
   const f=($('pfDosya').files||[])[0]; let dosya=null; if(f){ const fid=uid(); await putFile(fid,f); dosya={id:fid, ad:f.name, boyut:f.size}; ybOgren('Bakım kaydı'); }
   const sayac=$('bkSayac').value, mal=$('bkMaliyet').value, durum=$('bkDurum').value;
@@ -7627,7 +7639,100 @@ async function makBakimKaydet(){
   if(i>=0){ L[i]=Object.assign({}, L[i], alan, dosya?{dosya}:{}, {guncelleme:new Date().toISOString(), guncelleyen:SES?SES.ad:''}); }
   else L.push(Object.assign({id:uid(), eklenme:new Date().toISOString(), ekleyen:SES?SES.ad:''}, alan, {dosya}));
   if(durum) m.durum=durum;
+  if(servisMi()){ const o=MAK.find(x=>x.id===m.id); if(o){ o.bakimlar=JSON.parse(JSON.stringify(m.bakimlar)); if(durum) o.durum=durum; o.guncelleme=new Date().toISOString(); saveMak(); }
+    closeOv('ovGrafik'); PF_ONER=null; toast('Bakım kaydı kaydedildi'); servisAc(m.id); return; }
   closeOv('ovGrafik'); PF_ONER=null; const yazildi=makOtoKaydet(); makRender(); toast(yazildi?'Bakım kaydı kaydedildi':'Eklendi — kartı Kaydet ile kaydedin');
+}
+/* ══ MAKİNE QR KODU (11.11.2026, kullanıcı: "QR kod üretme modülü kuracağız; makine listesinde tıkladığımızda, düzenle
+   dediğimizde, yeni makine girişinde QR üret düğmesi; basınca makine resminin altında kod; yazdır deyince basılacak.
+   İleride portala QR okuma bağlandığında okutunca direkt makine kartı açılacak" + "telefondan da okunabilecek; saha
+   görevlisi veya yetkiliyse direkt makineye ulaşıp tüm geçmişini görecek; dışarıdan biri geldiğinde servis kullanıcı adı
+   ile girecek, sadece bakımlarını işleyecek ve servis kataloğunu görebilecek") ══
+   Kod = uygulamanın yayın adresi + "#git=mak:<makine kimliği>" (derin bağlantı; hedefAc). Telefon kamerası okuyunca uygulama
+   açılır, girişten sonra: makine yetkisi + lokasyon → tam kart (tüm geçmiş); "Servis / Bakım Firması" pozisyonu → yalnız
+   servis sayfası (bakım kaydı + servis kataloğu); diğerleri → yetki yok. Kodda kişi verisi YOK (yalnız makine kimliği).
+   Kitaplık: lib/qrcode.js (qrcode-generator 1.4.4, MIT; Kalite ile aynı), ilk kullanımda yüklenir — ağ gerekmez.
+   Not: kayıtlar şimdilik cihazda; okutulan makine o cihazda yoksa uyarı verilir (veri havuzu açılınca her cihazda). */
+const QR_TABAN = 'https://trioms.github.io/SIF-ISG/hizli_olay_bildirimi.html';
+const makQrAdres = m => QR_TABAN + '#git=mak:' + encodeURIComponent(m.id);
+const servisMi = () => !!(SES && SES.pozisyon==='servis');
+let _qrYuk=null;
+function qrYukle(){
+  if(window.qrcode) return Promise.resolve();
+  if(!_qrYuk) _qrYuk=new Promise((ok,hata)=>{ const s=document.createElement('script'); s.src='lib/qrcode.js'; s.onload=()=>ok(); s.onerror=()=>{ _qrYuk=null; hata(new Error('QR kitaplığı yüklenemedi')); }; document.head.appendChild(s); });
+  return _qrYuk;
+}
+function qrSvg(metin){
+  const q=qrcode(0,'M'); q.addData(metin); q.make();
+  const n=q.getModuleCount(), k=4, b=n+2*k; let d='';
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) d+=`M${c+k} ${r+k}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${b} ${b}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" role="img" aria-label="QR"><rect width="${b}" height="${b}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+function qrDoldur(w){ (w||document).querySelectorAll('[data-qr]').forEach(el=>{ qrYukle().then(()=>{ el.innerHTML=qrSvg(el.dataset.qr); }).catch(e=>{ el.textContent=e.message; }); }); }
+function makQrHtml(m){
+  if(!can('makine')) return '';
+  if(!m.qr) return `<button type="button" class="denHapBtn makQrBtn" onclick="makQrUret()">QR üret</button>`;
+  return `<div class="makQr"><div class="makQrKod" data-qr="${esc(makQrAdres(m))}"></div><small>${esc(m.envNo||'')}</small></div>
+    <button type="button" class="denHapBtn makQrBtn" onclick="makQrYazdir()">Yazdır</button>`;
+}
+async function makQrUret(){
+  const m=MAK_CUR; if(!m || !can('makine')) return;
+  try{ await qrYukle(); }catch(e){ toast(e.message); return; }
+  const qr={tarih:new Date().toISOString(), uretan:SES?SES.ad:''};
+  m.qr=qr; const o=MAK.find(x=>x.id===m.id); if(o){ o.qr=qr; saveMak(); }   /* yalnız QR işareti yazılır; karttaki kaydedilmemiş düzenleme yazılmaz */
+  makRender();
+}
+/* etiket: 80 × 50 mm, QR + envanter no + tür + marka / model + seri; yazdırma penceresi gizli çerçeveden açılır */
+async function makQrYazdir(){
+  const m=MAK_CUR; if(!m) return;
+  try{ await qrYukle(); }catch(e){ toast(e.message); return; }
+  const t=makTurOf(m.tur), e=esc;
+  const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${e(m.envNo||'QR')}</title><style>
+    @page{size:80mm 50mm;margin:0}*{box-sizing:border-box;margin:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#141414}
+    .e{width:80mm;height:50mm;padding:3mm;display:flex;gap:3mm;align-items:center;border-bottom:2.2mm solid #F5C518}
+    .q{width:42mm;height:42mm;flex:none}.q svg{width:100%;height:100%}
+    .b{flex:1;min-width:0;display:flex;flex-direction:column;gap:1.2mm;font-size:7.5pt;line-height:1.25}
+    .b img{width:26mm;height:auto}.b b{font-size:9.5pt;word-break:break-all}.b small{font-size:6.5pt;color:#555}
+  </style></head><body><div class="e"><div class="q">${qrSvg(makQrAdres(m))}</div><div class="b"><img src="sif_jcb_logo.png" alt="">
+    <b>${e(m.envNo||'')}</b><span>${e(m.tur?t.ad:'')}</span><span>${e([m.marka,m.model].filter(Boolean).join(' '))}</span>${m.seriNo?`<span>Seri: ${e(m.seriNo)}</span>`:''}
+    <small>Telefonla okutun: makine kartı açılır</small></div></div></body></html>`;
+  const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0';
+  document.body.appendChild(f);
+  f.onload=()=>{ setTimeout(()=>{ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(x){} setTimeout(()=>f.remove(),60000); },300); };
+  f.srcdoc=html;
+}
+/* QR okutulunca (derin bağlantı): yetkili → tam kart; servis → servis sayfası */
+function makQrAc(id){
+  const m=MAK.find(x=>x.id===id);
+  if(!m){ toast('Bu makine bu cihazda kayıtlı değil.'); return; }
+  if(!lokGorebilir(m.lok)){ toast('Bu makinenin lokasyonu için yetkiniz yok.'); return; }
+  if(can('makine')) return makAc(id);
+  if(servisMi()) return servisAc(id);
+  toast('Makine bölümü için yetkiniz yok.');
+}
+/* SERVİS SAYFASI: makine tanıtım bilgisi, yeni bakım kaydı, kendi girdiği bakım kayıtları, servis kataloğu — başka geçmiş yok */
+function servisAc(id){
+  if(!servisMi()) return; const m=MAK.find(x=>x.id===id); if(!m || !lokGorebilir(m.lok)) return;
+  MAK_CUR=JSON.parse(JSON.stringify(m)); const t=makTurOf(m.tur), e=esc, ben=SES?SES.ad:'';
+  const kat=(m.belgeler||[]).filter(b=>b.tur==='Servis kataloğu' && b.dosya);
+  const bak=(m.bakimlar||[]).filter(b=>b.ekleyen===ben).sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''));
+  $('gpBaslik').textContent=(m.envNo||'Makine')+' — servis';
+  $('gpGovde').innerHTML=`<div class="prsForm yumusak">
+    <div class="servisBas"><b>${e(m.envNo||'')}</b><span>${e([t.ad,[m.marka,m.model].filter(Boolean).join(' '),m.seriNo?'seri '+m.seriNo:'',lokAd(m.lok)].filter(Boolean).join(' · '))}</span></div>
+    <div class="bar" style="margin:12px 0"><button class="denHapBtn acc" onclick="makBakimForm()">+ Yeni bakım kaydı</button></div>
+    <div class="kfBolum" style="margin-top:4px">Servis kataloğu</div>
+    ${kat.length?kat.map(b=>`<div class="hp-oge" onclick="openFile(${jsA(b.dosya.id)})"><div class="m"><span class="u">${e(b.dosya.ad||b.tur)}</span><small>${e(b.no||'')}</small></div></div>`).join(''):'<div class="hp-bos">Bu makine için servis kataloğu yüklenmemiş.</div>'}
+    <div class="kfBolum">Girdiğim bakım kayıtları</div>
+    ${bak.length?bak.map(b=>`<div class="hp-oge" onclick="makBakimForm(${jsA(b.id)})"><span class="t">${anaGun(b.tarih)}</span><div class="m"><span class="u">${e((b.tur?b.tur+' — ':'')+(b.is||''))}</span><small>${e([b.sayac?b.sayac+' '+(b.sayacBirim||'saat'):'',b.sonraki?'sonraki '+trDate(b.sonraki):''].filter(Boolean).join(' · '))}</small></div></div>`).join(''):'<div class="hp-bos">Henüz kayıt yok.</div>'}
+  </div>`;
+  ovAc('ovGrafik');
+}
+/* servis kullanıcısının ana sayfası: lokasyonundaki makineler (QR okutmadan seçmek için) */
+function servisAnaHtml(){
+  const L=MAK.filter(m=>lokGorebilir(m.lok) && m.durum!=='Hizmet dışı').sort((a,b)=>String(a.envNo).localeCompare(String(b.envNo)));
+  return `<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div>
+    <div class="hp-kart"><h3>Makineler<small>QR kodunu telefonla okutun ya da listeden seçin</small></h3>
+    <div class="hp-liste">${L.length?L.map(m=>`<div class="hp-oge" onclick="servisAc(${jsA(m.id)})"><div class="m"><span class="u">${esc((m.envNo||'')+' — '+makTurOf(m.tur).ad)}</span><small>${esc([[m.marka,m.model].filter(Boolean).join(' '),lokAd(m.lok)].filter(Boolean).join(' · '))}</small></div></div>`).join(''):'<div class="hp-bos">Lokasyonunuzda makine yok.</div>'}</div></div>`;
 }
 /* ilgili olaylar grubunda "+": bu ekipmanla yeni olay bildirimi (form açılır, ekipman bağlı gelir) */
 function makOlayYeni(id){
@@ -7840,7 +7945,7 @@ panoTanim('egt',{
       [P.length?(as/P.length).toFixed(1):'—','Kişi Başı Eğitim Saati','','toplam adam·saat ÷ aktif personel'],
       [M.length?'%'+Math.round(uy/M.length*100):'—','Zorunlu Eğitim Uyumu',uy<M.length?'color:var(--red)':'',uy+' / '+M.length+' gerekli eğitim geçerli',kisiOk,...ps],
       [eks.length,'Eğitimi Eksik Personel',eks.length?'color:var(--red)':'','gerekli eğitimini hiç almamış ya da süresi dolmuş',eks,...ps],
-      [yak.length,UYARI_GUN+' Gün İçinde Yenilenecek',yak.length?'color:var(--red)':'','',yak,...ps]];
+      [yak.length,'Yenilemesi Yaklaşan',yak.length?'color:var(--red)':'',UYARI_GUN+' gün içinde yenilenmesi gereken eğitim',yak,...ps]];
   },
   ekHtml:()=>egtMatrisHtml(PANO.egt.sec.lok)
 });
@@ -13994,6 +14099,8 @@ const SOZ_EN = {
   'Onayımı bekleyen':'Awaiting my approval','onayınıza gelen aksiyon':'actions sent for your approval','Açık inceleme':'Open investigations','incelemesi başlamamış olay':'incidents not yet investigated',
   'SGK bildirimi':'SSI notification','bildirilmesi bekleyen olay':'incidents awaiting notification','Personel belgesi':'Personnel documents','Makine kontrolü':'Equipment inspection',
   /* periyodik kontrol dijital formu (11.11.2026) */
+  'Süresi Yaklaşan Belge':'Documents Expiring Soon','Kontrolü Yaklaşan':'Inspection Due Soon','Kontrolü / Belgesi Yaklaşan':'Inspection / Document Due Soon','Yenilemesi Yaklaşan':'Renewal Due Soon',
+  'QR üret':'Generate QR','Yazdır':'Print','Yeni bakım kaydı':'New maintenance record','Servis kataloğu':'Service catalogue','Girdiğim bakım kayıtları':'My maintenance records','Servis / Bakım Firması':'Service / Maintenance Company','Makineler':'Machines',
   'Rapor dosyası yükle':'Upload report file','Ekrandan doldur':'Fill in on screen','Yetkili kişi':'Competent person','Unvan':'Title','EKİPNET / yetki kayıt no':'EKİPNET / registration no',
   'Kontrol yöntemi / standart':'Inspection method / standard','Test ve ölçümler':'Tests and measurements','Tespit edilen eksiklikler / öneriler':'Deficiencies found / recommendations',
   'Sonuç (kullanımında sakınca)':'Result (fit for use)','İmzalı rapor dosyası (isteğe bağlı)':'Signed report file (optional)','Uygulanmaz':'Not applicable','Kontrol formu':'Inspection form',
@@ -14731,7 +14838,7 @@ async function pencereKucult(){
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
