@@ -2311,6 +2311,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
   <div class="mb" id="profilGovde"></div>
   <div class="mf">
     <button class="btn sm" id="profilTema" onclick="profilTema()">Gece moduna geç</button>
+    <button class="btn sm" id="profilDil" onclick="dilDegis();profilAc()">English</button>
     <button class="btn sm" id="profilYonet" onclick="profilYonet()">Kullanıcıları yönet</button>
     <div style="flex:1"></div>
     <button class="btn red sm" onclick="closeOv('ovProfil');cikis()">Çıkış</button>
@@ -2331,7 +2332,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.14.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.14.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -3935,6 +3936,7 @@ function profilAc(){
     <div class="hint">Ad, e-posta ve yetkiler yönetici tarafından Ayarlar → Kullanıcılar'dan değiştirilir.</div>`;
   $('profilTema').textContent = document.body.classList.contains('dark') ? 'Gündüz moduna geç' : 'Gece moduna geç';
   $('profilYonet').style.display = can('ayar') ? '' : 'none';
+  { const d=$('profilDil'); if(d){ d.textContent = DIL==='en' ? 'Türkçe' : 'English'; d.setAttribute('data-dil-yok',''); } }   /* 11.11.2026: telefonda dil düğmesi üst çubukta yok */
   $('ovProfil').classList.add('on');
 }
 function profilTema(){ temaDegis(); profilAc(); }
@@ -6607,7 +6609,7 @@ function hedefAc(h){
   else if(h.startsWith('aks:')){ go('act'); openActByNo(h.slice(4)); }
   else if(h.startsWith('den:')) denAc(h.slice(4));
   else if(h.startsWith('prs:')) prsAc(h.slice(4));
-  else if(h.startsWith('mak:')) makQrAc(decodeURIComponent(h.slice(4)));
+  else if(h.startsWith('mak:')) makQrAc(h.slice(4));
   else if(h==='personel'||h==='makine'||h==='ana') go(h);
   else if(h==='pano') go('analiz');
 }
@@ -7662,7 +7664,14 @@ async function makBakimKaydet(){
    Kitaplık: lib/qrcode.js (qrcode-generator 1.4.4, MIT; Kalite ile aynı), ilk kullanımda yüklenir — ağ gerekmez.
    Not: kayıtlar şimdilik cihazda; okutulan makine o cihazda yoksa uyarı verilir (veri havuzu açılınca her cihazda). */
 const QR_TABAN = 'https://trioms.github.io/SIF-ISG/hizli_olay_bildirimi.html';
-const makQrAdres = m => QR_TABAN + '#git=mak:' + encodeURIComponent(m.id);
+/* 11.11.2026: kodda kimliğin yanında envanter no da var (mak:<kimlik>:<envanter no>) — kayıtlar cihazda olduğu için başka
+   cihazda kimlik bulunamazsa makine envanter numarasıyla bulunur (aynı envanter no ile girilmiş makine). Eski etiketler (yalnız
+   kimlik) aynen çalışır. */
+const makQrAdres = m => QR_TABAN + '#git=mak:' + encodeURIComponent(m.id) + (m.envNo ? ':' + encodeURIComponent(m.envNo) : '');
+function makQrBul(s){
+  const p=String(s||'').split(':'), id=decodeURIComponent(p[0]||''), env=p[1]?decodeURIComponent(p[1]):'';
+  return MAK.find(x=>x.id===id) || (env ? MAK.find(x=>esitTR(x.envNo,env)) : null) || null;
+}
 const servisMi = () => !!(SES && SES.pozisyon==='servis');
 let _qrYuk=null;
 function qrYukle(){
@@ -7690,28 +7699,32 @@ async function makQrUret(){
   m.qr=qr; const o=MAK.find(x=>x.id===m.id); if(o){ o.qr=qr; saveMak(); }   /* yalnız QR işareti yazılır; karttaki kaydedilmemiş düzenleme yazılmaz */
   makRender();
 }
-/* etiket: 80 × 50 mm, QR + envanter no + tür + marka / model + seri; yazdırma penceresi gizli çerçeveden açılır */
+/* etiket: en az 80 × 50 mm, QR + envanter no + tür + marka / model + seri; yazdırma penceresi gizli çerçeveden açılır.
+   11.11.2026 (kullanıcı: "telefonla okutun bilgisini basma; SİF numarası tek satırda olsun, alttaki sarı çizgiyle beraber uzat"):
+   envanter no tek satır; etiket numaranın boyuna göre genişler (sarı şerit de), sayfa boyu ölçülüp @page'e yazılır. */
 async function makQrYazdir(){
   const m=MAK_CUR; if(!m) return;
   try{ await qrYukle(); }catch(e){ toast(e.message); return; }
   const t=makTurOf(m.tur), e=esc;
   const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${e(m.envNo||'QR')}</title><style>
-    @page{size:80mm 50mm;margin:0}*{box-sizing:border-box;margin:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#141414}
-    .e{width:80mm;height:50mm;padding:3mm;display:flex;gap:3mm;align-items:center;border-bottom:2.2mm solid #F5C518}
+    @page{size:80mm 50mm;margin:0}html,body{width:max-content}*{box-sizing:border-box;margin:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#141414}
+    .e{width:max-content;min-width:80mm;height:50mm;padding:3mm;display:flex;gap:3mm;align-items:center;border-bottom:2.2mm solid #F5C518}
     .q{width:42mm;height:42mm;flex:none}.q svg{width:100%;height:100%}
-    .b{flex:1;min-width:0;display:flex;flex-direction:column;gap:1.2mm;font-size:7.5pt;line-height:1.25}
-    .b img{width:26mm;height:auto}.b b{font-size:9.5pt;word-break:break-all}.b small{font-size:6.5pt;color:#555}
+    .b{flex:none;width:max-content;min-width:34mm;display:flex;flex-direction:column;gap:1.2mm;font-size:7.5pt;line-height:1.25}
+    .b img{width:26mm;height:auto}.b b{font-size:9.5pt;white-space:nowrap}.b span{width:0;min-width:100%}
   </style></head><body><div class="e"><div class="q">${qrSvg(makQrAdres(m))}</div><div class="b"><img src="sif_jcb_logo.png" alt="">
-    <b>${e(m.envNo||'')}</b><span>${e(m.tur?t.ad:'')}</span><span>${e([m.marka,m.model].filter(Boolean).join(' '))}</span>${m.seriNo?`<span>Seri: ${e(m.seriNo)}</span>`:''}
-    <small>Telefonla okutun: makine kartı açılır</small></div></div></body></html>`;
-  const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0';
+    <b>${e(m.envNo||'')}</b><span>${e(m.tur?t.ad:'')}</span><span>${e([m.marka,m.model].filter(Boolean).join(' '))}</span>${m.seriNo?`<span>Seri: ${e(m.seriNo)}</span>`:''}</div></div></body></html>`;
+  const f=document.createElement('iframe'); f.style.cssText='position:fixed;left:-9999px;top:0;width:900px;height:400px;border:0;visibility:hidden';
   document.body.appendChild(f);
-  f.onload=()=>{ setTimeout(()=>{ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(x){} setTimeout(()=>f.remove(),60000); },300); };
+  f.onload=()=>{ setTimeout(()=>{ try{
+      const d=f.contentDocument, k=d.querySelector('.e'), mm=Math.ceil(k.getBoundingClientRect().width*25.4/96)+1;
+      const st=d.createElement('style'); st.textContent=`@page{size:${mm}mm 50mm;margin:0}`; d.head.appendChild(st);
+      f.contentWindow.focus(); f.contentWindow.print(); }catch(x){} setTimeout(()=>f.remove(),60000); },300); };
   f.srcdoc=html;
 }
 /* QR okutulunca (derin bağlantı): yetkili → tam kart; servis → servis sayfası */
 function makQrAc(id){
-  const m=MAK.find(x=>x.id===id);
+  const m=MAK.find(x=>x.id===id) || makQrBul(id); if(m) id=m.id;
   if(!m){ toast('Bu makine bu cihazda kayıtlı değil.'); return; }
   if(!lokGorebilir(m.lok)){ toast('Bu makinenin lokasyonu için yetkiniz yok.'); return; }
   if(can('makine')) return makAc(id);
@@ -7752,7 +7765,7 @@ let QR_AKIS=null, QR_DONGU=0;
 function qrDurdur(){ cancelAnimationFrame(QR_DONGU); QR_DONGU=0; if(QR_AKIS){ QR_AKIS.getTracks().forEach(t=>t.stop()); QR_AKIS=null; } }
 function qrMetinCoz(s){
   s=String(s||'').trim(); const m=s.match(/#git=mak:([^#&\s]+)/);
-  if(m) return MAK.find(x=>x.id===decodeURIComponent(m[1])) || {yok:decodeURIComponent(m[1])};
+  if(m) return makQrBul(m[1]) || {yok:m[1]};
   return MAK.find(x=>esitTR(x.envNo,s) || (x.sapNo && String(x.sapNo)===s)) || null;
 }
 function qrBulundu(s){
@@ -14944,7 +14957,7 @@ async function pencereKucult(){
   const mo=new MutationObserver(gor); document.querySelectorAll('.view').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],

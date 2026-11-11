@@ -311,3 +311,13 @@
   .maiDug{flex-wrap:wrap;justify-content:flex-end}
   .maiBulgu{min-width:0}
 }
+/* 11.11.2026 (kullanıcı: "app'te ilgili modüle girince o modülün listesi gelecek tek tuşta, ana sayfada gerek yok"):
+   ana sayfada menü balonu yok (modül düğmeleri zaten orada). Asistan kutusu telefonda ana sayfada tam satır;
+   dil, gece modu ve çıkış profil penceresinde. */
+@media(max-width:640px),(hover:none) and (pointer:coarse){
+  body:has(#v-ana.on) .telMenuBtn{display:none!important}
+}
+@media(max-width:640px){
+  .anaModuller .anaSor{display:flex!important;flex:1 1 100%;max-width:none;margin:0;order:5}
+  .anaModuller .hava{order:6}
+}
