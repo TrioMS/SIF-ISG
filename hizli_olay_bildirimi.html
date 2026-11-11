@@ -1938,7 +1938,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
       <button class="btn sm" onclick="csvPoz()">CSV İndir</button>
     </div>
     <div class="tw"><table>
-      <thead><tr><th style="width:20%">Pozisyon</th><th style="width:18%">Açıklama</th><th style="width:16%">Kapsam</th><th style="width:7%">Kayıt Açar</th><th style="width:8%">Aksiyon Günceller</th><th style="width:6%">Ayarlar</th><th style="width:7%">Sağlık Verisi</th><th style="width:6%">Personel Yönetimi</th><th style="width:6%">Makine-Ekipman</th><th style="width:6%">Eğitim Yönetimi</th><th style="width:4%">Kişi</th><th style="width:4%"></th></tr></thead>
+      <thead><tr><th style="width:20%">Pozisyon</th><th style="width:18%">Açıklama</th><th style="width:16%">Kapsam</th><th style="width:7%">Kayıt Açar</th><th style="width:8%">Aksiyon Günceller</th><th style="width:6%">Ayarlar</th><th style="width:7%">Sağlık Verisi</th><th style="width:6%">Personel Yönetimi</th><th style="width:6%">Makine-Ekipman</th><th style="width:6%">Disiplin</th><th style="width:6%">Eğitim Yönetimi</th><th style="width:4%">Kişi</th><th style="width:4%"></th></tr></thead>
       <tbody id="pozBody"></tbody>
     </table></div>
     <div class="hint" style="margin-top:8px"><b>Kapsam:</b> "Tüm lokasyonlar" = merkez görevi · "Atandığı lokasyonlar" = yalnız kendi tesisi. <b>Sağlık Verisi</b> KVKK'da özel nitelikli veridir — yalnız gerekli pozisyonlara açın.</div>
@@ -2339,7 +2339,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.15.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.15.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2613,7 +2613,7 @@ setInterval(shCek, 30000);
    sapma tanımlar (u.yetki) — kartta "özel yetki" rozeti çıkar.  */
 const YETKI_AD = {
   kayit:'Kayıt açar', aksiyon:'Aksiyon günceller', inceleme:'Olay inceleme yapar',
-  ayar:'Ayarlar', saglik:'Sağlık verisi', personel:'Personel yönetimi', makine:'Makine-ekipman yönetimi', egitim:'Eğitim yönetimi'
+  ayar:'Ayarlar', saglik:'Sağlık verisi', personel:'Personel yönetimi', makine:'Makine-ekipman yönetimi', egitim:'Eğitim yönetimi', disiplin:'Disiplin kayıtları'
 };
 const POZ_SEED = [
   {kod:'admin',   ad:'Yönetici (Admin)',              aciklama:'Uygulama yöneticisi — IT ya da İSG koordinatörü', kapsam:'all', kayit:true,  aksiyon:true,  inceleme:true,  ayar:true,  saglik:true, personel:true, makine:true, egitim:true},
@@ -2624,10 +2624,11 @@ const POZ_SEED = [
   {kod:'operator',ad:'Operatör',                      aciklama:'Yalnız olay bildirir; aksiyon güncellemez',       kapsam:'own', kayit:true,  aksiyon:false, inceleme:false, ayar:false, saglik:false},
   {kod:'tesis',   ad:'Tesis / Lokasyon Yöneticisi',   aciklama:'Kayıt açmaz, aksiyon takip eder ve kapatır',      kapsam:'own', kayit:false, aksiyon:true,  inceleme:false, ayar:false, saglik:false, makine:true},
   {kod:'hekim',   ad:'İşyeri Hekimi',                 aciklama:'Sağlık verisini görür, kayıt/aksiyon girmez',     kapsam:'own', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:true, personel:true},
+  {kod:'ik',      ad:'İnsan Kaynakları',              aciklama:'Personel dosyası, eğitim ve disiplin kayıtları', kapsam:'all', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:false, personel:true, egitim:true, disiplin:true},
   {kod:'servis',  ad:'Servis / Bakım Firması',        aciklama:'Dış servis: makineyi QR ile açar, yalnız bakım kaydı girer ve servis kataloğunu görür', kapsam:'own', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:false},
   {kod:'yonetim', ad:'Üst Yönetim',                   aciklama:'Tüm lokasyonlar — salt okuma',                    kapsam:'all', kayit:false, aksiyon:false, inceleme:false, ayar:false, saglik:false}
 ];
-const YETKI_ALAN = ['kayit','aksiyon','inceleme','ayar','saglik','personel','makine','egitim'];
+const YETKI_ALAN = ['kayit','aksiyon','inceleme','ayar','saglik','personel','makine','egitim','disiplin'];
 const LOK_TIP = ['Genel Merkez','Şube','Servis atölyesi','Yedek parça deposu','Şantiye / saha','Eğitim merkezi'];
 
 const TC_KUCUK=['ve','ile','için','mu','mı','mü','da','de','ya','veya','vb'];
@@ -2926,6 +2927,11 @@ if(POZ.some(p=>!('inceleme' in p))){
     const s=POZ_SEED.find(x=>x.kod===p.kod); p.inceleme = s ? !!s.inceleme : false; } });
   store.set(K.poz,POZ);
 }
+/* DİSİPLİN YETKİSİ (11.11.2026, kullanıcı: "disiplin sadece İK ve yönetici görsün"): yeni yetki alanı; Yönetici (admin) ve yeni
+   "İnsan Kaynakları" pozisyonunda açık, diğer pozisyonlarda kapalı başlar (Ayarlar › Pozisyonlar'dan değiştirilebilir). */
+POZ_SEED.find(x=>x.kod==='admin').disiplin=true;
+if(POZ.some(p=>!('disiplin' in p))){ POZ.forEach(p=>{ if(!('disiplin' in p)) p.disiplin = p.kod==='admin'||p.kod==='ik'; }); store.set(K.poz,POZ); }
+if(!POZ.some(p=>p.kod==='ik')){ POZ.push({...POZ_SEED.find(x=>x.kod==='ik')}); store.set(K.poz,POZ); }
 /* Göç (11.11.2026): "Servis / Bakım Firması" pozisyonu kayıtlı listede yoksa eklenir */
 if(!POZ.some(p=>p.kod==='servis')){ POZ.push({...POZ_SEED.find(x=>x.kod==='servis')}); store.set(K.poz,POZ); }
 let GEN  = store.get(K.gen, null);  if(!GEN)  { GEN = {...GEN_SEED}; store.set(K.gen,GEN); }
@@ -3611,7 +3617,9 @@ function yetkiler(u){
     personel:u.yetki&&'personel' in u.yetki ? !!u.yetki.personel : (p.personel!==undefined ? !!p.personel : !!p.ayar),
     makine:  u.yetki&&'makine'   in u.yetki ? !!u.yetki.makine   : (p.makine!==undefined ? !!p.makine : !!p.ayar),
     /* 11.11.2026: eğitim yönetimi — pozisyonda tanımsızsa personel yetkisini izler */
-    egitim:  u.yetki&&'egitim'   in u.yetki ? !!u.yetki.egitim   : (p.egitim!==undefined ? !!p.egitim : (p.personel!==undefined ? !!p.personel : !!p.ayar))};
+    egitim:  u.yetki&&'egitim'   in u.yetki ? !!u.yetki.egitim   : (p.egitim!==undefined ? !!p.egitim : (p.personel!==undefined ? !!p.personel : !!p.ayar)),
+    /* 11.11.2026: disiplin kayıtları — yalnız açıkça verilmişse (İK, yönetici) */
+    disiplin:u.yetki&&'disiplin' in u.yetki ? !!u.yetki.disiplin : !!p.disiplin};
 }
 const ozelYetki = u => !!(u.yetki && Object.keys(u.yetki).length);
 function rol(){ return yetkiler(SES); }
@@ -6825,7 +6833,7 @@ function prsGrupVeri(p){
     ozluk:{ad:'Özlük dosyası', alt:'İK özlük belgeleri', ico:PRS_BELGE_SVG, L:OZLUK_LISTE.map(ad=>{ const o=(p.ozluk||{})[ad]; return {ad, dosya:o&&o.dosya, alt:o&&o.dosya?trDate(o.tarih)+' yüklendi':'yüklenmedi', tik:`prsOzlukSec(${jsA(ad)})`}; })}
   };
   G.kkd=kayitGrup('kkd',p); G.gorev=kayitGrup('gorev',p);
-  G.perf=prsPerfGrup(p); G.odul=kayitGrup('odul',p); G.disiplin=kayitGrup('disiplin',p);
+  G.perf=prsPerfGrup(p); G.odul=kayitGrup('odul',p); if(can('disiplin')) G.disiplin=kayitGrup('disiplin',p);
   if(can('saglik')){ const sm=prsSonMuayene(p); G.saglik={ad:'Sağlık muayenesi', alt:p.tehlike+' işyeri: '+(MUAYENE_AY[p.tehlike]/12)+' yılda bir', ico:PRS_SAGLIK_SVG,
     L:[{ad:'Periyodik muayene', dosya:sm&&sm.dosya, d:sm&&sm.dosya?gecDurum(sm.sonraki):null, alt:sm?('son '+trDate(sm.tarih)+' · sonraki '+trDate(sm.sonraki)):'yüklenmedi', tik:`prsYukle('saglik','Periyodik muayene',${MUAYENE_AY[p.tehlike]||12})`}]}; }
   return G;
@@ -7589,7 +7597,7 @@ function kayitGrup(tur, kart){
 }
 let KAYIT_FORM=null;
 function kayitForm(tur, id){
-  const S=KAYIT_SEMA[tur], kart=kayitKart(S.mod); if(!kart || !can(S.mod==='mak'?'makine':'personel')) return;
+  const S=KAYIT_SEMA[tur], kart=kayitKart(S.mod); if(!kart || !can(S.mod==='mak'?'makine':'personel') || (tur==='disiplin' && !can('disiplin'))) return;
   const o=id ? (kart[S.dizi]||[]).find(x=>x.id===id) : null; if(id && !o) return;
   KAYIT_FORM={tur, id:id||''}; PF_BAGLAM=null; PF_ONER=null; YB_SON=null;
   const v=k=>(o&&o[k]!=null)?o[k]:'', e=esc;
@@ -7611,7 +7619,7 @@ function kayitForm(tur, id){
   ovAc('ovGrafik');
 }
 async function kayitKaydet(){
-  const F=KAYIT_FORM; if(!F) return; const S=KAYIT_SEMA[F.tur], kart=kayitKart(S.mod); if(!kart || !can(S.mod==='mak'?'makine':'personel')) return;
+  const F=KAYIT_FORM; if(!F) return; const S=KAYIT_SEMA[F.tur], kart=kayitKart(S.mod); if(!kart || !can(S.mod==='mak'?'makine':'personel') || (F.tur==='disiplin' && !can('disiplin'))) return;
   const deger={};
   for(const a of S.alanlar){ const idA='kf_'+a.k;
     if(a.tip==='tarih') deger[a.k]=dtOku(idA)||'';
@@ -7780,7 +7788,7 @@ function prsPerf(p){
   const zam=kap.filter(x=>!x.a.termin || x.a.kapanis.tarih<=x.a.termin);
   const sure=kap.map(x=>x.a.olusturma ? Math.max(0,Math.round((new Date(x.a.kapanis.tarih+'T12:00:00')-new Date(String(x.a.olusturma).slice(0,10)+'T12:00:00'))/864e5)) : null).filter(x=>x!=null);
   return {L, kap, acik, zam, acikGec:acik.filter(x=>x.a.termin && x.a.termin<b), ort:sure.length?Math.round(sure.reduce((s,x)=>s+x,0)/sure.length*10)/10:null,
-    oran:kap.length?Math.round(zam.length/kap.length*100):null, odul:(p.oduller||[]).length, dis:(p.disiplinler||[]).length};
+    oran:kap.length?Math.round(zam.length/kap.length*100):null, odul:(p.oduller||[]).length, dis:can('disiplin')?(p.disiplinler||[]).length:null};
 }
 function prsPerfGrup(p){
   const P=prsPerf(p), sat=(ad,alt)=>({ad, alt, isaretYok:1, gecmis:1, tik:'void 0'});
@@ -7788,7 +7796,7 @@ function prsPerfGrup(p){
     sat('Atanan aksiyon: '+P.L.length, P.acik.length+' açık'+(P.acikGec.length?' ('+P.acikGec.length+' termini geçmiş)':'')+' · '+P.kap.length+' kapandı'),
     sat('Zamanında tamamlama: '+(P.oran==null?'—':'%'+P.oran), P.kap.length?(P.zam.length+' / '+P.kap.length+' aksiyon termininde kapandı'):'kapanan aksiyon yok'),
     sat('Ortalama çözüm süresi: '+(P.ort==null?'—':P.ort+' gün'), 'açılıştan kapanışa'),
-    sat('Ödül: '+P.odul+' · Disiplin: '+P.dis, 'Ödüller ve Disiplin balonlarında')
+    sat('Ödül: '+P.odul+(P.dis!=null?' · Disiplin: '+P.dis:''), P.dis!=null?'Ödüller ve Disiplin balonlarında':'Ödüller balonunda')
   ];
   P.L.slice().sort((x,y)=>String(y.a.olusturma||'').localeCompare(String(x.a.olusturma||''))).slice(0,20).forEach(({a,no})=>{
     let alt;
@@ -7816,7 +7824,7 @@ function prsPerfRender(){
   const w=$('prsPerfWrap'); if(!w) return; if(!can('personel')){ w.innerHTML='<div class="hp-bos">Personel bölümü için yetkiniz yok.</div>'; return; }
   const q=PRS_PERF_ARA.toLocaleLowerCase('tr');
   let L=PRS.filter(p=>p.durum!=='ayrildi' && prsGorebilir(p)).map(prsPerfSatir);
-  const T=L, kapAk=T.filter(x=>x.oran!=null), e=esc;
+  const T=L, kapAk=T.filter(x=>x.oran!=null), e=esc, DS=can('disiplin');
   if(q) L=L.filter(x=>String(x.p.ad||'').toLocaleLowerCase('tr').includes(q) || String(x.p.sicil||'').includes(q) || meslekAd(x.p).toLocaleLowerCase('tr').includes(q));
   const s=PRS_PERF_SIRA; L.sort((a,b)=>{ const x=a[s.k], y=b[s.k]; if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1; return (x<y?-1:x>y?1:0)*s.y || String(a.p.ad).localeCompare(String(b.p.ad),'tr'); });
   const ort=a=>a.length?Math.round(a.reduce((t,x)=>t+x,0)/a.length):null;
@@ -7827,11 +7835,11 @@ function prsPerfRender(){
   w.innerHTML=`<div class="bar" style="margin-bottom:12px;gap:10px;flex-wrap:wrap"><h2 style="font-size:19px;flex:1">Performans</h2>
       <input type="search" placeholder="${e(Ld('Ad, sicil ya da meslek','Name, ID or occupation'))}" value="${e(PRS_PERF_ARA)}" oninput="PRS_PERF_ARA=this.value;prsPerfRender();const i=document.querySelector('#prsPerfWrap input[type=search]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}" style="max-width:260px"></div>
     <div class="kpis">${kpi(T.length,'Aktif Personel')}${kpi(ak,'Atanan Aksiyon')}${kpi(yz(zo),'Zamanında Tamamlama','kişi ortalaması (kapanan aksiyonu olanlar)',renk(zo))}
-      ${kpi(gec,'Termini Geçmiş Açık',"",gec?'color:var(--red)':'')}${kpi(T.reduce((t,x)=>t+x.odul,0),'Ödül')}${kpi(T.reduce((t,x)=>t+x.dis,0),'Disiplin','',T.some(x=>x.dis)?'color:var(--red)':'')}</div>
-    <div class="tw prsPerfTablo"><table><thead><tr><th>Personel</th>${bas('ak','Aksiyon','atanan aksiyon (taslak / iptal hariç)')}${bas('oran','Zamanında','kapanan aksiyonların termininde kapanan payı')}${bas('ort','Ort. çözüm','açılıştan kapanışa ortalama gün')}${bas('gec','Geciken açık','termini geçmiş açık aksiyon')}${bas('egt','Eğitim uyumu','zorunlu eğitimlerin geçerli olan payı')}${bas('blg','Belge uyumu','zorunlu belgelerin geçerli olan payı')}${bas('odul','Ödül')}${bas('dis','Disiplin')}</tr></thead>
+      ${kpi(gec,'Termini Geçmiş Açık',"",gec?'color:var(--red)':'')}${kpi(T.reduce((t,x)=>t+x.odul,0),'Ödül')}${DS?kpi(T.reduce((t,x)=>t+x.dis,0),'Disiplin','',T.some(x=>x.dis)?'color:var(--red)':''):''}</div>
+    <div class="tw prsPerfTablo"><table><thead><tr><th>Personel</th>${bas('ak','Aksiyon','atanan aksiyon (taslak / iptal hariç)')}${bas('oran','Zamanında','kapanan aksiyonların termininde kapanan payı')}${bas('ort','Ort. çözüm','açılıştan kapanışa ortalama gün')}${bas('gec','Geciken açık','termini geçmiş açık aksiyon')}${bas('egt','Eğitim uyumu','zorunlu eğitimlerin geçerli olan payı')}${bas('blg','Belge uyumu','zorunlu belgelerin geçerli olan payı')}${bas('odul','Ödül')}${DS?bas('dis','Disiplin'):''}</tr></thead>
     <tbody>${L.map(x=>`<tr class="clk" onclick="prsAc(${jsA(x.p.id)})"><td><b>${e(x.p.ad||'')}</b><small>${e([meslekAd(x.p),lokAd(x.p.lok)].filter(Boolean).join(' · '))}</small></td>
       <td>${x.ak}</td><td style="${renk(x.oran)}">${yz(x.oran)}</td><td>${x.ort==null?'—':x.ort+' gün'}</td><td style="${x.gec?'color:var(--red);font-weight:700':''}">${x.gec}</td>
-      <td style="${renk(x.egt)}">${yz(x.egt)}</td><td style="${renk(x.blg)}">${yz(x.blg)}</td><td>${x.odul}</td><td style="${x.dis?'color:var(--red);font-weight:700':''}">${x.dis}</td></tr>`).join('')||'<tr><td colspan="9" class="empty">Kayıt yok.</td></tr>'}</tbody></table></div>
+      <td style="${renk(x.egt)}">${yz(x.egt)}</td><td style="${renk(x.blg)}">${yz(x.blg)}</td><td>${x.odul}</td>${DS?`<td style="${x.dis?'color:var(--red);font-weight:700':''}">${x.dis}</td>`:''}</tr>`).join('')||'<tr><td colspan="9" class="empty">Kayıt yok.</td></tr>'}</tbody></table></div>
     <p class="hint" style="margin-top:8px">${e(Ld('Aksiyon kişiye, sorumlu adı ya da e-postası personel kartındakiyle aynıysa sayılır.','An action counts for a person when the responsible name or e-mail matches the personnel card.'))}</p>`;
 }
 function prsPerfSirala(k){ PRS_PERF_SIRA = PRS_PERF_SIRA.k===k ? {k, y:-PRS_PERF_SIRA.y} : {k, y:(k==='ort'||k==='gec'||k==='dis')?1:-1}; prsPerfRender(); }
@@ -7931,7 +7939,7 @@ function prsQrAc(ham){
     h+=`<div class="kfBolum">Belgeler</div>`+(B.length?B.map(x=>sat(x.g.ad, x.son?(x.son.bitis?'geçerli '+trDate(x.son.bitis):'süresiz'):'yüklenmedi', x.d)).join(''):'<div class="hp-bos">Zorunlu belge yok.</div>');
     const Kk=(p.kkdZimmet||[]), Gr=(p.gorevlendirmeler||[]);
     if(Kk.length) h+=`<div class="kfBolum">KKD zimmet</div>`+Kk.map(z=>sat((z.kkd||'KKD')+(z.adet>1?' × '+z.adet:''), [trDate(z.tarih), z.iade?'yenileme '+trDate(z.iade):''].filter(Boolean).join(' · '), z.iade?gecDurum(z.iade):null)).join('');
-    { const Pf=prsPerf(p); h+=`<div class="kfBolum">Performans</div>`+sat('Atanan aksiyon: '+Pf.L.length+' · zamanında '+(Pf.oran==null?'—':'%'+Pf.oran), (Pf.ort==null?'':'ortalama '+Pf.ort+' gün · ')+'ödül '+Pf.odul+' · disiplin '+Pf.dis); }
+    { const Pf=prsPerf(p); h+=`<div class="kfBolum">Performans</div>`+sat('Atanan aksiyon: '+Pf.L.length+' · zamanında '+(Pf.oran==null?'—':'%'+Pf.oran), (Pf.ort==null?'':'ortalama '+Pf.ort+' gün · ')+'ödül '+Pf.odul+(Pf.dis!=null?' · disiplin '+Pf.dis:'')); }
     if(Gr.length) h+=`<div class="kfBolum">Görevlendirme ve yetkiler</div>`+Gr.map(g=>sat(g.tur||'Görev', [trDate(g.tarih), g.gecerlilik?'geçerli '+trDate(g.gecerlilik):'süresiz'].join(' · '), g.gecerlilik?gecDurum(g.gecerlilik):null)).join('');
   }
   if(S){ const sm=prsSonMuayene(p); h+=`<div class="kfBolum">Periyodik muayene</div>`+(sm?sat('Son muayene '+trDate(sm.tarih), 'sonraki '+trDate(sm.sonraki), gecDurum(sm.sonraki)):'<div class="hp-bos">Kayıt yok.</div>'); }
@@ -10338,7 +10346,7 @@ function renderPoz(){
       <td><select onchange="setPoz(${jsA(p.kod)},'kapsam',this.value)">
         <option value="own"${p.kapsam==='own'?' selected':''}>Atandığı lokasyonlar</option>
         <option value="all"${p.kapsam==='all'?' selected':''}>Tüm lokasyonlar</option></select></td>
-      ${cb('kayit')}${cb('aksiyon')}${cb('ayar')}${cb('saglik')}${cbB('personel')}${cbB('makine')}${cbB('egitim')}
+      ${cb('kayit')}${cb('aksiyon')}${cb('ayar')}${cb('saglik')}${cbB('personel')}${cbB('makine')}${cbB('egitim')}${cb('disiplin')}
       <td>${kisi?`<span class="pill p-blu">${kisi}</span>`:'—'}</td>
       <td><button class="btn sm" onclick="delPoz(${jsA(p.kod)})">Sil</button></td></tr>`;
   }).join('')||'<tr><td colspan="12" class="empty">Pozisyon yok.</td></tr>';
@@ -15184,7 +15192,7 @@ async function pencereKucult(){
   const mo=new MutationObserver(gor); document.querySelectorAll('.view').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.15.1':['Personel › Performans ekranı: kişiler aksiyon, zamanında tamamlama, çözüm süresi, eğitim ve belge uyumu, ödül / disiplin ölçütleriyle; sütuna göre sıralanır','Personel QR iki yönlü: cihazda olmayan kişi etiketteki bilgilerle eklenir (yeni etiket basın)'],'1.15.0':['Personel QR kodu: ID kart ve baret etiketi baskısı; okutunca yetkiye göre eğitim geçmişi, belgeler, KKD, görevlendirme, muayene tarihleri','Personel kartında Performans: atanan aksiyonlar, zamanında tamamlama, ortalama çözüm süresi; Ödüller ve Disiplin kayıtları (ilgili olay, belge)','QR oku yalnız uygulamada; telefonda makine QR kodu fotoğrafın sağında'],'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.15.2':['Disiplin kayıtları yalnız İnsan Kaynakları ve Yönetici görür (yeni yetki; Ayarlar › Pozisyonlar)'],'1.15.1':['Personel › Performans ekranı: kişiler aksiyon, zamanında tamamlama, çözüm süresi, eğitim ve belge uyumu, ödül / disiplin ölçütleriyle; sütuna göre sıralanır','Personel QR iki yönlü: cihazda olmayan kişi etiketteki bilgilerle eklenir (yeni etiket basın)'],'1.15.0':['Personel QR kodu: ID kart ve baret etiketi baskısı; okutunca yetkiye göre eğitim geçmişi, belgeler, KKD, görevlendirme, muayene tarihleri','Personel kartında Performans: atanan aksiyonlar, zamanında tamamlama, ortalama çözüm süresi; Ödüller ve Disiplin kayıtları (ilgili olay, belge)','QR oku yalnız uygulamada; telefonda makine QR kodu fotoğrafın sağında'],'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
