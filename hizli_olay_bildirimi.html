@@ -851,7 +851,35 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 (max-width:900px){ .hp-pano{grid-template-columns:1fr!important} #anaAjanda .hp-oge .m{white-space:normal;flex-wrap:wrap} }
 .anaPop{max-height:60vh;overflow:auto;padding-right:4px}
 .hp-sag{display:flex;flex-direction:column;gap:16px;min-width:0}
-.hp-sag > :last-child{flex:1 1 auto}   /* 10.11.2026: son kart ajandanın altına kadar uzar (alt kenarlar hizalı) */
+.hp-sag > :last-child{flex:1 1 auto}
+/* ASİSTAN (11.11.2026) — sağdan açılan sohbet penceresi; SİF siyah / sarı, gri zemin */
+.hdDil{font-weight:800;font-size:12px;letter-spacing:.3px;min-width:34px}
+.asPanel{position:fixed;top:62px;right:12px;bottom:12px;width:min(420px,calc(100vw - 24px));z-index:900;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.22);overflow:hidden}
+.asPanel[hidden]{display:none}
+.asBas{display:flex;align-items:center;gap:8px;padding:10px 12px 10px 16px;background:#141414;color:#fff;border-bottom:3px solid var(--jcb)}
+.asBas b{font-size:15px;color:var(--jcb)}.asBasSag{margin-left:auto;display:flex;gap:6px}.asBas .hbtn{color:#fff;background:transparent;border:0;font-size:15px;cursor:pointer}
+.asMesaj{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface2)}
+.asBalon{max-width:92%;padding:9px 12px;border-radius:14px;font-size:13.5px;line-height:1.45}
+.asBen{align-self:flex-end;background:#141414;color:#fff;border-bottom-right-radius:4px}
+.asOnlar{align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px;width:92%}
+.asCevap{font-weight:700}.asOgrRoz{display:inline-block;font-size:10.5px;font-weight:700;background:var(--jcb);color:#141414;border-radius:6px;padding:1px 6px;vertical-align:1px}
+.asListe{margin-top:6px;display:flex;flex-direction:column;gap:4px}.asListe .hp-oge{cursor:pointer}.asCumle{display:block;color:var(--text2);margin-top:2px}
+.asListe mark,.asCumle mark{background:var(--jcb-light);color:inherit;border-radius:3px;padding:0 1px}
+.asAlt{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}.asOy{margin-left:auto;display:flex;gap:2px}
+.asOy button{border:0;background:none;cursor:pointer;font-size:15px;padding:2px 4px;border-radius:6px;opacity:.75}.asOy button:hover{background:var(--surface2);opacity:1}.asOy button:disabled{opacity:.35;cursor:default}
+.asOneri{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.asOneri button{border:1px solid var(--border);background:var(--surface2);border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--text)}
+.asOneri button:hover{border-color:var(--jcb)}
+.asOgret{margin-top:8px;display:flex;flex-direction:column;gap:6px}.asOgret select,.asOgret textarea{width:100%;font:inherit;font-size:13px}.asOgret .btn{align-self:flex-end}
+.asForm{display:flex;gap:6px;padding:10px;border-top:1px solid var(--border);background:var(--surface)}
+.asForm input{flex:1;min-width:0;border-radius:999px;padding:9px 14px}
+.asMik,.asGonder{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text);display:grid;place-items:center;cursor:pointer;flex:none}
+.asGonder{background:var(--jcb);border-color:var(--jcb);color:#141414}
+.asMik.aktif{background:#8B1E2D;border-color:#8B1E2D;color:#fff;animation:asNabiz 1.2s infinite}
+@keyframes asNabiz{0%{box-shadow:0 0 0 0 rgba(139,30,45,.45)}70%{box-shadow:0 0 0 10px rgba(139,30,45,0)}100%{box-shadow:0 0 0 0 rgba(139,30,45,0)}}
+.anaSor{flex:1;display:flex;gap:6px;max-width:560px;margin:0 auto}.anaSor input{flex:1;min-width:0;border-radius:999px;padding:10px 16px}
+.anaSor button{width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--text);flex:none}
+.anaSor button[type=submit]{background:var(--jcb);border-color:var(--jcb);color:#141414}
+@media(max-width:900px){ .anaSor{display:none} }   /* 10.11.2026: son kart ajandanın altına kadar uzar (alt kenarlar hizalı) */
 .hp-kutular{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .hp-kutu{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:transform .15s,box-shadow .15s}
 .hp-kutu:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(20,24,31,.10)}
@@ -1370,6 +1398,8 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
   <div class="hdGezin"><button type="button" id="hdGeri" class="hdGezinBtn" onclick="gezin(-1)" disabled title="Geri" aria-label="Geri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><button type="button" id="hdIleri" class="hdGezinBtn" onclick="gezin(1)" disabled title="İleri" aria-label="İleri"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button></div>
   <div class="spacer"></div>
   <button type="button" class="me" id="meBox" onclick="profilAc()" aria-label="Profil"></button>
+  <button type="button" class="hbtn tgl" id="hdAsistan" onclick="asAc()" title="Asistan" aria-label="Asistan"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg></button>
+  <button type="button" class="hbtn tgl hdDil" id="hdDil" onclick="dilDegis()" title="Dil">TR</button>
   <button type="button" class="hbtn tgl hdZil" id="hdZil" onclick="zilAc(event)" title="Bildirimler" aria-label="Bildirimler" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg><span class="zilSay" style="display:none"></span></button>
   <div class="hdAiMod" id="hdAiMod" role="group" aria-label="AI analiz modu"></div>
   <button class="hbtn tgl" id="themeBtn" onclick="temaDegis()" title="Gece / Gündüz modu"></button>
@@ -1378,6 +1408,15 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
   <input type="file" id="imp" accept=".json" style="display:none" onchange="restore(this)">
 </header>
 
+<aside class="asPanel" id="asPanel" hidden data-dil-yok>
+  <div class="asBas"><b>Asistan</b><span class="asBasSag"><button type="button" class="hbtn" onclick="asKapat()" aria-label="Kapat">✕</button></span></div>
+  <div class="asMesaj" id="asMesaj"></div>
+  <form class="asForm" onsubmit="event.preventDefault();asSor($('asSoru').value)">
+    <input id="asSoru" type="text" autocomplete="off" maxlength="300">
+    <button type="button" class="asMik" id="asMik" onclick="asMik()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    <button type="submit" class="asGonder" id="asGonder"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/></svg></button>
+  </form>
+</aside>
 <nav id="nav">
   <button data-v="ana" data-mv="isg personel makine egitim">Ana Sayfa</button>
   <button data-v="analiz" class="on">Pano</button>
@@ -2039,6 +2078,10 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
         </div>
       </div>
     </div>
+    <div class="card" style="max-width:820px">
+      <h3>Asistan — Öğrenilenler</h3>
+      <div class="cb" id="asOgrKart"></div>
+    </div>
     <div class="card" id="shKart" style="max-width:620px;display:none">
       <h3>Veri Havuzu</h3>
       <div class="cb" id="shKartIc"></div>
@@ -2221,7 +2264,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.9.23';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.10.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2277,7 +2320,7 @@ const SH_HARITA = {
   mai_esik:{esik:{prs:'personel',mak:'makine',egt:'egitim'}},
   mai_gecmis:{esik:{prs:'personel',mak:'makine',egt:'egitim'}, dosya:'ai_gecmisi'},
   an_bulgu:{plan:1},                                   /* analiz aksiyon planı: satır başına modül (bk "mai:<mod>:") → ortak/aksiyon_plani/<modül> */
-  yb_model:{t:'_ogrenme/belge_motoru'}, model:{t:'_ogrenme/analiz_modeli'}, bellek:{t:'_ogrenme/analiz_bellegi'},
+  yb_model:{t:'_ogrenme/belge_motoru'}, asistan_ogren:{t:'_ogrenme/asistan'}, model:{t:'_ogrenme/analiz_modeli'}, bellek:{t:'_ogrenme/analiz_bellegi'},
   ym_ornek_v6:{t:'_sistem/kurulum/ym_ornek_v6'}, den_ornek_kuruldu_v2:{t:'_sistem/kurulum/den_ornek_kuruldu_v2'}
 };
 const shAd = k => (typeof k==='string' && k.startsWith(SH_ONEK) && SH_HARITA[k.slice(SH_ONEK.length)]) ? k.slice(SH_ONEK.length) : null;
@@ -6293,7 +6336,7 @@ function anaRender(){
     can('egitim')?kutu('egt','Eğitim','eksik / süresi dolan / '+UYARI_GUN+' gün içinde',1):''
   ].filter(Boolean).join('');
   const SUT=(n=>n>4?Math.ceil(n/2):Math.max(n,1))((kutular.match(/class="hp-kutu/g)||[]).length);
-  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller" style="--sut:${SUT}">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}<div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
+  w.innerHTML=`<div class="anaSelam">Hoş geldiniz, <b>${esc(adGoster(SES))}</b></div><div class="anaModuller" style="--sut:${SUT}">${mod('isg','İSG Yönetimi',ANA_ICO.isg)}${mod('personel','Personel Yönetimi',ANA_ICO.personel)}${mod('makine','Makine-Ekipman Yönetimi',ANA_ICO.makine)}${mod('egitim','Eğitim Yönetimi',ANA_ICO.egitim)}<form class="anaSor" onsubmit="event.preventDefault();asAc(this.q.value);this.q.value=''"><input name="q" type="text" autocomplete="off" maxlength="300" placeholder="${esc(Ld('Asistana sorun: kaç açık aksiyon var?','Ask the assistant: how many open actions?'))}"><button type="button" title="${esc(Ld('Konuşarak sor','Ask by voice'))}" onclick="asAc();asMik()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button type="submit" title="${esc(Ld('Sor','Ask'))}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/></svg></button></form><div class="hava" id="anaHava" hidden onclick="havaMenu(event)" title="Hava durumu şehri"></div></div>
     <div class="hp-gov" style="--sut:${SUT}"><div class="hp-serit">${kutular}</div>
     <div class="hp-pano">
       <div class="hp-kart" id="anaAjanda"><h3>Ajanda<small>Yaklaşanlar · önümüzdeki ${ANA_GUN} gün</small></h3>
@@ -9740,7 +9783,7 @@ function shKartCiz(){
       +(yetkili?`<div class="bar" style="margin-top:10px"><button class="btn sm" onclick="shAktar(false)">Bu Tarayıcıdaki Kayıtları Havuza Aktar</button><button class="btn sm" onclick="shAktar(true)">Boş Havuzla Başla</button></div>`:'');
     return;
   }
-  const kl={}; for(const ad of Object.keys(SH_HARITA)) if(SH.S[ad]){ const h=SH_HARITA[ad]; const ilk=(h.t||(h.prs?'personel/':h.esik?'_ayar/':(h.b({})||'')).toString()).split('/')[0]; kl[ilk]=1; }
+  const kl={}; for(const ad of Object.keys(SH_HARITA)) if(SH.S[ad]){ const h=SH_HARITA[ad]; const ilk=(h.t||(h.prs?'personel/':h.esik?'_ayar/':h.plan?'ortak/':(h.b?h.b({}):'')).toString()).split('/')[0]; kl[ilk]=1; }
   if(SH_HARITA.sact && SH.S.sact) kl.ortak=1;
   ic.innerHTML=`<div class="kv" style="grid-template-columns:200px 1fr">
       <div class="k">Kayıt yeri</div><div>Sunucudaki veri havuzu (modül klasörleri)</div>
@@ -10398,7 +10441,7 @@ function go(v, fromPop){
        başlangıç sanıyordu — kaydedilmemiş değişiklik uyarısı ve
        "değişiklikleri at" bu yüzden sessizce bozuluyordu. */
     if(suan!=='set'){ SET_HOLD=true; SET_DIRTY=false; SET_SNAP=setSnapAl(); }   // Kaydet'e kadar depoya yazma
-    renderLok(); renderPoz(); renderUsr(); renderOrg(); renderDist(); renderPers(); renderMakSap(); renderEgtTur(); renderMaiEsik(); renderGen(); shKartCiz();
+    renderLok(); renderPoz(); renderUsr(); renderOrg(); renderDist(); renderPers(); renderMakSap(); renderEgtTur(); renderMaiEsik(); renderGen(); shKartCiz(); asOgrKartCiz();
     /* Ayarlar yetkisi olmayan modül yöneticisi: yalnız Analiz Eşikleri sekmesi */
     { const tam=can('ayar'); document.querySelectorAll('#setTabs button').forEach(b=>{ b.style.display = (tam||b.dataset.s==='esik')?'':'none'; });
       if(!tam){ const e=document.querySelector('#setTabs [data-s="esik"]'); if(e && !e.classList.contains('on')) e.click(); } }
@@ -13521,8 +13564,595 @@ try{ const s=store.get(K_ANSON,null); if(s && Array.isArray(s.B) && !(AN_AI_SON.
     try{ if((AN_AI_SON.B||[]).length) store.set(K_ANSON, {B:AN_AI_SON.B, O:AN_AI_SON.O, lok:AN_AI_SON.lok, etiket:AN_AI_SON.etiket, at:new Date().toISOString()}); }catch(e){}
     bgTazele(); return r; }; }
 
+/* ══════════ DİL (11.11.2026, kullanıcı: "portala en seçeneği de ekle ve dile göre konuşma tarafı otomatik değişecek") ══════════
+   Seçim cihaz başına (tarayıcıda, kişisel). Çeviri METİN-ANAHTARLI sözlükle (SOZ_EN: Türkçe metin → İngilizce): görünen metin
+   düğümleri ile title / placeholder / aria-label özellikleri sözlükte varsa çevrilir, Türkçe asıl düğümde saklanır (geri dönüş).
+   Yeni çizilen ekranlar da (MutationObserver) aynı sözlükle çevrilir; sözlükte olmayan metin Türkçe kalır — sözlük büyüdükçe kapsam
+   genişler. Asistan (sohbet) baştan iki dilli: cevap, öneri, ses tanıma ve sesli okuma dili seçili dile göre. */
+const K_DIL = 'hse::HOB::dil';
+let DIL = (()=>{ try{ return localStorage.getItem(K_DIL)==='en' ? 'en' : 'tr'; }catch(e){ return 'tr'; } })();
+const Ld = (tr,en) => DIL==='en' ? en : tr;
+const SOZ_EN = {
+  'Ana Sayfa':'Home','Pano':'Dashboard','Analiz':'Analysis','Olaylar':'Incidents','Olay Bildirimi':'Incident Report','Olay Envanteri':'Incident Register',
+  'Aksiyonlar':'Actions','Yeni Aksiyon':'New Action','Aksiyon Listesi':'Action List','Denetim':'Inspection','Saha İnceleme':'Site Inspection','Planlı Denetim':'Planned Audit',
+  'Personel Listesi':'Personnel List','Yeni Personel':'New Employee','Makine Listesi':'Equipment List','Yeni Makine':'New Equipment',
+  'Eğitim Planı':'Training Plan','Eğitim Kayıtları':'Training Records','Yeni Eğitim':'New Training',
+  'Bildirimler':'Notifications','Ayarlar':'Settings','Çıkış':'Sign out','Profil':'Profile','Gece / Gündüz modu':'Dark / Light mode','Asistan':'Assistant',
+  'YÖNETİM PORTALI':'MANAGEMENT PORTAL','Yönetim Portalı':'Management Portal',
+  'İSG Yönetimi':'HSE Management','Personel Yönetimi':'Personnel Management','Makine-Ekipman Yönetimi':'Equipment Management','Eğitim Yönetimi':'Training Management',
+  'Açık aksiyon':'Open actions','yetkili olduğunuz modüllerde':'in modules you can access','Geciken':'Overdue','termini geçmiş aksiyon':'actions past due date',
+  'Onayımı bekleyen':'Awaiting my approval','onayınıza gelen aksiyon':'actions sent for your approval','Açık inceleme':'Open investigations','incelemesi başlamamış olay':'incidents not yet investigated',
+  'SGK bildirimi':'SSI notification','bildirilmesi bekleyen olay':'incidents awaiting notification','Personel belgesi':'Personnel documents','Makine kontrolü':'Equipment inspection',
+  'Eğitim':'Training','Ajanda':'Agenda','Bugün':'Today','Yarın':'Tomorrow','Bu hafta':'This week','Sonra':'Later','Bu ay':'This month','Son olaylar':'Recent incidents',
+  'olay':'incidents','ramak kala':'near misses','kapanan aksiyon':'closed actions','eğitim adam·saat':'training man-hours','Kayıt yok.':'No records.',
+  'Listeye git →':'Go to list →','Kaydet':'Save','İptal':'Cancel','Kapat':'Close','Ara':'Search','Temizle':'Clear','Sil':'Delete','Düzenle':'Edit','Yazdır':'Print','Gönder':'Send',
+  'Bulgular':'Findings','Aksiyon Planı':'Action Plan','Strateji Planı':'Strategy Plan','Analiz Geçmişi':'Analysis History','Açık':'Open','Aksiyonda':'In action','Tümü':'All',
+  'Tüm kaynaklar':'All sources','açık bulgu':'open findings','aksiyonda':'in action','planda bekleyen':'waiting in plan','açılan aksiyon':'actions opened','geciken':'overdue',
+  'Aksiyon aç':'Open action','Aksiyon planına ekle':'Add to action plan','Personel Panosu':'Personnel Dashboard','Makine-Ekipman Panosu':'Equipment Dashboard','Eğitim Panosu':'Training Dashboard',
+  'Analiz Ediliyor':'Analysing','Asistan — Öğrenilenler':'Assistant — Learned answers','Veri Havuzu':'Data Pool','Veri ve Saklama':'Data and Storage','Hoş geldiniz,':'Welcome,','Yaklaşanlar':'Upcoming','Ucuz Atlatma (NM)':'Near Miss (NM)','Kayıp Günlü Olay (LTI)':'Lost Time Injury (LTI)',
+  'İlk Yardım (FAC)':'First Aid (FAC)','Tıbbi Müdahaleli Olay (MTC)':'Medical Treatment (MTC)','Maddi Hasar (PD)':'Property Damage (PD)','Ölümlü Kaza':'Fatality',
+  'Yangın':'Fire','Araç Kazası':'Vehicle Accident','Olay Türü':'Incident Type','Lokasyon':'Location','Olay Kaynağı':'Incident Source','Kök Sebepler':'Root Causes'
+};
+/* SÖZLÜK — EKRANLAR (11.11.2026, kullanıcı: "ikisini de yap"): bütün görünümlerden toplanan arayüz metinleri (başlık, düğme, etiket,
+   sütun, seçenek, ipucu). Kayıt içerikleri ve sayılı / değişken cümleler burada değil — onları yerel çeviri motoru (Bergamot) çevirir. */
+Object.assign(SOZ_EN, {
+  '+ Aksiyon Ekle':'+ Add Action','+ Alıcı Ekle':'+ Add Recipient','+ Departman Ekle':'+ Add Department','+ Elle Ekle':'+ Add Manually','+ Eğitim Türü Ekle':'+ Add Training Type',
+  '+ Kilit Personel':'+ Key Personnel','+ Kişi Ekle':'+ Add Person','+ Kişi ekle':'+ Add person','+ Lokasyon Ekle':'+ Add Location','+ Pozisyon Ekle':'+ Add Position','+ Tanık Ekle':'+ Add Witness',
+  '+ Widget':'+ Widget','+ Yeni Denetim':'+ New Audit','+ Yeni Eğitim':'+ New Training','+ Yeni Makine / Ekipman':'+ New Equipment','+ Yeni Personel':'+ New Employee',
+  '+ Yeni Saha İncelemesi':'+ New Site Inspection','+ İsim Listesinden Ekle':'+ Add from Name List',
+  'ADA — Adana Şube':'ADA — Adana Branch','IZM — İzmir Şube':'IZM — Izmir Branch','MRK — Genel Merkez':'MRK — Head Office','GRUP — Tüm SİF Grubu':'GRUP — All SİF Group','Tüm SİF Grubu':'All SİF Group',
+  'AI analiz modu':'AI analysis mode','AI analiz modu: Çevrimdışı':'AI analysis mode: Offline','AI analizi':'AI analysis','AI analizi önerisi':'AI analysis suggestion','AI önerisinden açılanlar':'Opened from AI suggestions',
+  'AI — tüm verileri analiz et':'AI — analyse all data','AI — tüm verileri ve grafikleri analiz et':'AI — analyse all data and charts','AI — yeniden analiz et':'AI — re-analyse',
+  'Ad / Şehir':'Name / City','Ad Soyad':'Full Name','Ad Soyad / E-posta (Kullanıcı Adı)':'Full Name / E-mail (Username)','Ad Soyad / Ünvan / E-posta':'Full Name / Title / E-mail','Ad soyad':'Full name',
+  'Adam·Saat':'Man-Hours','Airtable Bağlantısı':'Airtable Connection',"Airtable'a Yükle":'Upload to Airtable',"Airtable'dan Çek":'Fetch from Airtable',
+  'Aksiyon':'Action','Aksiyon Günceller':'Updates Actions','Aksiyon No':'Action No','Aksiyon Numara Şablonu':'Action Number Template','Aksiyon Numarası':'Action Number','Aksiyon Tanımı':'Action Description',
+  'Aksiyon günceller':'Updates actions','Aksiyon no':'Action no','Aksiyon numarasına göre':'By action number','Aksiyonlar olay numarasına bağlı numaralandırılır:':'Actions are numbered after the incident number:',
+  'Aksiyonu aç — yapılanları yaz, güncelle, kapat':'Open the action — record work done, update, close','Aktif':'Active','Akümülatör':'Accumulator','Alıcı Tipi':'Recipient Type','Alıcı eklenmedi.':'No recipient added.',
+  'Analiz Belleğini Sıfırla':'Reset Analysis Memory','Analiz Eşikleri':'Analysis Thresholds','Analiz Göstergeleri':'Analysis Indicators','Analiz Sağlığı':'Analysis Health','Analiz balonu hedefte ya da altında':'Analysis bubble at or below target',
+  'Analiz et':'Analyse','Analiz motoru yalnız':'The analysis engine only','Arama':'Search','Araç / İş Makinesi Trafiği':'Vehicle / Machinery Traffic','Araç kaldırma lifti':'Vehicle lift',
+  'Araç-İş Makinesi Trafiği Yönetilmemiş':'Vehicle-Machinery Traffic Not Managed','Arıza':'Breakdown','Arıza / Yıpranma':'Breakdown / Wear','Arızalı':'Faulty','Arşiv Klasörü (Ek Dosyalar)':'Archive Folder (Attachments)',
+  'Asfaltlama makinesi':'Asphalt paver','Atandığı lokasyonlar':'Assigned locations','Ayarlar →':'Settings →','Aydınlatma / Görüş':'Lighting / Visibility','Aynı Seviyede Düşme / Kayma-Takılma':'Fall on Same Level / Slip-Trip',
+  'Ayrılan':'Left','Ayrıldı':'Left','Az tehlikeli':'Low hazard','Açıklama':'Description','Açılış tarihine göre':'By opening date','Ağır vasıta şoförü':'Heavy vehicle driver',
+  'Bakım Eksikliği':'Lack of Maintenance','Bakımda':'Under maintenance','Bana Atananlar':'Assigned to Me','Basınçlı Sistem (Hidrolik / Pnömatik)':'Pressurised System (Hydraulic / Pneumatic)',
+  'Basınçlı hava / gaz tankı (kompresör hava tankı)':'Compressed air / gas tank (compressor tank)','Bağlantı şöyle çıkar:':'The link looks like this:','Bağlantıyı Kaldır':'Remove Connection','Bağlantıyı Sına':'Test Connection',
+  'Bağlanılacak Veri Tabanı':'Database to Connect','Bağımsız aksiyonlarda.':'In standalone actions.','Başlangıç Listesine Dön':'Back to Initial List','Beklenen kolonlar (noktalı virgül veya sekme ile):':'Expected columns (semicolon or tab separated):',
+  'Beklenen kolonlar:':'Expected columns:','Belge süreleri':'Document validity','Belgeleri Oku':'Read Documents','Belirsiz — Değerlendirilecek':'Unclear — To Be Assessed','Beton pompası (taşıma, püskürtme, yerleştirme)':'Concrete pump (transfer, spraying, placing)',
+  'Beyaz yaka':'White collar','Bildiren Kişi':'Reported By','Bildiren — Sicil No':'Reporter — Employee No','Bildirenin Görevi':'Reporter’s Job Title','Bildirim Gidecek Kişiler':'People to Notify','Bilgi (CC)':'Info (CC)',
+  'Bitti':'Done','Biyolojik / Çevresel':'Biological / Environmental','Boyler / akümülasyon tankı':'Boiler / storage tank','Bu eğitimde durumu':'Status in this training',
+  'Bu liste kazazede ve aksiyon sorumlusu alanlarında otomatik tamamlama olarak kullanılır.':'This list is used for auto-complete in the injured person and action owner fields.',
+  'Bulgu':'Finding','Bulgu Açıklaması':'Finding Description','Bulgular ve Kök Sebep':'Findings and Root Cause','Bulgular — İncelemede Tespit Edilenler':'Findings — Identified in Investigation',
+  'Bölge':'Region','Büro / idari personel':'Office / administrative staff','CE uygunluk beyanı (eksik)':'CE declaration of conformity (missing)','CSV İndir':'Download CSV','Cephe / yapı iskelesi':'Facade / building scaffold',
+  'Cinsiyet':'Gender','Damperli kamyon (arazi tipi)':'Dump truck (off-road)','Dar veya Kapalı Alan':'Narrow or Confined Space','Davet bekliyor':'Awaiting invitation','Davet edildi':'Invited',
+  'Dağıtım Matrisi':'Distribution Matrix','Dağıtım Matrisinden Doldur':'Fill from Distribution Matrix','Delme makinesi (sütunlu matkap)':'Drilling machine (pillar drill)','Demo Veri Yükle':'Load Demo Data',
+  'Denetim No':'Audit No','Denetim Türü / Birim':'Audit Type / Unit','Denetim bulgusu':'Audit finding','Denetimi Çalıştır':'Run Check','Deneyimsizlik / Oryantasyon Eksik':'Inexperience / Missing Orientation',
+  'Departmanlar / Süreçler':'Departments / Processes','Depo / yedek parça sorumlusu':'Warehouse / spare parts officer','Değer':'Value','Değişim Yönetimi Yok':'No Management of Change',
+  'Değişken erişimli araç (telehandler)':'Telehandler','Dikkat Dağınıklığı / Yorgunluk':'Distraction / Fatigue','Dil: Türkçe (İngilizceye geç)':'Language: Turkish (switch to English)',
+  'Diğer':'Other','Diğer Bulgu':'Other Finding','Diğer lokasyonlara aktarılacak ders.':'Lesson to share with other locations.',
+  'Diğer — “Ekipman / Teknik” kaynaklı sebebi yazın':'Other — describe the “Equipment / Technical” cause','Diğer — “Ortam / Çevre” kaynaklı sebebi yazın':'Other — describe the “Environment” cause',
+  'Diğer — “Yönetim Sistemi” kaynaklı sebebi yazın':'Other — describe the “Management System” cause','Diğer — “İnsan Faktörü” kaynaklı sebebi yazın':'Other — describe the “Human Factor” cause',
+  'Diğer — “İş Organizasyonu” kaynaklı sebebi yazın':'Other — describe the “Work Organisation” cause','Diğerleri':'Others','Diğer…':'Other…','Doğrudan gönderim (gönderim ucu)':'Direct sending (endpoint)',
+  'Doğum tarihi':'Date of birth','Durum':'Status','Düşük':'Low','Dış':'External','Dış eğitimde kurum adı':'Institution for external training','Dış eğitmen':'External trainer','Dışa Aktar':'Export',
+  'E-posta':'E-mail','E-posta Gönderimi':'E-mail Sending','E-posta Taslağını Yeniden Aç':'Reopen E-mail Draft','Ek Dokümanlar ve Fotoğraflar':'Attachments and Photos','Ek-III dışı':'Outside Annex III',
+  'Ekipman / Teknik':'Equipment / Technical','Ekipman Dökümü':'Equipment Export','Ekipman Grubu':'Equipment Group','Ekipman Listesini Temizle':'Clear Equipment List','Ekipmanı Aktar':'Import Equipment','Ekle':'Add',
+  'Ekler (Foto / Belge) — sürükle-bırak':'Attachments (Photo / Document) — drag and drop','Ekleri İndir':'Download Attachments','Eksik / Gecikmiş':'Missing / Overdue','Eksik / süresi dolmuş belgeli':'With missing / expired documents',
+  'El Aletleri':'Hand Tools','Elektrik':'Electricity','Elektrik iç tesisatı':'Indoor electrical installation','Elektrik tesisatçısı / pano montajcısı MYK belgesi':'Electrician / panel installer VQA certificate',
+  'Elektrikle güvenli çalışma (LOTO) eğitimi':'Electrical safety (LOTO) training','Elektrikli / Pnömatik Alet':'Electric / Pneumatic Tool','Elektrikçi':'Electrician','Elle Taşıma / Kaldırma':'Manual Handling / Lifting',
+  'Elle taşıma ve ergonomi eğitimi':'Manual handling and ergonomics training','Emniyetsiz İstifleme / Depolama':'Unsafe Stacking / Storage','Endüstriyel kapı':'Industrial door','Endüstriyel raf':'Industrial rack',
+  'Envanter / SAP No':'Inventory / SAP No','Envanter No':'Inventory No','Envanter no':'Inventory no','Envanter no, tür, marka…':'Inventory no, type, brand…','Erişiminiz':'Your access','Erkek':'Male','Evet':'Yes',
+  'Evet (tesis genelinde)':'Yes (site-wide)','Eğitim Kaydı Yok / Güncel Değil':'No / Outdated Training Record','Eğitim Merkezi':'Training Centre','Eğitim No':'Training No','Eğitim Planı Yetersiz':'Insufficient Training Plan',
+  'Eğitim Türleri':'Training Types','Eğitim Türü':'Training Type','Eğitim adı':'Training name','Eğitim türü':'Training type','Eğitim yönetimi':'Training management','Eğitimi veren':'Delivered by','Eğitmen':'Trainer','Eşik':'Threshold',
+  'Faaliyet / İş Kalemi':'Activity / Work Item','Filtreyi temizle':'Clear filter','Fiziksel / Sağlık Durumu Uygun Değil':'Physical / Health Condition Unsuitable','Fiziksel Engel':'Physical Disability',
+  'Forklift / transpalet (endüstriyel araç)':'Forklift / pallet truck (industrial vehicle)','Forklift belgesi (forklift kullanıyorsa)':'Forklift licence (if operating a forklift)','Forklift güvenli kullanım eğitimi':'Forklift safe operation training',
+  'Forklift operatörü':'Forklift operator','Fotoğraf ekle':'Add photo','Freze tezgâhı':'Milling machine','Gece moduna geç':'Switch to dark mode','Gecikmeli Kapandı':'Closed Late','Gecikmiş':'Overdue','Gecikti':'Overdue',
+  'Genel':'General','Genel Merkez':'Head Office','Genel Merkez Kodu':'Head Office Code','Genel Merkez lokasyonunun kodu — hem kazada hem aksiyonda kullanılır.':'Head office location code — used for both incidents and actions.',
+  'Gerekli kişi':'Required people','Geri':'Back','Geçerli':'Valid','Giyotin makas':'Guillotine shear','Grafik: Bulgular':'Chart: Findings','Grafik: Etkilenen Vücut Bölgesi':'Chart: Body Part Affected',
+  'Grafik: Kök Sebep Kategorisi':'Chart: Root Cause Category','Grafik: Kök Sebepler':'Chart: Root Causes','Grafik: Lokasyon':'Chart: Location','Grafik: Olay Kaynağı':'Chart: Incident Source','Grafik: Olay Türü':'Chart: Incident Type',
+  'Grafik: Yaralanma Türü':'Chart: Injury Type','Greyder':'Grader','Grup Kodu (Aksiyon Kapsamı)':'Group Code (Action Scope)','Gönderim Kanalı':'Sending Channel','Gönderim Ucu (URL)':'Sending Endpoint (URL)','Gönderim:':'Sending:',
+  'Gönderimde':'Being sent','Görev':'Job title','Görev / unvan':'Job / title','Görev ve Yetki Belirsiz':'Unclear Roles and Authority','Gözetim / Denetim Yetersiz':'Insufficient Supervision','Gözlem':'Observation',
+  'Güncelleme Denetimi':'Update Check','Gürültü / Titreşim':'Noise / Vibration','Güvenli sürüş eğitimi':'Safe driving training','Güvenlik Olayı':'Security Incident','Hangi Kurumlara?':'Which Authorities?',
+  'Hareketsiz taşlama makinesi (taş motoru)':'Bench grinder','Hatırlatma Gönder':'Send Reminder','Hava Koşulları':'Weather Conditions','Hava durumu şehri':'Weather city','Havalandırma ve klima tesisatı':'Ventilation and air-conditioning',
+  'Hayır':'No','Henüz aksiyon girilmedi.':'No actions entered yet.','Henüz analiz yapılmadı — sağ alttaki AI düğmesiyle analiz edin.':'No analysis yet — run it with the AI button at the bottom right.',
+  'Henüz ek yok.':'No attachments yet.','Hepsini Yeniden Oku':'Re-read All','Her ikisinde':'In both','Herkese zorunlu':'Mandatory for everyone','Hidrolik kazıcı (ekskavatör)':'Hydraulic excavator','Hidrolik pres':'Hydraulic press',
+  'Hidrolik test tezgâhı':'Hydraulic test bench','Hizmet dışı':'Out of service','Hiç almamış':'Never taken','Housekeeping / Düzen':'Housekeeping / Order','Housekeeping Yetersiz':'Poor Housekeeping',
+  'Isıtma (kalorifer, sıcak su) kazanı':'Heating (central heating, hot water) boiler','Jeneratör':'Generator','Jeton':'Token','Jetonu Kaydet':'Save Token','Jetonu Sil':'Delete Token','KKD Yok / Uygun Değil':'PPE Missing / Unsuitable',
+  'KKD kullanımı eğitimi':'PPE use training',"KVKK'da özel nitelikli veridir — yalnız gerekli pozisyonlara açın.":'Special category data under KVKK (data protection) — grant only to required positions.',
+  'Kadın':'Female','Kaldır':'Remove','Kaldırma Ekipmanı (Vinç, Forklift)':'Lifting Equipment (Crane, Forklift)','Kaldırma aksesuarı (sapan, zincir, kıskaç, vakumlu / manyetik kaldırıcı)':'Lifting accessory (sling, chain, clamp, vacuum / magnetic lifter)',
+  'Kaldırma tablası':'Lifting table','Kapalı':'Closed','Kapalı genleşme tankı / hidrofor':'Closed expansion tank / booster','Kapandı':'Closed','Kapasite':'Capacity','Kapsam':'Scope','Kapsam:':'Scope:',
+  'Kategori':'Category','Katıldı':'Attended','Katılımcı':'Participant','Katılımcılar':'Participants','Kaynak':'Source','Kaynak / Bütçe Yetersiz':'Insufficient Resources / Budget','Kaynak / Kesim / Taşlama':'Welding / Cutting / Grinding',
+  'Kaynak Açıklaması':'Source Description','Kaynakçı':'Welder','Kayıt':'Record','Kayıt Açar':'Creates Records','Kayıt Kartı / Yazdır':'Record Card / Print','Kayıt açar':'Creates records','Kayıt yeri':'Storage location',
+  'Kayıtlı AI Analizlerini Sil':'Delete Saved AI Analyses','Kayıtta':'Recorded','Kaza (Olay) Numara Şablonu':'Incident Number Template','Kaza Dışı Ölüm':'Non-accident Death','Kazazede / Etkilenen Kişiler':'Injured / Affected Persons',
+  'Kazazede Adı':'Injured Person Name','Kazazede Sicil No':'Injured Person Employee No','Kazıcı yükleyici (beko loder)':'Backhoe loader','Kilit Personel':'Key Personnel','Kime':'To','Kimyasal / Tehlikeli Madde':'Chemical / Hazardous Substance',
+  'Kiralık':'Rented','Kişi':'Person','Kişisel Erişim Jetonu':'Personal Access Token','Klasör Seç':'Choose Folder','Klasör kökü — boşsa koddan türer':'Folder root — derived from code if empty','Klasöre Yaz':'Write to Folder',
+  'Klasörün Tam Yolu (Kendi Notunuz)':'Full Folder Path (Your Note)','Kod':'Code','Kontrol periyodu (ay)':'Inspection period (months)','Kontrol tarihleri':'Inspection dates','Konuşarak sor':'Ask by voice','Koruyucu Yok veya Devre Dışı':'Guard Missing or Disabled',
+  'Kule kren':'Tower crane','Kullanıcı':'User','Kullanıcı adı':'Username','Kullanıcılar':'Users','Kullanım kılavuzu (eksik)':'User manual (missing)','Kullanıyor':'In use','Kural Testi':'Rule Test','Kurum':'Institution',
+  'Kök Sebep Analizi Açıklaması':'Root Cause Analysis Description','Köprülü / portal kren (tavan vinci)':'Overhead / gantry crane','Kısmen (ilgili faaliyet)':'Partially (related activity)','Kısıtlı İş Göremezlik (RWC)':'Restricted Work Case (RWC)',
+  'LPG tankı (yeraltı / yerüstü)':'LPG tank (underground / above ground)','Lead / Takım Lideri':'Lead / Team Leader','Listeyi Temizle':'Clear List','Lokasyon / Tesis':'Location / Site','Lokasyon Dökümü':'Location Export',
+  'Lokasyonlar':'Locations','Lokasyonları Aktar':'Import Locations','Maddi Hasar (Tahmini)':'Property Damage (Estimated)','Makine teknikeri / teknisyeni':'Machine technician','Makine-Ekipman':'Equipment','Makine-ekipman analizi':'Equipment analysis',
+  'Makine-ekipman yönetimi':'Equipment management','Malzeme / Cisim Düşmesi':'Falling Material / Object','Marka':'Brand','Marka / Model':'Brand / Model','Mavi yaka':'Blue collar','Meslek':'Occupation','Meslek (SGK kodu)':'Occupation (SSI code)',
+  'Meslek (SGK)':'Occupation (SSI)','Meslek Hastalığı':'Occupational Disease','Meslek kodları':'Occupation codes','Mesleki':'Occupational','Metin İçinde Ara':'Search in Text','Mobil erişim ve çalışma kulesi (seyyar iskele)':'Mobile access tower (mobile scaffold)',
+  'Mobil kren / vinç':'Mobile crane','Mod':'Mode','Model':'Model','Modeli Yeniden Kur':'Rebuild Model','Motor':'Engine','Nasıl':'How','Ne Oldu — Tür Açıklaması':'What Happened — Type Description','Ne Oldu?':'What Happened?',
+  'Nihai Rapor Gönderildi':'Final Report Sent','Nihai Rapor Kime Gidecek?':'Who Receives the Final Report?','Nihai Raporu Gönder':'Send Final Report','No':'No','No, saha, firma, gözlem metni…':'No, site, company, observation text…','Not':'Note','Notlar':'Notes',
+  'Olay Künyesi':'Incident Details','Olay No':'Incident No','Olay Saati':'Incident Time','Olay Tarihi':'Incident Date','Olay Yerinde Alınan Acil Önlemler':'Immediate Actions Taken on Site','Olay inceleme yapar':'Investigates incidents',
+  'Olay kaynağını yazın':'Enter the incident source','Olay kayıtlarına eklenen':'Added to incident records','Olay kök sebebi':'Incident root cause',
+  'Olay türü, bildirim gidecek kişileri ve resmî bildirim yükümlülüğünü belirler.':'The incident type determines who is notified and whether official notification is required.',
+  'Olay türünü kısaca yazın':'Briefly describe the incident type','Olaydan öğrenilen ders':'Lesson learned from the incident','Olayı sırasıyla anlatın: ne yapılıyordu, ne oldu, sonuç ne oldu.':'Describe the incident in order: what was being done, what happened, what was the outcome.',
+  'Olayın Anlatımı':'Incident Description','Oluşturan':'Created by','Onay Bekliyor':'Awaiting Approval','Operatör':'Operator','Operatör yeterliliği':'Operator competence','Organizasyon':'Organisation','Orta':'Medium','Ortam / Çevre':'Environment',
+  'Outlook taslağı (mailto)':'Outlook draft (mailto)','Parçalı bulutlu':'Partly cloudy','Performans Takibi / Gözden Geçirme Eksik':'Missing Performance Monitoring / Review','Periyodik Kontrol':'Periodic Inspection',
+  'Periyodik Kontrol / Kalibrasyon Eksik':'Missing Periodic Inspection / Calibration','Periyodik Kontrol Yapılmamış':'Periodic Inspection Not Done','Periyodik kontrol':'Periodic inspection','Periyodik kontrol (gecikmiş)':'Periodic inspection (overdue)',
+  'Periyot tanımsız':'Period not defined','Personel Dökümü':'Personnel Export','Personel Listesini Temizle':'Clear Personnel List','Personel yönetimi':'Personnel management','Personeli Aktar':'Import Personnel','Plaka / tescil no':'Plate / registration no',
+  'Plandan çıkar':'Remove from plan','Planla':'Plan','Planlanmış':'Planned','Planlı':'Planned','Portatif yangın söndürücü':'Portable fire extinguisher','Pozisyon':'Position','Pozisyonlar & Yetkiler':'Positions & Permissions',
+  'Prosedür Yok / Yetersiz':'Procedure Missing / Inadequate','Psikoteknik raporu':'Psychotechnical report','Rapor yok':'No report','Referans':'Reference','Referans (Olay No)':'Reference (Incident No)','Resmî Bildirim Gerekiyor mu?':'Is Official Notification Required?',
+  'Risk Algısı Düşük':'Low Risk Perception','Risk Değerlendirmesi Eksik':'Missing Risk Assessment','Risk değerlendirmesi':'Risk assessment','SAP No':'SAP No','SAP ekipman no':'SAP equipment no','SAP sicil':'SAP employee no',
+  'SAP İçe Aktarma':'SAP Import','SGK Sicil':'SSI Registration','SGK sicil':'SSI registration','Saat':'Time','Saha / Bölüm':'Site / Section','Saha denetimi / gözlem':'Site inspection / observation','Sahiplik':'Ownership',
+  'Sapancı-işaretçi eğitimi':'Slinger-signaller training','Sağlık Verisi':'Health Data','Sağlık verisi':'Health data','Senkronizasyon':'Synchronisation','Seri / şasi no':'Serial / chassis no','Seri No':'Serial No','Servis Atölyesi':'Service Workshop',
+  'Seç':'Select','Seçilmedi':'Not selected','Sicil':'Employee no','Sicil No':'Employee No','Sicil no':'Employee no','Sicil no ya da isim yazın — diğer alanlar listeden dolar.':'Type employee no or name — other fields fill from the list.',
+  'Son eşitleme':'Last sync','Sondaj makinesi':'Drilling rig','Sonraki ay':'Next month','Sonuç Kapsamı':'Result Scope','Sor':'Ask','Sorumlu':'Owner','Sorumlunun E-postası':'Owner’s E-mail','Soğuk metal testeresi':'Cold saw',
+  'Strateji planını aksiyon planına ekle':'Add strategy plan to action plan','Süre':'Duration','Süre (saat)':'Duration (hours)','Sürekli taşıma donanımı (konveyör)':'Continuous handling equipment (conveyor)','Süresi dolmuş':'Expired',
+  'Sıcak Yüzey / Termal':'Hot Surface / Thermal','Sıcak iş (kaynak / kesme) eğitimi':'Hot work (welding / cutting) training','Sıkışma / Ezilme (Makine)':'Caught-in / Crushing (Machine)','Sınıflandırma':'Classification','Sıra':'Order','Sıralama':'Sorting',
+  'TC kimlik no':'National ID no','Takvim':'Calendar','Talimata Uymama':'Not Following Instructions','Tamamlandı':'Completed','Tanık girilmedi.':'No witness entered.','Tanık İfadeleri / Ek Not':'Witness Statements / Additional Note','Tanıklar':'Witnesses',
+  'Tanım':'Description','Tarih':'Date','Tarih (Başlangıç)':'Date (From)','Tarih (Bitiş)':'Date (To)','Tasarım / Seçim Hatası':'Design / Selection Error','Taslak':'Draft','Taşeron':'Subcontractor','Taşeron Yönetimi':'Subcontractor Management',
+  'Tehlike sınıfı':'Hazard class','Tehlikeli':'Hazardous','Temel İSG eğitimi':'Basic OHS training','Termin':'Due date','Termin (Başlangıç)':'Due (From)','Termin (Bitiş)':'Due (To)','Termin Uyarıları':'Due Date Warnings',
+  'Termine bu kadar gün kalınca uyarı çıkar. Geciken aksiyon her zaman uyarır.':'A warning appears this many days before the due date. Overdue actions always warn.','Termine göre':'By due date','Tesis / Lokasyon Yöneticisi':'Site / Location Manager',
+  'Tesis Müdürü':'Site Manager','Tesis Yöneticisi':'Site Manager','Tespit ettiğiniz bulguyu yazın':'Describe your finding','Tespitleri gerekçeleriyle yazın: ne bulundu, neye dayanarak.':'Write findings with reasons: what was found and on what basis.',
+  'Test E-postası Gönder':'Send Test E-mail','Test Modu — tüm e-postaları tek adrese yönlendir':'Test Mode — redirect all e-mails to one address','Tetikleyici':'Trigger','Tip':'Type','Toplantı / karar':'Meeting / decision',
+  'Topraklama tesisatı':'Earthing installation','Torna tezgâhı':'Lathe','Toz / Gürültü / Titreşim':'Dust / Noise / Vibration','Transformatör':'Transformer','Tüm Kayıtları Sil':'Delete All Records','Tüm Olay Kayıtlarını Sil':'Delete All Incident Records',
+  'Tüm lokasyonlar':'All locations','Tüm lokasyonlar — kapsam Pano’daki seçimden gelir':'All locations — scope comes from the Dashboard selection','Tüm olaylar':'All incidents','Tür':'Type','Uyum':'Compliance','Varsayılan':'Default',
+  'Varsayılan düzene dön':'Back to default layout','Varsayılanlara dön':'Reset to defaults','Vesikalık ekle':'Add photo','Vinç operatörü':'Crane operator','Vinç ve kaldırma teçhizatı (caraskal, monoray, çektirme)':'Cranes and lifting gear (hoist, monorail, puller)',
+  'Widget':'Widget','Yaka':'Collar','Yaklaşan':'Upcoming','Yalnız':'Only','Yalnız aksiyonlarda “Tüm SİF Grubu” kapsamı için.':'Only for the “All SİF Group” scope in actions.',
+  'Yalnız bu alan adındaki adresler kullanıcı olarak eklenir ve giriş yapabilir.':'Only addresses in this domain can be added as users and sign in.','Yalnız bu durumu göster':'Show only this status','Yalnız ciddi olaylar':'Serious incidents only',
+  'Yalnız ölümlü/ağır':'Fatal/serious only','Yalnız “Açık” göster':'Show only “Open”','Yalnız “Gecikmeli Kapandı” göster':'Show only “Closed Late”','Yalnız “Gecikti” göster':'Show only “Overdue”','Yalnız “Kapandı” göster':'Show only “Closed”',
+  'Yalnız “Onay Bekliyor” göster':'Show only “Awaiting Approval”','Yangın / Patlama':'Fire / Explosion','Yangın algılama ve uyarı sistemi':'Fire detection and alarm system','Yangın söndürme sistemi (dolap, sprinkler, hidrant, pompa)':'Fire suppression system (cabinet, sprinkler, hydrant, pump)',
+  'Yangın ve acil durum eğitimi':'Fire and emergency training','Yapılacak işi tanımlayın':'Describe the work to be done','Yağmurlu':'Rainy','Yedek Al (JSON)':'Back Up (JSON)','Yedek Parça / Malzeme Kalitesi':'Spare Part / Material Quality',
+  'Yedek Parça Deposu':'Spare Parts Warehouse','Yedeği Geri Yükle':'Restore Backup','Yenileme':'Renewal','Yer / Bölüm':'Place / Section','Yer / salon':'Place / room','Yetersiz Aydınlatma / Havalandırma':'Inadequate Lighting / Ventilation',
+  'Yetersiz Eğitim / Yetkinlik':'Inadequate Training / Competence','Yetersiz Personel':'Insufficient Staff','Yetki Tablosu (Özet)':'Permission Table (Summary)','Yetkiler':'Permissions','Yönetici (Admin)':'Administrator (Admin)',
+  'Yönetim Sistemi':'Management System','Yönetim talebi':'Management request','Yük asansörü':'Goods lift','Yükleyici (lastikli / paletli)':'Loader (wheeled / tracked)','Yükleyici kren (kamyon üstü / hiyap)':'Loader crane (truck-mounted)',
+  'Yüksek':'High','Yüksekte çalışma eğitimi':'Working at height training','Yüksekten Düşme':'Fall from Height','Yükseltilebilen seyyar iş platformu (makaslı / eklemli)':'Mobile elevating work platform (scissor / boom)',
+  'Yıldırımdan korunma tesisatı (paratoner)':'Lightning protection (lightning rod)','Zaman Baskısı / Acele':'Time Pressure / Haste','Zemin sıkıştırma makinesi (silindir)':'Soil compactor (roller)','Zemin ve Çalışma Alanı':'Floor and Work Area',
+  'Zorunlu Belgeler':'Required Documents','Zorunlu belgeler':'Required documents','Zorunlu değil — inceleme sırasında netleşince eklenebilir.':'Optional — can be added once clear during investigation.','Zorunlu eğitim':'Mandatory training',
+  'eğitmen, katılımcı, yer…':'trainer, participant, place…','form taslak olarak kütüğe düşer, kaldığınız yerden devam edersiniz.':'the form is saved to the register as a draft; continue where you left off.',
+  'gerekli eğitimini hiç almamış ya da süresi dolmuş':'never took the required training or it has expired','gg/aa/yyyy':'dd/mm/yyyy','görev, şirket…':'job title, company…','herkes':'everyone','isim (listeden seçin)':'name (choose from list)',
+  'isim yazın':'type a name','kod ya da meslek adı':'code or occupation name','listeden gelir, elle de yazılabilir':'comes from the list, can also be typed','listeden otomatik gelir':'filled automatically from the list','listeden seçin ya da yazın':'choose from the list or type',
+  'marka, model, seri no, plaka…':'brand, model, serial no, plate…','otomatik gelir':'filled automatically','periyodik kontrol tarihi geçmiş ya da raporu olmayan':'periodic inspection overdue or no report','sicil yazın':'type employee no',
+  'sonradan da girilebilir':'can be entered later','tamamlanan eğitimlerde süre × katılan kişi':'duration × attendees in completed trainings','tamamlanan eğitimlere katılan kişi sayısı (tekrarlı)':'attendees of completed trainings (with repeats)',
+  'tanım, birim, not…':'description, unit, note…','tanımlanmamış':'not defined','tehlike sınıfı':'hazard class','tek sefer':'one-off','toplam adam·saat ÷ aktif personel':'total man-hours ÷ active staff','yer, açıklama, bulgu…':'place, description, finding…',
+  'Çalışan':'Employee','Çekici / karayolu kamyonu':'Tractor / road truck','Çekici dozer':'Crawler dozer','Çok tehlikeli':'Very hazardous','Önceki Olaydan Ders Alınmamış':'Lessons from Previous Incident Not Learned','Önceki ay':'Previous month',
+  'Öncelik':'Priority','Önceliğe göre':'By priority','Öneri':'Suggestion','Önizleme':'Preview','Ör. Servis teknisyeni':'e.g. Service technician','Ör. eğitim salonu, saha':'e.g. training room, site',
+  'Örn. ekskavatör hidrolik hortum değişimi':'e.g. excavator hydraulic hose replacement','Örn. servis atölyesi, kaynak bölümü, yedek parça deposu':'e.g. service workshop, welding section, spare parts warehouse','Öz mal':'Owned',
+  'Öğrenilen Ders / Yaygınlaştırma':'Lesson Learned / Sharing','Öğrenme Motoru':'Learning Engine','Üretim yılı':'Year of manufacture','Üst Yönetim':'Senior Management','ünvan / rol':'title / role','İSG (zorunlu)':'OHS (mandatory)',
+  'İSG Koordinatörü (Merkez)':'OHS Coordinator (Head Office)','İSG Müdürü':'OHS Manager','İSG Uzmanı':'OHS Specialist','İSG Uzmanı (dış hizmet)':'OHS Specialist (external service)','İfade özetleri, iletişim notları…':'Statement summaries, contact notes…',
+  'İleri':'Forward','İletişim / Vardiya Devri Kopukluğu':'Communication / Shift Handover Gap','İlgili Makine / Ekipman':'Related Equipment','İlk Bildirim Alıcılarını Kopyala':'Copy Initial Report Recipients','İlk Bildirim Kime Gidecek?':'Who Receives the Initial Report?',
+  'İlk Bildirim Yapıldı — İnceleme Bekleniyor':'Initial Report Sent — Awaiting Investigation','İlk Bildirimi Gönder':'Send Initial Report','İlk bildirim gönderildikten sonra açılır.':'Opens after the initial report is sent.','İlk yardım eğitimi':'First aid training',
+  'İlk yardım, tahliye, alan emniyete alma, iş durdurma, makine etiketleme (LOTO)...':'First aid, evacuation, securing the area, stopping work, machine tagging (LOTO)...','İnceleme No':'Investigation No','İnceleme Sürüyor':'Investigation in Progress',
+  'İnsan Faktörü':'Human Factor','İnsan Kaynakları':'Human Resources','İsim':'Name','İç':'Internal','İçe Aktarılmış Ekipman':'Imported Equipment','İçe Aktarılmış Personel':'Imported Personnel','İş Durduruldu mu?':'Was Work Stopped?',
+  'İş Dışı Hastalık':'Non-occupational Illness','İş Makinesi / Ağır Ekipman':'Machinery / Heavy Equipment','İş Organizasyonu':'Work Organisation','İş Planı / Metot Yetersiz':'Inadequate Work Plan / Method','İş güvenliği uzmanı':'OHS specialist',
+  'İş makinesi bakım-onarım teknisyeni':'Machinery maintenance technician','İş makinesi güvenli kullanım eğitimi':'Machinery safe operation training','İş makinesi operatörü (ekskavatör, yükleyici, dozer…)':'Machinery operator (excavator, loader, dozer…)',
+  'İş İzni Sistemi Uygulanmadı':'Permit-to-Work Not Applied','İşe başlama İSG bilgilendirmesi':'OHS induction','İşe dönüş ilave eğitimi':'Return-to-work additional training','İşe giriş':'Start date','İşyeri Hekimi':'Occupational Physician',
+  'Şantiye / Saha':'Construction Site','Şirket':'Company','Şirket / taşeron':'Company / subcontractor','Şirket Adı':'Company Name','Şirket E-posta Alan Adı (Kullanıcı Şartı)':'Company E-mail Domain (User Requirement)',
+  'Şirket Kodu (Numara Öneki)':'Company Code (Number Prefix)','Şirket ve Numaralandırma':'Company and Numbering','Şube':'Branch','şehir':'city','— (meslekten)':'— (from occupation)','— lokasyon seçin —':'— choose location —','— seçiniz —':'— select —',
+  'Personel analizi':'Personnel analysis','Eğitim analizi':'Training analysis','tüm kayıtlar':'all records',
+  'Plan boş. Bir bulguya tıklayın; penceredeki önerilerden ya da kendi yazdığınız aksiyondan “Aksiyon planına ekle” ile buraya ekleyin.':'The plan is empty. Click a finding and add suggestions — or your own action — here with “Add to action plan”.',
+  'Strateji planı bulgulardan oluşur; bu kapsamda bulgu yok.':'The strategy plan is built from findings; there are none in this scope.',
+  'Bu süzgeçte bulgu yok.':'No findings in this filter.','Bulgu Analizi':'Finding Analysis','İlgili kayıtlar':'Related records','Bu bulguya özel öneriler':'Suggestions for this finding','Kendi aksiyonunuz':'Your own action',
+  'Bu bulgunun aksiyonları':'Actions for this finding','Hemen (0–30 gün)':'Immediately (0–30 days)','Kısa vade (1–3 ay)':'Short term (1–3 months)','Orta vade (3–12 ay)':'Medium term (3–12 months)',
+  'veri değişince yenilendi':'refreshed on data change','elle çalıştırıldı':'run manually','Veri':'Data','Planda':'In plan','Yüksek öncelik':'High priority','Orta öncelik':'Medium priority','Düşük öncelik':'Low priority',
+  'AŞAMA 1 — İLK BİLDİRİM':'STAGE 1 — INITIAL REPORT','AŞAMA 2 — İNCELEME RAPORU':'STAGE 2 — INVESTIGATION REPORT','Kolluk / Emniyet':'Police / Gendarmerie',
+  'İşveren / Müşteri':'Employer / Client','Sınıflandırma':'Classification',
+  '“Yaklaşıyor” Eşiği (Gün)':'“Upcoming” Threshold (Days)','★ Tüm lokasyonlar (merkez)':'★ All locations (head office)','Eki 26':'Oct 26','Eyl 26':'Sep 26','Ağu 26':'Aug 26'
+});
+/* desenli metinler (sayı / gün içeren): sözlükte birebir yoksa sırayla denenir */
+const SOZ_DESEN = [
+  [/^(.+?) · (\d+)$/, m=>SOZ_EN[m[1]] ? SOZ_EN[m[1]]+' · '+m[2] : null],
+  [/^süresi dolan \/ (\d+) gün içinde$/, m=>`expired / within ${m[1]} days`],
+  [/^geçmiş \/ (\d+) gün içinde$/, m=>`overdue / within ${m[1]} days`],
+  [/^eksik \/ süresi dolan \/ (\d+) gün içinde$/, m=>`missing / expired / within ${m[1]} days`],
+  [/^Önümüzdeki (\d+) günde planlı iş yok\.$/, m=>`No planned work in the next ${m[1]} days.`],
+  [/^Yaklaşanlar · önümüzdeki (\d+) gün$/, m=>`Upcoming · next ${m[1]} days`],
+  [/^(\d+) gündür kayıp günlü kaza yok$/, m=>`${m[1]} days without a lost-time accident`],
+  [/^gündür kayıp günlü kaza yok$/, ()=>'days without a lost-time accident'],
+  [/^son kayıt: (.+)$/, m=>`last record: ${m[1]}`],
+  [/^olay · ([+-]?\d+) geçen aya göre$/, m=>`incidents · ${m[1]} vs last month`],
+  [/^(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kasım|Aralık) (\d{4})$/, m=>['January','February','March','April','May','June','July','August','September','October','November','December'][['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'].indexOf(m[1])]+' '+m[2]],
+  [/^(Oca|Şub|Mar|Nis|May|Haz|Tem|Ağu|Eyl|Eki|Kas|Ara) (\d{2})$/, m=>({Oca:'Jan',Şub:'Feb',Mar:'Mar',Nis:'Apr',May:'May',Haz:'Jun',Tem:'Jul',Ağu:'Aug',Eyl:'Sep',Eki:'Oct',Kas:'Nov',Ara:'Dec'})[m[1]]+' '+m[2]],
+  [/^(\d+) açık · (\d+) aksiyonda$/, m=>`${m[1]} open · ${m[2]} in action`],
+  [/^(.+) · (.+) — kapsam Pano’daki seçimden gelir$/, m=>(dilSoz(m[1])||m[1])+' · '+(dilSoz(m[2])||m[2])+' — scope comes from the Dashboard selection'],
+  [/^(.+) — kapsam Pano’daki seçimden gelir$/, m=>(dilSoz(m[1])||m[1])+' — scope comes from the Dashboard selection'],
+  [/^Grafik: (.+)$/, m=>SOZ_EN[m[1]] ? 'Chart: '+SOZ_EN[m[1]] : null],
+  [/^(Paz|Pzt|Sal|Çar|Per|Cum|Cmt)$/, m=>({Paz:'Sun',Pzt:'Mon',Sal:'Tue',Çar:'Wed',Per:'Thu',Cum:'Fri',Cmt:'Sat'})[m[1]]],
+  [/^Asistana sorun: kaç açık aksiyon var\?$/, ()=>'Ask the assistant: how many open actions?']
+];
+function dilSoz(t){ if(SOZ_EN[t]) return SOZ_EN[t]; for(const [r,f] of SOZ_DESEN){ const m=t.match(r); if(m){ const e=f(m); if(e) return e; } } return null; }
+const DIL_ASIL = new WeakMap();   /* metin düğümü / öğe → Türkçe asıl */
+function dilMetinCevir(n){
+  const asil = DIL_ASIL.has(n) ? DIL_ASIL.get(n) : n.nodeValue, t = asil.trim();
+  if(DIL==='en'){ const e = t && t.length<160 ? dilSoz(t) : null;
+    if(e){ if(!DIL_ASIL.has(n)) DIL_ASIL.set(n, asil); const yeni = asil.replace(t, e); if(n.nodeValue!==yeni) n.nodeValue = yeni; }
+    else if(t) cevIste(n, asil, t); }
+  else if(DIL_ASIL.has(n)){ if(n.nodeValue!==asil) n.nodeValue = asil; DIL_ASIL.delete(n); }
+}
+function dilOzCevir(el){
+  for(const a of ['title','placeholder','aria-label']){ if(!el.hasAttribute || !el.hasAttribute(a)) continue;
+    const k='__dil_'+a, asil = el[k]!=null ? el[k] : el.getAttribute(a);
+    if(DIL==='en'){ const e=dilSoz(asil.trim()); if(e){ el[k]=asil; if(el.getAttribute(a)!==e) el.setAttribute(a,e); } }
+    else if(el[k]!=null){ el.setAttribute(a, el[k]); delete el[k]; } }
+}
+function dilAgac(kok){
+  if(!kok) return;
+  if(kok.nodeType===3){ dilMetinCevir(kok); return; }
+  if(kok.nodeType!==1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(kok.tagName) || kok.closest && kok.closest('[data-dil-yok]')) return;
+  dilOzCevir(kok);
+  const w=document.createTreeWalker(kok, NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT, {acceptNode:x=>x.nodeType===1&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(x.tagName)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  let x; while((x=w.nextNode())){ if(x.nodeType===3) dilMetinCevir(x); else dilOzCevir(x); }
+}
+let DIL_GOZ=null, DIL_KUYRUK=new Set(), DIL_Z=null;
+function dilUygula(){
+  document.documentElement.lang = DIL;
+  const b=$('hdDil'); if(b){ b.textContent = DIL==='en' ? 'EN' : 'TR'; b.title = DIL==='en' ? 'Language: English (switch to Turkish) — some texts are machine-translated drafts' : 'Dil: Türkçe (İngilizceye geç)'; }
+  dilAgac(document.body);
+  if(DIL==='en' && !DIL_GOZ){
+    DIL_GOZ=new MutationObserver(M=>{ for(const m of M){ if(m.type==='characterData') DIL_KUYRUK.add(m.target); else m.addedNodes.forEach(n=>DIL_KUYRUK.add(n)); }
+      clearTimeout(DIL_Z); DIL_Z=setTimeout(()=>{ const Q=[...DIL_KUYRUK]; DIL_KUYRUK.clear(); Q.forEach(n=>{ if(n.isConnected) dilAgac(n); }); },30); });
+    DIL_GOZ.observe(document.body, {subtree:true, childList:true, characterData:true});
+  } else if(DIL!=='en' && DIL_GOZ){ DIL_GOZ.disconnect(); DIL_GOZ=null; }
+  try{ asBaslikYaz(); }catch(e){}
+}
+/* SÖZLÜKTE OLMAYAN TÜRKÇE METİN (11.11.2026, kullanıcı: "ikisini de yap"): İngilizcede, sözlükte bulunmayan metin bilgisayardaki
+   çeviri motoruyla (Ortak çeviri bloğu, Bergamot; metin dışarı ÇIKMAZ) çevrilir. Motor yalnız yerel sunucuda kuruludur; GitHub deneme
+   sitesinde yoktur → orada bu metinler Türkçe kalır. Makine çevirisi TASLAKTIR (dil düğmesinin ipucunda yazar). Bellek: kısa metinler
+   (≤ 80 harf; arayüz yazıları) bu tarayıcıda saklanır, uzun metinler (kayıt içerikleri) yalnız sayfa açıkken bellekte tutulur. */
+const K_CEVBEL='hse::HOB::ceviri_bellek';
+const CEV_BEL=(()=>{ try{ return JSON.parse(localStorage.getItem(K_CEVBEL)||'{}')||{}; }catch(e){ return {}; } })(), CEV_UZUN={};
+let CEV_VAR=null, CEV_KUYRUK=new Map(), CEV_CALISIYOR=false, CEV_YAZ_Z=null;
+const cevTurkceMi = t => t.length>=3 && t.length<=400 && /\p{L}{2,}/u.test(t) && !/^[\p{Lu}\d\s._\/-]+$/u.test(t) && !/@|https?:/.test(t)
+  && (window.qhseDilTahmin ? window.qhseDilTahmin(t)==='tr' : /[çğıöşüÇĞİÖŞÜ]/.test(t));
+function cevUygula(n, asil, t, e){
+  if(!n.isConnected || DIL!=='en') return;
+  const simdi = DIL_ASIL.has(n) ? DIL_ASIL.get(n) : n.nodeValue; if(simdi!==asil) return;
+  if(!DIL_ASIL.has(n)) DIL_ASIL.set(n, asil); const yeni=asil.replace(t, e); if(n.nodeValue!==yeni) n.nodeValue=yeni;
+}
+function cevIste(n, asil, t){
+  if(CEV_VAR===false || !window.qhseCevir) return;
+  const p=n.parentElement; if(!p || p.closest('[data-dil-yok],input,textarea,select,script,style,.mono')) return;
+  const e=CEV_BEL[t]||CEV_UZUN[t]; if(e){ cevUygula(n, asil, t, e); return; }
+  if(!cevTurkceMi(t)) return;
+  if(!CEV_KUYRUK.has(t)) CEV_KUYRUK.set(t, []); CEV_KUYRUK.get(t).push([n, asil]);
+  if(!CEV_CALISIYOR) cevCalis();
+}
+async function cevCalis(){
+  CEV_CALISIYOR=true;
+  try{
+    if(CEV_VAR===null){ try{ const d=await window.qhseCeviriDurum(); CEV_VAR=!!(d&&d.kurulu); }catch(e){ CEV_VAR=false; } if(!CEV_VAR){ CEV_KUYRUK.clear(); return; } }
+    while(CEV_KUYRUK.size && DIL==='en'){
+      const [t, L]=CEV_KUYRUK.entries().next().value; CEV_KUYRUK.delete(t);
+      let e=''; try{ e=String(await window.qhseCevir(t,'en','tr')||'').trim(); }catch(er){ CEV_VAR=false; CEV_KUYRUK.clear(); break; }
+      if(!e) continue;
+      if(t.length<=80) CEV_BEL[t]=e; else CEV_UZUN[t]=e;
+      L.forEach(([n,asil])=>cevUygula(n, asil, t, e));
+      clearTimeout(CEV_YAZ_Z); CEV_YAZ_Z=setTimeout(()=>{ const k=Object.keys(CEV_BEL); if(k.length>3000) k.slice(0,k.length-3000).forEach(x=>delete CEV_BEL[x]);
+        try{ localStorage.setItem(K_CEVBEL, JSON.stringify(CEV_BEL)); }catch(er){} }, 1500);
+    }
+  } finally { CEV_CALISIYOR=false; }
+}
+function dilDegis(){ DIL = DIL==='en' ? 'tr' : 'en'; try{ localStorage.setItem(K_DIL, DIL); }catch(e){}
+  try{ const v=((document.querySelector('.view.on')||{}).id||'').replace('v-',''); if(v==='ana') anaRender(); }catch(e){}   /* sayfa içi Ld() metinleri yeni dilde çizilsin */
+  dilUygula(); if(AS_GECMIS.length===0 && !$('asPanel').hidden) asKarsila(); }
+
+/* ══════════ ASİSTAN (11.11.2026, kullanıcı: "içeriye Assist gibi chatbot kuracağız; cevapları vs öğrenecek motorla çalışacak, interaktif
+   olacak, konuşarak sorulama da koyacaksın … dile göre konuşma tarafı otomatik değişecek. Assist'teki gibi") ══════════
+   Yapay zekâ / dış servis YOK; her şey sayfada, kullanıcının GÖREBİLDİĞİ kayıtlardan (lokasyon + modül yetkisi; veri havuzunda sunucu
+   zaten yetkisiz dosyayı vermez). Akış:
+     1) Öğrenilmiş cevap: benzer soru (kök benzerliği ≥ %60) daha önce 👍 aldıysa o cevap önce gelir ("öğrenilmiş").
+     2) Kalıp sorular: sayı / liste (açık, geciken, onay bekleyen aksiyon; inceleme / SGK bekleyen olay; süresi dolan belge; kontrolü
+        geçmiş makine; eksik eğitim; olay sayısı dönem / lokasyon / türe göre; kazasız gün; personel / ekipman sayısı; adam·saat).
+     3) "Nasıl / nereden" soruları: kısa tarif + ekrana git.
+     4) Arama: olay, aksiyon, personel, makine, eğitim, denetim kayıtlarında kökle arama; en uyan cümle işaretli.
+   ÖĞRENME (etkileşimli): her cevabın altında 👍 / 👎. 👍 soru köklerini o cevaba bağlar; 👎 önce o bağı zayıflatır, sonra "Doğrusunu
+   gösterin": sonuçlardan biri, bir ekran ya da yazılı cevap seçilir ve öğrenilir. Öğrenilenler ortak (veri havuzunda _ogrenme\asistan),
+   Ayarlar › Genel › Asistan'dan görülür / silinir.
+   SES: mikrofon = tarayıcının konuşma tanıması (seçili dilde; Edge / Chrome, metin tanıma için tarayıcının hizmetine gider — ad / TC
+   gibi hassas bilgiyi yazarak sorun); konuşma bitince soru kendiliğinden sorulur ve cevabın özeti sesli okunur. Hoparlör her cevapta;
+   yalnız CEVAP satırı okunur (liste okunmaz); bilgisayardaki ses tercih edilir. */
+const K_ASOGR = K.rec.replace(/records$/,'asistan_ogren');
+const asKucuk = s => String(s||'').toLocaleLowerCase(DIL==='en'?'en':'tr');
+const asKatla = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşüâîû]/g, c=>({ç:'c',ğ:'g',ı:'i',ö:'o',ş:'s',ü:'u',â:'a',î:'i',û:'u'})[c]);
+const AS_DUR = new Set(('nerede nerde nereden nereye nedir ne neler nelerdir neyi neye zaman hangi hangisi hangileri kim kime kimin kimde var yok mı mi mu mü midir mıdır '
+  +'ile ve veya ya ama ise bu şu o bir birkaç için olan olanlar olarak oldu da de ki gibi en çok daha ilgili hakkında göre bul göster getir listele söyle ver bak ara '
+  +'bilgi istiyorum acaba lütfen merhaba selam bana beni benim bizim bize sen sana siz size ben biz tüm tümü bütün hepsi her hiç şimdi nasıl neden niye peki yani '
+  +'soru sorular sorum soruyorum question kaç kaçtır sayı sayısı sayısını adet toplam miktar kadar nedir durumu durum mevcut güncel şu an '
+  +'the a an of in on at to for is are was were be how many much what where which who when show list find give me my our please count number total current there any do does can i you')
+  .split(/\s+/).map(asKatla));
+const AS_EKLER = ['larından','lerinden','larında','lerinde','larını','lerini','larına','lerine','ların','lerin','ları','leri','lardan','lerden','larda','lerde','lara','lere','lar','ler',
+  'ından','inden','undan','ünden','ndan','nden','ında','inde','unda','ünde','nda','nde','daki','deki','dan','den','tan','ten','nın','nin','nun','nün','yla','yle',
+  'ın','in','un','ün','la','le','ya','ye','da','de','ta','te','yı','yi','yu','yü','sı','si','su','sü','ı','i','u','ü'].map(asKatla);
+function asKok(w){ let k=asKatla(w); if(/^[a-z]+$/.test(k) && DIL==='en'){ k=k.replace(/(ies)$/,'y').replace(/(es|s)$/,''); return k; }
+  for(let t=0;t<2;t++){ const e=AS_EKLER.find(x=>k.length-x.length>=4 && k.endsWith(x)); if(!e) break; k=k.slice(0,-e.length); } return k; }
+function asKokler(soru){
+  return [...new Set(String(soru||'').split(/[^\p{L}\p{N}-]+/u).filter(Boolean).map(w=>w.replace(/['’].*$/,'')).filter(w=>w && !AS_DUR.has(asKatla(w))).map(asKok).filter(k=>k.length>=2))].slice(0,10);
+}
+const asIcerir = (metin, kok) => (' '+asKatla(metin).replace(/[^\p{L}\p{N}]+/gu,' ')).includes(' '+kok);
+/* ── öğrenilenler (ortak) ── */
+const asOgrDepo = () => { const d=store.get(K_ASOGR,null); return (d&&Array.isArray(d.kayit)) ? d : {kayit:[]}; };
+const asOgrYaz = d => store.set(K_ASOGR, d);
+function asBenzer(A,B){ if(!A.length||!B.length) return 0; const b=new Set(B); const n=A.filter(x=>b.has(x)).length; return n/(A.length+B.length-n); }
+function asOgrBul(K){
+  let en=null, p=0;
+  for(const o of asOgrDepo().kayit){ if((o.olumlu||0)<=(o.olumsuz||0)) continue; const s=asBenzer(K,o.kok||[]); if(s>p){ p=s; en=o; } }
+  return p>=0.6 ? en : null;
+}
+/* ── kalıplar ── */
+const AS_KALIP = [
+  {k:'mak',  w:['kontrol','muayene','inspect','periyodik'], ek:['makine','ekipman','equipment','machine','vinc','forklift'], ad:()=>Ld('kontrolü geçmiş / yaklaşan ekipman','equipment with overdue / upcoming inspection')},
+  {k:'gec',  w:['gecik','gecmis','overdue','late'], ek:['aksiyon','action','gorev','task'], ad:()=>Ld('geciken aksiyon','overdue actions')},
+  {k:'onay', w:['onay','approv'], ek:[], ad:()=>Ld('onayınızı bekleyen aksiyon','actions awaiting your approval')},
+  {k:'acik', w:['aksiyon','action'], ek:['acik','open','kac','how many','liste','list','bekleyen','durum'], ad:()=>Ld('açık aksiyon','open actions')},
+  {k:'inc',  w:['incele','investig'], ek:['bekle','olay','incident','await','pending'], ad:()=>Ld('inceleme bekleyen olay','incidents awaiting investigation')},
+  {k:'sgk',  w:['sgk','ssi','bildirilm'], ek:[], ad:()=>Ld('SGK bildirimi bekleyen olay','incidents awaiting SSI notification')},
+  {k:'prs',  w:['belge','sertifika','certific','document'], ek:[], yok:['makine','ekipman','equipment','machine'], ad:()=>Ld('süresi dolan / yaklaşan personel belgesi','expired / expiring personnel documents')},
+  {k:'egt',  w:['egitim','training'], ek:['eksik','missing','dolan','expired','almam','gerek'], ad:()=>Ld('eksik / süresi dolan eğitim','missing / expired training')},
+  {k:'den',  w:['taslak','draft'], ek:['denetim','inceleme','audit','inspect'], ad:()=>Ld('taslak saha inceleme / denetim','draft inspections / audits')}
+];
+const AS_ESANLAM = {'ramak':'ucuz','nearmis':'ucuz','near':'ucuz','miss':'atlatma','lti':'kayip','lost':'kayip','first':'ilk','aid':'yardim','fatal':'olumlu','fire':'yangin','vehicle':'arac','property':'maddi'};
+function asDonem(s){
+  const k=asKatla(s), b=sgkBugun(), y=b.slice(0,4), ay=b.slice(0,7);
+  const gAy=(()=>{ const d=new Date(b+'T12:00:00'); d.setMonth(d.getMonth()-1); return d.toLocaleDateString('sv').slice(0,7); })();
+  if(/bu ay|this month/.test(k)) return {ad:Ld('bu ay','this month'), f:t=>(t||'').startsWith(ay)};
+  if(/gecen ay|last month/.test(k)) return {ad:Ld('geçen ay','last month'), f:t=>(t||'').startsWith(gAy)};
+  if(/bu yil|bu sene|this year/.test(k)) return {ad:Ld('bu yıl','this year'), f:t=>(t||'').startsWith(y)};
+  if(/gecen yil|gecen sene|last year/.test(k)) return {ad:Ld('geçen yıl','last year'), f:t=>(t||'').startsWith(String(+y-1))};
+  if(/bugun|today/.test(k)) return {ad:Ld('bugün','today'), f:t=>t===b};
+  if(/bu hafta|this week/.test(k)) return {ad:Ld('son 7 gün','last 7 days'), f:t=>t && t>=sgkGunEkle(b,-6) && t<=b};
+  return null;
+}
+const asOge = (ust,alt,git,tarih) => ({ust, alt, git, tarih});
+function asKalip(soru, K){
+  const k=' '+asKatla(soru)+' ', var_=w=>w.some(x=>k.includes(x));
+  /* kazasız gün */
+  if(/kazasiz|kaza olmadan|accident free|days without/.test(k)){
+    const V=gorunurKayitlar(), b=sgkBugun(), ag=V.filter(r=>['olumlu','lti','disab'].includes(r.sonuc)&&r.tarih).map(r=>r.tarih).sort(), son=ag[ag.length-1];
+    const g=son?Math.max(0,Math.round((new Date(b+'T12:00:00')-new Date(son+'T12:00:00'))/864e5)):null;
+    return {cevap: g==null?Ld('Görünür kayıtlarda kayıp günlü kaza yok.','No lost-time accident in visible records.'):Ld(`${g} gündür kayıp günlü kaza yok (son: ${trDate(son)}).`,`${g} days without a lost-time accident (last: ${trDate(son)}).`), liste:[], git:"go('analiz')", kalip:'kazasiz'};
+  }
+  /* adam·saat */
+  if(/adam saat|adam·saat|man hour|manhour/.test(k.replace(/[·-]/g,' ')) && can('egitim')){
+    const d=asDonem(soru), S=EGT.filter(s=>egtGorebilir(s)&&s.durum==='tamamlandi'&&(!d||d.f(s.tarih)));
+    const t=Math.round(S.reduce((a,s)=>a+egtAdamSaat(s),0));
+    return {cevap:Ld(`${d?d.ad+' ':''}${S.length} tamamlanan eğitimde ${t} adam·saat.`,`${t} training man-hours in ${S.length} completed sessions${d?' '+d.ad:''}.`),
+      liste:S.slice(0,8).map(s=>asOge((s.no||'')+' — '+egtTurOf(s.turKod).ad, trDate(s.tarih)+' · '+egtAdamSaat(s)+' '+Ld('adam·saat','man-hours'), `egtAc(${jsA(s.id)})`, s.tarih)), git:"go('egitim')", kalip:'adamsaat'};
+  }
+  /* liste kalıpları */
+  for(const p of AS_KALIP){
+    if(!var_(p.w) || (p.ek.length && !var_(p.ek)) || (p.yok && var_(p.yok))) continue;
+    if(p.k==='prs' && !can('personel')) continue; if(p.k==='mak' && !can('makine')) continue; if(p.k==='egt' && !can('egitim')) continue;
+    let Ls=anaKutuListe(p.k);
+    const mod=['personel','makine','egitim'].find(m=>k.includes(m)||k.includes({personel:'personnel',makine:'equipment',egitim:'training'}[m]));
+    if(['acik','gec','onay'].includes(p.k) && mod && can(mod)) Ls=Ls.filter(o=>String(o.alt||'').toLocaleLowerCase('tr').includes({personel:'personel',makine:'makine',egitim:'eğitim'}[mod]));
+    return {cevap:Ld(`${Ls.length} ${p.ad()}.`,`${Ls.length} ${p.ad()}.`), liste:Ls.slice(0,8).map(o=>asOge(o.ust,o.alt,o.git,o.tarih)), toplam:Ls.length, git:ANA_KUTU[p.k].liste, kutu:p.k, kalip:p.k};
+  }
+  /* sayılar: olay / personel / ekipman */
+  const sayi=/\bkac\b|how many|sayi|count|number|toplam|total/.test(k);
+  if(sayi && /personel|calisan|employee|staff|personnel/.test(k) && can('personel')){
+    const P=PANO.prs.cfg.kume(); return {cevap:Ld(`${P.length} aktif personel.`,`${P.length} active employees.`), liste:[], git:"go('prsPano')", kalip:'prsSay'};
+  }
+  if(sayi && /makine|ekipman|equipment|machine/.test(k) && can('makine')){
+    const M=PANO.mak.cfg.kume(); return {cevap:Ld(`${M.length} kayıtlı ekipman.`,`${M.length} registered equipment.`), liste:[], git:"go('makPano')", kalip:'makSay'};
+  }
+  if(sayi && /olay|kaza|incident|accident|ucuz|ramak|near|yaralan|injur|lti|yangin|fire/.test(k)){
+    const d=asDonem(soru);
+    const ic=K.map(x=>AS_ESANLAM[x]||x).filter(x=>!['olay','kaza','incident','accident','ay','yil','sene','hafta','gun','bugun','gecen','month','year','week','today','last','this'].includes(x));
+    let V=gorunurKayitlar().filter(r=>!d||d.f(r.tarih));
+    const alan=r=>[turAd(r), cidOf(r.sonuc).ad, lokAd(r.lokasyon), r.lokasyon, kaynakAd(r)].join(' ');
+    const kosul=ic.filter(x=>V.some(r=>asIcerir(alan(r),x)));
+    if(kosul.length) V=V.filter(r=>kosul.every(x=>asIcerir(alan(r),x)));
+    V=V.slice().sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''));
+    const kelime=String(soru).split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
+    const etiket=kosul.map(x=>{ const w=kelime.find(k=>asKok(k)===x); if(w && !Object.values(AS_ESANLAM).includes(x)) return w.charAt(0).toLocaleUpperCase('tr')+w.slice(1);
+      for(const r of gorunurKayitlar()) for(const v of [lokAd(r.lokasyon), cidOf(r.sonuc).ad, turAd(r), kaynakAd(r)]) if(asIcerir(v,x)) return v; return x; });
+    return {cevap:Ld(`${d?d.ad+' ':''}${V.length} olay${kosul.length?' ('+etiket.join(' · ')+')':''}.`,`${V.length} incidents${d?' '+d.ad:''}${kosul.length?' ('+etiket.join(' · ')+')':''}.`),
+      liste:V.slice(0,8).map(r=>asOge(r.no+' — '+turAd(r), lokAd(r.lokasyon)+' · '+trDate(r.tarih), `regAc(${jsA(r.id)})`, r.tarih)), toplam:V.length, git:"go('reg')", kalip:'olaySay'};
+  }
+  return null;
+}
+/* ── nasıl / nereden ── */
+const AS_NASIL = [
+  {w:['olay','kaza','incident','accident','bildir','report'], tr:'Menüde Olaylar › Olay Bildirimi: lokasyon, tür, ne olduğu ve fotoğraf; numara otomatik verilir. Gönderince dağıtım listesine haber gider.', en:'Menu Incidents › Incident Report: location, type, what happened and photos; the number is given automatically. Sending notifies the distribution list.', git:"go('form')", y:'kayit'},
+  {w:['aksiyon','action'], tr:'Menüde Aksiyonlar › Yeni Aksiyon: tanım, sorumlu, termin; bir olaya bağlanabilir. Modül aksiyonları kendi menüsünden açılır.', en:'Menu Actions › New Action: description, owner, due date; can be linked to an incident. Module actions are opened from their own menu.', git:"go('yeniaksiyon')"},
+  {w:['personel','calisan','employee'], tr:'Personel Yönetimi › Yeni Personel: kart, meslek (SGK kodu), belgeler; toplu giriş için Ayarlar › SAP aktarımı.', en:'Personnel Management › New Employee: card, occupation (SSI code), documents; for bulk import use Settings › SAP import.', git:"go('prsYeni')", y:'personel'},
+  {w:['makine','ekipman','equipment','machine'], tr:'Makine-Ekipman Yönetimi › Yeni Makine: tür seçilince zorunlu belgeler ve periyodik kontrol süresi gelir.', en:'Equipment Management › New Equipment: choosing the type brings required documents and inspection period.', git:"go('makYeni')", y:'makine'},
+  {w:['egitim','training','plan'], tr:'Eğitim Yönetimi › Eğitim Planı: takvimde "planlanması gerekenler"den tek tıkla kayıt açılır; katılımcılar ve adam·saat kayıtta.', en:'Training Management › Training Plan: open a session from "needs planning" with one click; participants and man-hours are in the record.', git:"go('egtPlan')", y:'egitim'},
+  {w:['denetim','inceleme','audit','inspection'], tr:'Denetim › Saha İnceleme ya da Planlı Denetim: bulgu ekleyin, bulgudan numaralı aksiyon açılır.', en:'Inspection › Site Inspection or Planned Audit: add findings; numbered actions are opened from findings.', git:"go('saha')"},
+  {w:['analiz','analysis','ai'], tr:'Her modülün menüsünde Analiz: bulgular, öneriler, aksiyon planı. Sağ alttaki AI düğmesi yeniden analiz eder.', en:'Each module menu has Analysis: findings, suggestions, action plan. The AI button at bottom right re-analyses.', git:"go('bulgu')"},
+  {w:['kullanici','yetki','user','permission','rol'], tr:'Ayarlar › Kullanıcılar: kişi, pozisyon (yetkiler oradan) ve lokasyonlar.', en:'Settings › Users: person, position (permissions come from it) and locations.', git:"go('set')", y:'ayar'},
+  {w:['dil','ingilizce','turkce','language','english','turkish'], tr:'Üst çubuktaki TR / EN düğmesi dili değiştirir; asistan da o dilde konuşur.', en:'The TR / EN button in the top bar switches language; the assistant speaks that language too.', git:'dilDegis()'},
+  {w:['sap','aktar','import'], tr:'Ayarlar › SAP aktarımı: personel ve ekipman dökümü yapıştırılır, alanlar kendiliğinden eşlenir.', en:'Settings › SAP import: paste the personnel or equipment export; fields are matched automatically.', git:"go('set')", y:'ayar'}
+];
+function asNasil(soru){
+  const k=' '+asKatla(soru)+' ';
+  if(!/\bnasil\b|\bnereden\b|\bnerede\b|\bhow\b|\bwhere\b/.test(k)) return null;
+  let en=null, p=0;
+  for(const n of AS_NASIL){ if(n.y && !can(n.y)) continue; const s=n.w.filter(w=>k.includes(w)).length; if(s>p){ p=s; en=n; } }
+  return en ? {cevap:Ld(en.tr,en.en), liste:[], git:en.git, kalip:'nasil:'+en.w[0]} : null;
+}
+/* ── arama ── */
+function asAra(K){
+  if(!K.length) return [];
+  const S=[], ekle=(baslik,alt,metin,git,tarih)=>{ const n=K.filter(x=>asIcerir(baslik+' '+metin,x)).length; if(n) S.push({ust:baslik, alt, metin, git, tarih, n}); };
+  gorunurKayitlar().forEach(r=>ekle(r.no+' — '+turAd(r), lokAd(r.lokasyon)+' · '+trDate(r.tarih), [r.aciklama,r.yer,r.faaliyet,kaynakAd(r),cidOf(r.sonuc).ad,lokAd(r.lokasyon)].filter(Boolean).join(' '), `regAc(${jsA(r.id)})`, r.tarih));
+  allActions().forEach(({a,r,no})=>ekle((no||a.no||'')+' — '+(a.tanim||''), Ld('Aksiyon','Action')+' · '+(a.sorumlu||'—')+' · '+trDate(a.termin), [a.tanim,a.sorumlu].filter(Boolean).join(' '), r&&!r.bagimsiz?`openAct(${jsA(r.id)},${jsA(a.id)})`:`openAct('',${jsA(a.id)},true)`, a.termin));
+  if(can('personel')) PRS.filter(prsGorebilir).forEach(p=>ekle(p.ad||'', [meslekAd(p),lokAd(p.lok)].filter(Boolean).join(' · '), [p.sicil,meslekAd(p),lokAd(p.lok)].filter(Boolean).join(' '), `prsAc(${jsA(p.id)})`));
+  if(can('makine')) MAK.filter(makGorebilir).forEach(m=>ekle((m.envNo||'')+' — '+makTurOf(m.tur).ad, lokAd(m.lok), [m.marka,m.model,m.seri,makTurOf(m.tur).ad,lokAd(m.lok)].filter(Boolean).join(' '), `makAc(${jsA(m.id)})`));
+  if(can('egitim')) EGT.filter(egtGorebilir).forEach(s=>ekle((s.no||'')+' — '+egtTurOf(s.turKod).ad, trDate(s.tarih)+' · '+lokAd(s.lok), [s.egitmen,s.yer,egtTurOf(s.turKod).ad].filter(Boolean).join(' '), `egtAc(${jsA(s.id)})`, s.tarih));
+  DEN.filter(denGorebilir).forEach(d=>ekle((d.no||'')+' — '+(d.saha||d.birim||''), DEN_TIP[d.tip].ad+' · '+trDate(d.tarih), [d.saha,d.birim,d.not].filter(Boolean).join(' '), `denAc(${jsA(d.id)})`, d.tarih));
+  const esik=K.length>=3?2:1, no=K.find(x=>/\d{3,}/.test(x));   /* uzun soruda tek kelime tutan sonuç atılır ("soru" → "sorumlu" gibi) */
+  return S.filter(x=>x.n>=esik||(no&&asKatla(x.ust).includes(no))).sort((a,b)=>(no&&asKatla(b.ust).includes(no))-(no&&asKatla(a.ust).includes(no)) || b.n-a.n || (b.tarih||'').localeCompare(a.tarih||'')).slice(0,8);
+}
+function asIsaret(metin, K){
+  let m=esc(metin||''); if(!K.length) return m;
+  const kat=asKatla(metin||''); const R=[];
+  K.forEach(k=>{ let i=-1; const re=new RegExp('(^|[^\\p{L}\\p{N}])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gu'); let x; while((x=re.exec(kat))){ i=x.index+x[1].length; R.push([i,i+k.length]); } });
+  if(!R.length) return m;
+  R.sort((a,b)=>a[0]-b[0]); let o='', p=0, s=String(metin);
+  R.forEach(([a,b])=>{ if(a<p) return; o+=esc(s.slice(p,a))+'<mark>'+esc(s.slice(a,b))+'</mark>'; p=b; }); return o+esc(s.slice(p));
+}
+/* ── cevap ── */
+function asCevapla(soru){
+  const K=asKokler(soru);
+  const o=asOgrBul(K);
+  if(o){ const c=asOgrCevap(o); if(c) return Object.assign({K}, c, {ogr:o.id}); }
+  const c=asKalip(soru,K)||asNasil(soru);
+  if(c) return Object.assign(c,{K});
+  const S=asAra(K);
+  return {K, cevap:S.length?Ld(`${S.length} kayıtta bulundu.`,`Found in ${S.length} records.`):'', liste:S.map(x=>asOge(x.ust,x.alt,x.git,x.tarih)), ara:true, metinler:S.map(x=>x.metin)};
+}
+function asOgrCevap(o){
+  const h=o.hedef||{};
+  /* kalip = "bu soru şu soruyla aynı": eşdeğer soru yeniden cevaplanır (kalıp, tarif ya da arama) — yeni söyleyişler öğrenilmiş olur */
+  if(h.tip==='kalip'){ const K2=asKokler(h.soru||''), c=asKalip(h.soru||'',K2)||asNasil(h.soru||'');
+    if(c) return Object.assign(c,{ogrAd:o.soru, K:K2});
+    const S=asAra(K2); return S.length ? {cevap:Ld(`${S.length} kayıtta bulundu.`,`Found in ${S.length} records.`), liste:S.map(x=>asOge(x.ust,x.alt,x.git,x.tarih)), ara:true, metinler:S.map(x=>x.metin), ogrAd:o.soru, K:K2} : null; }
+  if(h.tip==='git') return {cevap:h.metin||Ld('İlgili ekran:','Related screen:'), liste:[], git:h.git, ogrAd:o.soru};
+  if(h.tip==='metin') return {cevap:h.metin, liste:[], git:h.git||'', ogrAd:o.soru};
+  return null;
+}
+/* ── pencere ── */
+let AS_GECMIS=[], AS_SAYAC=0, AS_SES=null;
+const AS_EKRAN = () => [
+  ['ana',Ld('Ana Sayfa','Home')],['analiz',Ld('İSG Pano','HSE Dashboard')],['bulgu',Ld('İSG Analiz','HSE Analysis')],['form',Ld('Olay Bildirimi','Incident Report')],['reg',Ld('Olay Envanteri','Incident Register')],
+  ['act',Ld('Aksiyon Listesi','Action List')],['yeniaksiyon',Ld('Yeni Aksiyon','New Action')],['saha',Ld('Saha İnceleme','Site Inspection')],['denetim',Ld('Planlı Denetim','Planned Audit')],
+  ...(can('personel')?[['prsPano',Ld('Personel Panosu','Personnel Dashboard')],['personel',Ld('Personel Listesi','Personnel List')]]:[]),
+  ...(can('makine')?[['makPano',Ld('Makine Panosu','Equipment Dashboard')],['makine',Ld('Makine Listesi','Equipment List')]]:[]),
+  ...(can('egitim')?[['egtPano',Ld('Eğitim Panosu','Training Dashboard')],['egtPlan',Ld('Eğitim Planı','Training Plan')]]:[])];
+function asBaslikYaz(){
+  const p=$('asPanel'); if(!p) return;
+  p.querySelector('.asBas b').textContent=Ld('Asistan','Assistant');
+  $('asSoru').placeholder=Ld('Sorun: kaç açık aksiyon var?','Ask: how many open actions?');
+  $('asMik').title=Ld('Konuşarak sor','Ask by voice'); $('asGonder').title=Ld('Sor','Ask');
+  if(!AS_GECMIS.length) asKarsila();
+}
+function asKarsila(){
+  const ol=[Ld('Kaç açık aksiyon var?','How many open actions?'), Ld('Bu ay kaç olay oldu?','How many incidents this month?'), Ld('Geciken aksiyonlar','Overdue actions'),
+    ...(can('personel')?[Ld('Süresi dolan belgeler','Expired documents')]:[]), ...(can('makine')?[Ld('Kontrolü geçmiş makineler','Equipment with overdue inspection')]:[]), Ld('Olay nasıl bildirilir?','How do I report an incident?')];
+  $('asMesaj').innerHTML=`<div class="asBalon asOnlar"><div>${esc(Ld('Merhaba, portaldaki kayıtlarınız hakkında sorabilirsiniz. Cevaplar yalnız görebildiğiniz kayıtlardan gelir; 👍 / 👎 ile bana öğretirsiniz.','Hi, ask me about your records in the portal. Answers come only from records you can see; teach me with 👍 / 👎.'))}</div>
+    <div class="asOneri">${ol.map(s=>`<button type="button" onclick="asSor(${jsA(s)})">${esc(s)}</button>`).join('')}</div></div>`;
+}
+function asAc(soru){
+  const p=$('asPanel'); if(!p) return;
+  p.hidden=false; document.body.classList.add('asAcik'); asBaslikYaz();
+  setTimeout(()=>{ const i=$('asSoru'); if(i) i.focus(); },50);
+  if(soru) asSor(soru);
+}
+function asKapat(){ const p=$('asPanel'); if(p) p.hidden=true; document.body.classList.remove('asAcik'); asMikBitir(); try{ speechSynthesis.cancel(); }catch(e){} }
+function asSor(soru, sesli){
+  soru=String(soru||'').trim(); if(!soru) return;
+  if($('asPanel').hidden) asAc();
+  const g=$('asMesaj'); if(!AS_GECMIS.length) g.innerHTML='';
+  const id='as'+(++AS_SAYAC), c=asCevapla(soru);
+  AS_GECMIS.push({id, soru, c});
+  g.insertAdjacentHTML('beforeend', `<div class="asBalon asBen">${esc(soru)}</div>`+asCevapHtml(id, soru, c));
+  $('asSoru').value=''; g.scrollTop=g.scrollHeight;
+  if(sesli) asOku(id);
+}
+function asCevapHtml(id, soru, c){
+  const bos=!c.cevap && !(c.liste||[]).length;
+  const liste=(c.liste||[]).map((o,i)=>`<div class="hp-oge" onclick="asGit(${jsA(o.git)})"><div class="m"><span class="u">${c.ara?asIsaret(o.ust,c.K):esc(o.ust)}</span><small>${esc(o.alt||'')}</small>${c.ara&&c.metinler&&c.metinler[i]?`<small class="asCumle">${asIsaret(asCumle(c.metinler[i],c.K),c.K)}</small>`:''}</div></div>`).join('');
+  return `<div class="asBalon asOnlar" id="${id}">
+    ${bos?`<div>${esc(Ld('Bunu bulamadım. Bana öğretebilirsiniz:','I could not find this. You can teach me:'))}</div>`:''}
+    ${c.cevap?`<div class="asCevap">${c.ogrAd?`<span class="asOgrRoz" title="${esc(Ld('Öğrenilmiş cevap','Learned answer'))}">${esc(Ld('öğrenilmiş','learned'))}</span> `:''}${esc(c.cevap)}</div>`:''}
+    ${liste?`<div class="asListe">${liste}</div>`:''}
+    ${(c.toplam||0)>(c.liste||[]).length?`<div class="hint">+ ${c.toplam-(c.liste||[]).length} ${esc(Ld('kayıt daha','more'))}</div>`:''}
+    <div class="asAlt">${c.kutu?`<button type="button" class="denHapBtn kucuk" onclick="anaKutuAc(${jsA(c.kutu)})">${esc(Ld('Listele','List'))}</button>`:''}${c.git?`<button type="button" class="denHapBtn kucuk" onclick="asGit(${jsA(c.git)})">${esc(Ld('Ekrana git →','Go to screen →'))}</button>`:''}
+      <span class="asOy">${bos?'':`<button type="button" title="${esc(Ld('Doğru','Right'))}" onclick="asOy(${jsA(id)},1)">👍</button><button type="button" title="${esc(Ld('Yanlış','Wrong'))}" onclick="asOy(${jsA(id)},-1)">👎</button>`}<button type="button" class="asOkuB" title="${esc(Ld('Sesli oku','Read aloud'))}" onclick="asOku(${jsA(id)})">🔊</button></span></div>
+    ${bos?asOgretHtml(id):''}</div>`;
+}
+const asCumle = (m,K) => { const C=String(m||'').split(/(?<=[.!?])\s+/); return (C.find(c=>K.some(k=>asIcerir(c,k)))||C[0]||'').slice(0,180); };
+function asGit(git){ if(!git) return; if(window.innerWidth<900) asKapat(); try{ (new Function(git))(); }catch(e){} }
+/* ── öğrenme ── */
+function asOgrKaydet(soru, K, hedef){
+  const D=asOgrDepo(), ac=hedef.tip+'|'+(hedef.soru||hedef.git||hedef.metin||'');
+  let o=D.kayit.find(x=>asBenzer(K,x.kok||[])>=0.8 && (x.hedef.tip+'|'+(x.hedef.soru||x.hedef.git||x.hedef.metin||''))===ac);
+  if(!o){ o={id:uid(), soru, kok:K, hedef, olumlu:0, olumsuz:0, kim:(SES&&SES.ad)||'', at:new Date().toISOString(), dil:DIL}; D.kayit.push(o); }
+  o.olumlu=(o.olumlu||0)+1; o.son=new Date().toISOString();
+  D.kayit=D.kayit.slice(-500); asOgrYaz(D); return o;
+}
+function asOy(id, y){
+  const x=AS_GECMIS.find(g=>g.id===id); if(!x) return;
+  const el=$(id), oy=el&&el.querySelector('.asOy'); if(oy) oy.querySelectorAll('button:not(.asOkuB)').forEach(b=>b.disabled=true);
+  if(y>0){
+    if(x.c.ogr){ const D=asOgrDepo(), o=D.kayit.find(k=>k.id===x.c.ogr); if(o){ o.olumlu=(o.olumlu||0)+1; asOgrYaz(D); } }
+    else if(x.c.kalip) asOgrKaydet(x.soru, x.c.K, {tip:'kalip', soru:x.soru});
+    else if((x.c.liste||[]).length) asOgrKaydet(x.soru, x.c.K, {tip:'kalip', soru:x.soru});
+    toast(Ld('Teşekkürler — öğrendim.','Thanks — learned.')); return;
+  }
+  if(x.c.ogr){ const D=asOgrDepo(), o=D.kayit.find(k=>k.id===x.c.ogr); if(o){ o.olumsuz=(o.olumsuz||0)+1; asOgrYaz(D); } }
+  el.insertAdjacentHTML('beforeend', asOgretHtml(id, x.c));
+}
+function asOgretHtml(id, c){
+  const L1=(c&&c.liste||[]).map((o,i)=>`<option value="l${i}">${esc(o.ust)}</option>`).join('');
+  return `<div class="asOgret"><div class="hint">${esc(Ld('Doğrusunu gösterin — öğreneyim:','Show me the right answer — I will learn:'))}</div>
+    <select id="${id}_s"><option value="">${esc(Ld('— bir ekran ya da kayıt seçin —','— choose a screen or record —'))}</option>${L1?`<optgroup label="${esc(Ld('Sonuçlardan','From results'))}">${L1}</optgroup>`:''}
+      <optgroup label="${esc(Ld('Ekranlar','Screens'))}">${AS_EKRAN().map(([v,a])=>`<option value="e${v}">${esc(a)}</option>`).join('')}</optgroup></select>
+    <textarea id="${id}_m" rows="2" placeholder="${esc(Ld('ya da cevabı yazın','or type the answer'))}"></textarea>
+    <button type="button" class="btn sm pri" onclick="asOgret(${jsA(id)})">${esc(Ld('Öğret','Teach'))}</button></div>`;
+}
+function asOgret(id){
+  const x=AS_GECMIS.find(g=>g.id===id); if(!x) return;
+  const s=($(id+'_s')||{}).value||'', m=(($(id+'_m')||{}).value||'').trim();
+  let hedef=null;
+  if(s.startsWith('l')){ const o=(x.c.liste||[])[+s.slice(1)]; if(o) hedef={tip:'git', git:o.git, metin:m||o.ust}; }
+  else if(s.startsWith('e')) hedef={tip:m?'metin':'git', git:'go('+JSON.stringify(s.slice(1))+')', metin:m||AS_EKRAN().find(e=>e[0]===s.slice(1))[1]};
+  else if(m) hedef={tip:'metin', metin:m};
+  if(!hedef){ toast(Ld('Bir seçim yapın ya da cevabı yazın.','Choose an option or type the answer.')); return; }
+  asOgrKaydet(x.soru, x.c.K, hedef);
+  const el=$(id); const og=el&&el.querySelector('.asOgret'); if(og) og.outerHTML=`<div class="hint">${esc(Ld('Öğrendim — bir dahaki sefere bu cevabı veririm.','Learned — I will answer this next time.'))}</div>`;
+}
+/* Ayarlar › Genel › Asistan: öğrenilenler (yönetici siler) */
+function asOgrKartCiz(){
+  const el=$('asOgrKart'); if(!el) return;
+  const D=asOgrDepo().kayit.slice().reverse();
+  el.innerHTML=D.length?`<div class="tw"><table><thead><tr><th>${esc(Ld('Soru','Question'))}</th><th>${esc(Ld('Cevap','Answer'))}</th><th>👍</th><th>👎</th><th>${esc(Ld('Öğreten','Taught by'))}</th><th></th></tr></thead><tbody>`
+    +D.map(o=>`<tr><td>${esc(o.soru)}</td><td>${esc(o.hedef.tip==='kalip'?Ld('kalıp: ','pattern: ')+o.hedef.soru:o.hedef.metin||o.hedef.git||'')}</td><td>${o.olumlu||0}</td><td>${o.olumsuz||0}</td><td>${esc(o.kim||'')}</td>`
+      +`<td>${can('ayar')?`<button class="btn sm" onclick="asOgrSil(${jsA(o.id)})">✕</button>`:''}</td></tr>`).join('')+'</tbody></table></div>'
+    :`<div class="hint">${esc(Ld('Henüz öğrenilen yok. Asistanın cevaplarına 👍 / 👎 verdikçe burada birikir.','Nothing learned yet. It builds up as you give 👍 / 👎 to answers.'))}</div>`;
+}
+function asOgrSil(id){ if(!can('ayar')) return; if(!confirm(Ld('Bu öğrenilen cevap silinsin mi?','Delete this learned answer?'))) return;
+  const D=asOgrDepo(); D.kayit=D.kayit.filter(o=>o.id!==id); asOgrYaz(D); asOgrKartCiz(); }
+/* ── ses ── */
+const AS_SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function asMikBitir(){ if(AS_SES){ try{ AS_SES.abort(); }catch(e){} AS_SES=null; } const b=$('asMik'); if(b) b.classList.remove('aktif'); }
+function asMik(){
+  if(AS_SES){ asMikBitir(); return; }
+  if(!AS_SR){ toast(Ld('Bu tarayıcı konuşma tanımayı desteklemiyor — Edge ya da Chrome kullanın (Windows\'ta Win+H ile de yazabilirsiniz).','This browser does not support speech recognition — use Edge or Chrome (or Win+H on Windows).')); return; }
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const r=new AS_SR(), t=$('asSoru'); AS_SES=r;
+  r.lang = DIL==='en' ? 'en-US' : 'tr-TR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+  let son='';
+  r.onresult=e=>{ son=[...e.results].map(x=>x[0].transcript).join(' '); t.value=son; };
+  r.onerror=e=>{ asMikBitir(); if(e.error==='not-allowed') toast(Ld('Mikrofon izni verilmedi.','Microphone permission denied.')); else if(e.error!=='aborted'&&e.error!=='no-speech') toast(Ld('Ses tanınamadı: ','Speech not recognised: ')+e.error); };
+  r.onend=()=>{ const v=(son||'').trim(); AS_SES=null; const b=$('asMik'); if(b) b.classList.remove('aktif'); if(v) asSor(v, true); };
+  $('asMik').classList.add('aktif');
+  try{ r.start(); }catch(e){ asMikBitir(); }
+}
+function asSes(dil){
+  const V=speechSynthesis.getVoices(), on=dil==='en'?'en':'tr';
+  return V.find(v=>v.lang.toLowerCase().startsWith(on)&&v.localService) || V.find(v=>v.lang.toLowerCase().startsWith(on)) || null;
+}
+function asOku(id){
+  if(!('speechSynthesis' in window)) return;
+  const el=$(id); if(!el) return;
+  if(speechSynthesis.speaking){ speechSynthesis.cancel(); return; }
+  const c=el.querySelector('.asCevap'), ilk=el.querySelector('.asListe .u');
+  const m=[c&&c.innerText.replace(/^(öğrenilmiş|learned)\s*/,''), !c&&ilk?ilk.innerText:''].filter(Boolean).join('. ').slice(0,400);
+  if(!m) return;
+  const u=new SpeechSynthesisUtterance(m), v=asSes(DIL); u.lang = DIL==='en'?'en-US':'tr-TR'; if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{}; }catch(e){}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !$('asPanel').hidden && !document.querySelector('.ov.on')) asKapat(); });
+
+try{ dilUygula(); }catch(e){}
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.9.23':['Ana sayfa: İSG Yönetimi simgesi baret (yeni çizim)'],
+const SURUM_NOTU={'1.10.0':['Asistan: portaldaki kayıtlarınız hakkında yazarak ya da konuşarak sorun; 👍 / 👎 ile öğrenir (üst çubuk ve ana sayfa)',
+  'Dil seçimi TR / EN: menü, ana sayfa ve ekranlar İngilizce; asistan seçili dilde dinler ve konuşur',
+  'Ayarlar › Genel: asistanın öğrendikleri'],
+  '1.9.23':['Ana sayfa: İSG Yönetimi simgesi baret (yeni çizim)'],
   '1.9.22':['Ana sayfa: İSG Yönetimi simgesi baret'],
   '1.9.21':['Ana sayfa: sağ sütundaki Son olaylar kartı ajandayla aynı hizada biter'],
   '1.9.20':['Personel, Makine-Ekipman ve Eğitim menüsünde Analiz sayfası: İSG Analiz ekranıyla aynı (özet, bulgular, aksiyon planı, strateji, analiz geçmişi)',
