@@ -1420,6 +1420,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
   <button class="hbtn tgl" id="themeBtn" onclick="temaDegis()" title="Gece / Gündüz modu"></button>
   <button type="button" class="hbtn tgl hdDil" id="hdDil" onclick="dilDegis()" title="Dil">TR</button>
   <button class="hbtn tgl" id="hdAyarBtn" onclick="go('set')" title="Ayarlar" aria-label="Ayarlar" style="display:none"></button>
+  <button type="button" class="hbtn tgl" id="hdKucult" onclick="pencereKucult()" title="Simge durumuna küçült" aria-label="Simge durumuna küçült" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M5 19h14"/></svg></button>
   <button class="hbtn tgl" onclick="cikis()" title="Çıkış" aria-label="Çıkış"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
   <input type="file" id="imp" accept=".json" style="display:none" onchange="restore(this)">
 </header>
@@ -2279,7 +2280,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.11.0';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.11.1';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -13767,7 +13768,7 @@ const SOZ_EN = {
   'Aksiyonlar':'Actions','Yeni Aksiyon':'New Action','Aksiyon Listesi':'Action List','Denetim':'Inspection','Saha İnceleme':'Site Inspection','Planlı Denetim':'Planned Audit',
   'Personel Listesi':'Personnel List','Yeni Personel':'New Employee','Makine Listesi':'Equipment List','Yeni Makine':'New Equipment',
   'Eğitim Planı':'Training Plan','Eğitim Kayıtları':'Training Records','Yeni Eğitim':'New Training',
-  'Bildirimler':'Notifications','Ayarlar':'Settings','Çıkış':'Sign out','Profil':'Profile','Gece / Gündüz modu':'Dark / Light mode','Asistan':'Assistant',
+  'Bildirimler':'Notifications','Simge durumuna küçült':'Minimise','Ayarlar':'Settings','Çıkış':'Sign out','Profil':'Profile','Gece / Gündüz modu':'Dark / Light mode','Asistan':'Assistant',
   'YÖNETİM PORTALI':'MANAGEMENT PORTAL','Yönetim Portalı':'Management Portal',
   'İSG Yönetimi':'HSE Management','Personel Yönetimi':'Personnel Management','Makine-Ekipman Yönetimi':'Equipment Management','Eğitim Yönetimi':'Training Management',
   'Açık aksiyon':'Open actions','yetkili olduğunuz modüllerde':'in modules you can access','Geciken':'Overdue','termini geçmiş aksiyon':'actions past due date',
@@ -14460,6 +14461,22 @@ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{}; }catch
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !$('asPanel').hidden && !document.querySelector('.ov.on')) asKapat(); });
 
 try{ dilUygula(); }catch(e){}
+/* SİMGE DURUMUNA KÜÇÜLT (11.11.2026, kullanıcı: "simge durumunda küçült butonu koy"): uygulama penceresinde (Edge --app, yerel sunucu)
+   sayfa kendi penceresini küçültemez; başlığa geçici işaret konur, yerel sunucu (/__sif_pencere) o başlıktaki pencereyi küçültür.
+   Düğme yalnız yerel sunucuda (8090) görünür; telefonda / deneme sitesinde yok. */
+async function pencereKucult(){
+  const eski=document.title, is='SIFKUCULT'+Math.random().toString(16).slice(2,12).padEnd(10,'0');
+  document.title=eski+' '+is;
+  try{
+    let ok=false;
+    for(let i=0;i<3 && !ok;i++){ await new Promise(r=>setTimeout(r,250));
+      const r=await fetch('/__sif_pencere',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({isaret:is}),cache:'no-store',credentials:'same-origin'});
+      const j=await r.json().catch(()=>null); ok=!!(j&&j.ok); }
+    if(!ok) toast(Ld('Pencere küçültülemedi (Windows: Win + ↓).','Could not minimise the window (Windows: Win + ↓).'));
+  }catch(e){ toast(Ld('Pencere küçültülemedi (Windows: Win + ↓).','Could not minimise the window (Windows: Win + ↓).')); }
+  finally{ document.title=eski; }
+}
+{ const b=$('hdKucult'); if(b && PW_YEREL) b.style.display=''; }
 /* AI DÜĞMESİ MENÜSÜ (11.11.2026, kullanıcı: "yukarıdaki asistan butonunu alt köşedeki AI butonu içine alalım; üzerine gelince analiz et ve
    asistan seçenekleri oluşsun"): üst çubuktaki asistan düğmesi kaldırıldı. Sağ alttaki AI düğmesinin üzerine gelince menü: "Analiz et"
    (o ekranın AI düğmesinin kendi işi) ve "Asistan". Düğmeye doğrudan tıklamak eskisi gibi analiz eder. Telefonda ilk dokunuş menüyü açar.
@@ -14485,7 +14502,8 @@ try{ dilUygula(); }catch(e){}
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
+const SURUM_NOTU={'1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
+  '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
   '1.10.3':['Personel ve makine kartı salt okunur açılır; değişiklik belge gruplarının altındaki Düzenle ile (Vazgeç / Kaydet)','Kartın üstündeki Klasöre yaz ve Kaydet düğmeleri kaldırıldı; silme yok, pasife alınır (Ayrıldı / Hizmet dışı)'],
   '1.10.2':['Asistan: cevaptaki listeden kayda tıklayınca kayıt açılır','Güvenlik iyileştirmeleri (asistan bağlantıları, çeviri belleği)'],
