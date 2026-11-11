@@ -876,6 +876,8 @@ body.asAcik .aiFab{display:none!important}
 .asListe{margin-top:6px;display:flex;flex-direction:column;gap:4px}.asListe .hp-oge{cursor:pointer}.asCumle{display:block;color:var(--text2);margin-top:2px}
 .asListe mark,.asCumle mark{background:var(--jcb-light);color:inherit;border-radius:3px;padding:0 1px}
 .asAlt{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}.asOy{margin-left:auto;display:flex;gap:2px}
+.asOy .asOyB{font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--surface);opacity:1;padding:3px 9px;border-radius:999px}
+.asOy .asOyB:hover{border-color:var(--jcb)}
 .asOy button{border:0;background:none;cursor:pointer;font-size:15px;padding:2px 4px;border-radius:6px;opacity:.75}.asOy button:hover{background:var(--surface2);opacity:1}.asOy button:disabled{opacity:.35;cursor:default}
 .asOneri{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.asOneri button{border:1px solid var(--border);background:var(--surface2);border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--text)}
 .asOneri button:hover{border-color:var(--jcb)}
@@ -1576,7 +1578,6 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
       <div class="hint" id="fSum">Henüz ek yok.</div>
       <div class="hint" id="fArsiv" style="margin-top:6px"></div>
       <div class="bar" id="fArsivBar" style="margin-top:9px;display:none">
-        <button class="btn sm" onclick="klasoreYazElle(cur.id)">Klasöre Yaz</button>
         <button class="btn sm" onclick="ekleriIndir(cur)">Ekleri İndir</button>
         <button class="btn sm" onclick="printRec()">Kayıt Kartı / Yazdır</button>
       </div>
@@ -2273,7 +2274,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.10.3';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.10.4';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -2329,7 +2330,7 @@ const SH_HARITA = {
   mai_esik:{esik:{prs:'personel',mak:'makine',egt:'egitim'}},
   mai_gecmis:{esik:{prs:'personel',mak:'makine',egt:'egitim'}, dosya:'ai_gecmisi'},
   an_bulgu:{plan:1},                                   /* analiz aksiyon planı: satır başına modül (bk "mai:<mod>:") → ortak/aksiyon_plani/<modül> */
-  yb_model:{t:'_ogrenme/belge_motoru'}, asistan_ogren:{t:'_ogrenme/asistan'}, model:{t:'_ogrenme/analiz_modeli'}, bellek:{t:'_ogrenme/analiz_bellegi'},
+  yb_model:{t:'_ogrenme/belge_motoru'}, model:{t:'_ogrenme/analiz_modeli'}, bellek:{t:'_ogrenme/analiz_bellegi'},
   ym_ornek_v6:{t:'_sistem/kurulum/ym_ornek_v6'}, den_ornek_kuruldu_v2:{t:'_sistem/kurulum/den_ornek_kuruldu_v2'}
 };
 const shAd = k => (typeof k==='string' && k.startsWith(SH_ONEK) && SH_HARITA[k.slice(SH_ONEK.length)]) ? k.slice(SH_ONEK.length) : null;
@@ -8594,8 +8595,7 @@ function viewRec(id,saltOku){
        <button class="btn" onclick="window.print()">Yazdır / PDF</button>`
     : `<button class="btn" onclick="closeOv('ovRec')">Kapat</button>
     ${aiBtn}
-    ${(r.ekler||[]).length?`<button class="btn" onclick="klasoreYazElle(${jsA(r.id)})">Klasöre Yaz</button>
-    <button class="btn" onclick="ekleriIndir(RECS.find(x=>x.id===${jsA(r.id)}))">Ekleri İndir</button>`:''}
+    ${(r.ekler||[]).length?`<button class="btn" onclick="ekleriIndir(RECS.find(x=>x.id===${jsA(r.id)}))">Ekleri İndir</button>`:''}
     ${can('ayar')?`<button class="btn red" onclick="delRec(${jsA(r.id)})">Kaydı Sil</button>`:''}
     <button class="btn" onclick="window.print()">Yazdır / PDF</button>
     ${can('kayit')?`<button class="btn pri" onclick="editRec(${jsA(r.id)})">${r.durum==='draft'?'Devam Et (Forma Al)':(r.durum==='rapor'?'Raporu Düzenle':'Forma Al / Düzenle')}</button>`:''}`;
@@ -13880,7 +13880,6 @@ function dilDegis(){ DIL = DIL==='en' ? 'tr' : 'en'; try{ localStorage.setItem(K
    SES: mikrofon = tarayıcının konuşma tanıması (seçili dilde; Edge / Chrome, metin tanıma için tarayıcının hizmetine gider — ad / TC
    gibi hassas bilgiyi yazarak sorun); konuşma bitince soru kendiliğinden sorulur ve cevabın özeti sesli okunur. Hoparlör her cevapta;
    yalnız CEVAP satırı okunur (liste okunmaz); bilgisayardaki ses tercih edilir. */
-const K_ASOGR = K.rec.replace(/records$/,'asistan_ogren');
 const asKucuk = s => String(s||'').toLocaleLowerCase(DIL==='en'?'en':'tr');
 const asKatla = s => String(s||'').toLocaleLowerCase('tr').replace(/[çğıöşüâîû]/g, c=>({ç:'c',ğ:'g',ı:'i',ö:'o',ş:'s',ü:'u',â:'a',î:'i',û:'u'})[c]);
 const AS_DUR = new Set(('nerede nerde nereden nereye nedir ne neler nelerdir neyi neye zaman hangi hangisi hangileri kim kime kimin kimde var yok mı mi mu mü midir mıdır '
@@ -13898,14 +13897,105 @@ function asKokler(soru){
   return [...new Set(String(soru||'').split(/[^\p{L}\p{N}-]+/u).filter(Boolean).map(w=>w.replace(/['’].*$/,'')).filter(w=>w && !AS_DUR.has(asKatla(w))).map(asKok).filter(k=>k.length>=2))].slice(0,10);
 }
 const asIcerir = (metin, kok) => (' '+asKatla(metin).replace(/[^\p{L}\p{N}]+/gu,' ')).includes(' '+kok);
-/* ── öğrenilenler (ortak) ── */
-const asOgrDepo = () => { const d=store.get(K_ASOGR,null); return (d&&Array.isArray(d.kayit)) ? d : {kayit:[]}; };
-const asOgrYaz = d => store.set(K_ASOGR, d);
-function asBenzer(A,B){ if(!A.length||!B.length) return 0; const b=new Set(B); const n=A.filter(x=>b.has(x)).length; return n/(A.length+B.length-n); }
+/* ══ ÖĞRENME HAVUZU — tarif ASSIST\Assist_Gelistirme\Portal_Sohbet_Ogrenme_Tarifi.md (11.11.2026) ══
+   • Öğretilen cevap BÖLÜME bağlıdır: genel, isg_olay, isg_aksiyon, isg_denetim, personel, personel_saglik, makine, egitim.
+     Kişi yalnız yetkili olduğu bölümün öğrenilenlerini alır; kayıt hedefli öğretme yalnız o kaydı GÖREBİLENE gösterilir
+     (sunucu kaydın no / bağlantısını vermez, yalnız izini — sayfa izi kendi gördüğü kayıtlarla eşleştirir).
+   • Hassas bölümde (isg_olay, personel_saglik) yazılı cevap KAPALI; yalnız kayıt ya da ekran öğretilir.
+   • Yerel sunucuda ve veri havuzu açıkken ORTAK havuz: /__sohbet_ogrenme?portal=sif (Veri\ortak\sohbet_ogrenme\sif\<bölüm>.json,
+     süzme SUNUCUDA). Havuz kapalıyken ve deneme sitesinde öğrenilenler yalnız bu tarayıcıda (aynı biçim, aynı kurallar).
+   • Benzerlik: kök kümelerinin kesişimi / birleşimi ≥ %80 (harfler katlanmış). Yanlış oyu Doğru oyundan çoksa cevap kullanılmaz.
+   • KVKK: soru ve yazılı cevapta TC, IBAN, kart, telefon, e-posta maskelenir (sunucu da maskeler); cevap listelerinde kişi adları
+     maskelenir; olay kayıtlarında cümle gösterilmez ("Ayrıntı kayıtta"). */
+const K_ASOGR = K.rec.replace(/records$/,'asistan_ogren2');
+const AS_BOLUM_AD = {genel:['Genel','General'], isg_olay:['İSG — olaylar','HSE — incidents'], isg_aksiyon:['İSG — aksiyonlar','HSE — actions'], isg_denetim:['İSG — denetim','HSE — inspections'],
+  personel:['Personel','Personnel'], personel_saglik:['Personel — sağlık','Personnel — health'], makine:['Makine-Ekipman','Equipment'], egitim:['Eğitim','Training']};
+const AS_HASSAS = ['isg_olay','personel_saglik'];
+const asBolumAd = b => (AS_BOLUM_AD[b]||[b,b])[DIL==='en'?1:0];
+const asBolumIzin = b => b==='genel' || /^isg_/.test(b) || (b==='personel'&&can('personel')) || (b==='personel_saglik'&&can('personel')&&can('saglik')) || (b==='makine'&&can('makine')) || (b==='egitim'&&can('egitim'));
+const asGorunumBolum = v => ({analiz:'isg_olay',bulgu:'isg_olay',form:'isg_olay',reg:'isg_olay',act:'isg_aksiyon',yeniaksiyon:'isg_aksiyon',saha:'isg_denetim',denetim:'isg_denetim'})[v]
+  || (/^(prs|personel)/.test(v)?'personel':/^(mak|makine)/.test(v)?'makine':/^(egt|egitim)/.test(v)?'egitim':'genel');
+/* sunucudaki So-Iz ile aynı (FNV-1a 32, UTF-16 birimleri) */
+const asIz = s => { let h=2166136261; s=String(s); for(let i=0;i<s.length;i++){ h=Math.imul(h ^ s.charCodeAt(i), 16777619)>>>0; } return h.toString(16).padStart(8,'0'); };
+/* sunucudaki So-Maske ile aynı */
+const asMaske = s => String(s||'').replace(/[\x00-\x1F]/g,' ').replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,'[e-posta]')
+  .replace(/\bTR\s?\d{2}(?:\s?\d){20,24}\b/gi,'[IBAN]').replace(/\b(?:\d[ -]?){15}\d\b/g,'[kart]').replace(/\b[1-9]\d{10}\b/g,'[TC]')
+  .replace(/(?:\+?90[ -]?)?\(?0?5\d{2}\)?[ -]?\d{3}[ -]?\d{2}[ -]?\d{2}\b/g,'[telefon]').replace(/\s+/g,' ').trim();
+/* cevap listelerinde kişi adları maskelenir ("Ahmet Koç" → "A*** K***") */
+function asAdMaske(s){
+  let t=String(s||''); const A=[...(typeof PRS!=='undefined'?PRS:[]),...(typeof USR!=='undefined'?USR:[]),...(typeof PERS!=='undefined'?PERS:[])]
+    .map(p=>String((p&&p.ad)||'').trim()).filter(a=>a.length>=4 && !a.includes('@')).sort((a,b)=>b.length-a.length);
+  for(const a of [...new Set(A)]){ const i=t.toLocaleLowerCase('tr').indexOf(a.toLocaleLowerCase('tr')); if(i<0) continue;
+    t=t.slice(0,i)+a.split(/\s+/).map(w=>w.charAt(0)+'***').join(' ')+t.slice(i+a.length); }
+  return t;
+}
+/* bağlantı ↔ hedef ("#işlev=arg"; sunucu biçimi ^#[A-Za-z0-9_.:!=-]{0,160}$) */
+function asGitHedef(git){ const c=asGitCoz(git); if(!c) return '';
+  if(c.f==='openAct') return c.A[2]===true || !c.A[0] ? '#openActS='+c.A[1] : '#openAct='+c.A[0]+':'+c.A[1];
+  if(['go','regAc','prsAc','makAc','egtAc','denAc'].includes(c.f) && c.A.length===1) return '#'+c.f+'='+c.A[0];
+  return ''; }
+function asHedefGit(h){ const m=String(h||'').match(/^#([A-Za-z]{2,12})=([\w.\-:]{1,150})$/); if(!m) return '';
+  if(m[1]==='openActS') return 'openAct("",'+JSON.stringify(m[2])+',true)';
+  if(m[1]==='openAct'){ const [r,a]=m[2].split(':'); return 'openAct('+JSON.stringify(r||'')+','+JSON.stringify(a||'')+')'; }
+  return m[1]+'('+JSON.stringify(m[2])+')'; }
+function asHedefBolum(h){ const m=String(h||'').match(/^#([A-Za-z]{2,12})=([\w.\-:]+)$/); if(!m) return 'genel';
+  if(m[1]==='go') return asGorunumBolum(m[2]);
+  if(m[1]==='regAc') return 'isg_olay'; if(m[1]==='denAc') return 'isg_denetim'; if(m[1]==='prsAc') return 'personel'; if(m[1]==='makAc') return 'makine'; if(m[1]==='egtAc') return 'egitim';
+  const aid=m[1]==='openActS'?m[2]:m[2].split(':')[1], x=allActions().find(z=>z.a.id===aid), mod=x?aksModOf(x.a):'isg';
+  return mod==='isg'?'isg_aksiyon':mod; }
+/* kişinin GÖREBİLDİĞİ kayıtların bağlantıları (iz → başlık): sunucudan gelen kayıt hedefi yalnız burada varsa gösterilir */
+function asGorunurHedefler(){
+  const M=new Map(), ek=(h,ust,alt)=>M.set(asIz(h),{hedef:h, ust, alt});
+  gorunurKayitlar().forEach(r=>ek('#regAc='+r.id, r.no+' — '+turAd(r), lokAd(r.lokasyon)));
+  allActions().forEach(({a,r,no})=>ek(r&&!r.bagimsiz?'#openAct='+r.id+':'+a.id:'#openActS='+a.id, (no||a.no||'')+' — '+(a.tanim||''), Ld('Aksiyon','Action')));
+  if(can('personel')) PRS.filter(prsGorebilir).forEach(p=>ek('#prsAc='+p.id, p.ad||'', [meslekAd(p),lokAd(p.lok)].filter(Boolean).join(' · ')));
+  if(can('makine')) MAK.filter(makGorebilir).forEach(m=>ek('#makAc='+m.id, (m.envNo||'')+' — '+makTurOf(m.tur).ad, lokAd(m.lok)));
+  if(can('egitim')) EGT.filter(egtGorebilir).forEach(s=>ek('#egtAc='+s.id, (s.no||'')+' — '+egtTurOf(s.turKod).ad, trDate(s.tarih)));
+  DEN.filter(denGorebilir).forEach(d=>ek('#denAc='+d.id, (d.no||'')+' — '+(d.saha||d.birim||''), DEN_TIP[d.tip].ad));
+  return M;
+}
+/* kaynak: ortak havuz (sunucu, yetkiyle süzülmüş) ya da bu tarayıcı */
+const asSunucu = () => !!(SH.aktif && SH.oturum && !SH.bos);
+let AS_OGR=[], AS_OGR_YON=false;
+function asYerelDepo(){ const d=store.get(K_ASOGR,null); return (d&&Array.isArray(d.kayit))?d:{kayit:[]}; }
+function asYerelListe(){
+  const em=String((SES&&SES.mail)||'').toLowerCase();
+  return asYerelDepo().kayit.filter(o=>!o.sil && asBolumIzin(o.bolum)).map(o=>{ const v=Object.values(o.oy||{});
+    return Object.assign({}, o, {olumlu:v.filter(x=>x>0).length, olumsuz:v.filter(x=>x<0).length, benim:o.ogreten===em, benimOy:(o.oy||{})[em],
+      hedef: o.hedef && o.hedef.tip==='kayit' ? {tip:'kayit', iz:asIz(o.hedef.hedef), metin:o.hedef.metin} : o.hedef}); });
+}
+async function asOgrYukle(){
+  if(!asSunucu()){ AS_OGR=asYerelListe(); AS_OGR_YON=can('ayar'); return; }
+  try{ const r=await fetch('/__sohbet_ogrenme?portal=sif',{headers:{'X-Qhse-Oturum':shJeton()},cache:'no-store',credentials:'same-origin'});
+    const j=await r.json(); if(j&&j.ok){ AS_OGR=(j.kayit||[]).filter(o=>asBolumIzin(o.bolum)); AS_OGR_YON=!!j.yonetici; } }catch(e){}
+}
+async function asOgrIstek(govde){
+  if(!asSunucu()){
+    const D=asYerelDepo(), em=String((SES&&SES.mail)||'').toLowerCase()||'yerel', simdi=new Date().toISOString();
+    if(govde.islem==='ekle'){
+      const anah=h=>[h.tip,h.soru||'',h.hedef||'',h.metin||''].join('|');
+      let o=D.kayit.find(x=>!x.sil && anah(x.hedef)===anah(govde.hedef) && asBenzer(govde.K,x.K||[])>=0.8);
+      if(!o){ o={id:uid().replace(/[^a-z0-9]/gi,'').toLowerCase().slice(0,16).padEnd(8,'0'), portal:'sif', bolum:govde.bolum, soru:govde.soru, K:govde.K, hedef:govde.hedef, ogreten:em, oy:{}, t:simdi}; D.kayit.push(o); }
+      o.oy=o.oy||{}; o.oy[em]=1; o.son=simdi; D.kayit=D.kayit.slice(-500);
+    } else { const o=D.kayit.find(x=>x.id===govde.id && !x.sil); if(!o) return false;
+      if(govde.islem==='oy'){ o.oy=o.oy||{}; o.oy[em]=govde.y; }
+      else if(govde.islem==='sil'){ if(!can('ayar') && o.ogreten!==em) return false; o.sil=simdi; o.silen=em; } }
+    store.set(K_ASOGR,D); await asOgrYukle(); return true;
+  }
+  try{ const r=await fetch('/__sohbet_ogrenme_yaz?portal=sif',{method:'POST',headers:{'Content-Type':'application/json','X-Qhse-Oturum':shJeton()},body:JSON.stringify(govde),cache:'no-store',credentials:'same-origin'});
+    const j=await r.json().catch(()=>null); if(!r.ok || !j || !j.ok){ toast((j&&j.hata)||Ld('Öğrenme kaydedilemedi.','Could not save.')); return false; }
+    await asOgrYukle(); return true; }catch(e){ toast(Ld('Öğrenme sunucusuna ulaşılamadı.','Learning server unreachable.')); return false; }
+}
+function asBenzer(A,B){ if(!A.length||!B.length) return 0; const a=new Set(A.map(asKatla)), b=new Set(B.map(asKatla)); let n=0; a.forEach(x=>{ if(b.has(x)) n++; }); return n/(a.size+b.size-n); }
 function asOgrBul(K){
-  let en=null, p=0;
-  for(const o of asOgrDepo().kayit){ if((o.olumlu||0)<=(o.olumsuz||0)) continue; const s=asBenzer(K,o.kok||[]); if(s>p){ p=s; en=o; } }
-  return p>=0.6 ? en : null;
+  let en=null, p=0, G=null;
+  for(const o of AS_OGR){
+    if((o.olumsuz||0)>(o.olumlu||0) || !asBolumIzin(o.bolum)) continue;
+    const s=asBenzer(K,o.K||[]); if(s<0.8 || s<=p) continue;
+    if(o.hedef && o.hedef.tip==='kayit'){ G=G||asGorunurHedefler(); if(!G.has(o.hedef.iz)) continue; }   /* kaydı görmeyen kişiye gösterilmez */
+    p=s; en=o;
+  }
+  return en;
 }
 /* ── kalıplar ── */
 const AS_KALIP = [
@@ -14003,8 +14093,8 @@ function asNasil(soru){
 /* ── arama ── */
 function asAra(K){
   if(!K.length) return [];
-  const S=[], ekle=(baslik,alt,metin,git,tarih)=>{ const n=K.filter(x=>asIcerir(baslik+' '+metin,x)).length; if(n) S.push({ust:baslik, alt, metin, git, tarih, n}); };
-  gorunurKayitlar().forEach(r=>ekle(r.no+' — '+turAd(r), lokAd(r.lokasyon)+' · '+trDate(r.tarih), [r.aciklama,r.yer,r.faaliyet,kaynakAd(r),cidOf(r.sonuc).ad,lokAd(r.lokasyon)].filter(Boolean).join(' '), `regAc(${jsA(r.id)})`, r.tarih));
+  const S=[], ekle=(baslik,alt,metin,git,tarih,hassas)=>{ const n=K.filter(x=>asIcerir(baslik+' '+metin,x)).length; if(n) S.push({ust:baslik, alt, metin:hassas?'':metin, git, tarih, n, hassas}); };
+  gorunurKayitlar().forEach(r=>ekle(r.no+' — '+turAd(r), lokAd(r.lokasyon)+' · '+trDate(r.tarih), [r.aciklama,r.yer,r.faaliyet,kaynakAd(r),cidOf(r.sonuc).ad,lokAd(r.lokasyon)].filter(Boolean).join(' '), `regAc(${jsA(r.id)})`, r.tarih, true));
   allActions().forEach(({a,r,no})=>ekle((no||a.no||'')+' — '+(a.tanim||''), Ld('Aksiyon','Action')+' · '+(a.sorumlu||'—')+' · '+trDate(a.termin), [a.tanim,a.sorumlu].filter(Boolean).join(' '), r&&!r.bagimsiz?`openAct(${jsA(r.id)},${jsA(a.id)})`:`openAct('',${jsA(a.id)},true)`, a.termin));
   if(can('personel')) PRS.filter(prsGorebilir).forEach(p=>ekle(p.ad||'', [meslekAd(p),lokAd(p.lok)].filter(Boolean).join(' · '), [p.sicil,meslekAd(p),lokAd(p.lok)].filter(Boolean).join(' '), `prsAc(${jsA(p.id)})`));
   if(can('makine')) MAK.filter(makGorebilir).forEach(m=>ekle((m.envNo||'')+' — '+makTurOf(m.tur).ad, lokAd(m.lok), [m.marka,m.model,m.seri,makTurOf(m.tur).ad,lokAd(m.lok)].filter(Boolean).join(' '), `makAc(${jsA(m.id)})`));
@@ -14029,16 +14119,18 @@ function asCevapla(soru){
   const c=asKalip(soru,K)||asNasil(soru);
   if(c) return Object.assign(c,{K});
   const S=asAra(K);
-  return {K, cevap:S.length?Ld(`${S.length} kayıtta bulundu.`,`Found in ${S.length} records.`):'', liste:S.map(x=>asOge(x.ust,x.alt,x.git,x.tarih)), ara:true, metinler:S.map(x=>x.metin)};
+  return {K, cevap:S.length?Ld(`${S.length} kayıtta bulundu.`,`Found in ${S.length} records.`):'', liste:S.map(x=>Object.assign(asOge(x.ust,x.alt,x.git,x.tarih),{hassas:x.hassas})), ara:true, metinler:S.map(x=>x.metin)};
 }
 function asOgrCevap(o){
   const h=o.hedef||{};
   /* kalip = "bu soru şu soruyla aynı": eşdeğer soru yeniden cevaplanır (kalıp, tarif ya da arama) — yeni söyleyişler öğrenilmiş olur */
   if(h.tip==='kalip'){ const K2=asKokler(h.soru||''), c=asKalip(h.soru||'',K2)||asNasil(h.soru||'');
     if(c) return Object.assign(c,{ogrAd:o.soru, K:K2});
-    const S=asAra(K2); return S.length ? {cevap:Ld(`${S.length} kayıtta bulundu.`,`Found in ${S.length} records.`), liste:S.map(x=>asOge(x.ust,x.alt,x.git,x.tarih)), ara:true, metinler:S.map(x=>x.metin), ogrAd:o.soru, K:K2} : null; }
-  if(h.tip==='git') return {cevap:h.metin||Ld('İlgili ekran:','Related screen:'), liste:[], git:h.git, ogrAd:o.soru};
-  if(h.tip==='metin') return {cevap:h.metin, liste:[], git:h.git||'', ogrAd:o.soru};
+    const S=asAra(K2); return S.length ? {cevap:Ld(`${S.length} kayıtta bulundu.`,`Found in ${S.length} records.`), liste:S.map(x=>Object.assign(asOge(x.ust,x.alt,x.git,x.tarih),{hassas:x.hassas})), ara:true, metinler:S.map(x=>x.metin), ogrAd:o.soru, K:K2} : null; }
+  if(h.tip==='kayit'){ const g=asGorunurHedefler().get(h.iz); if(!g) return null;   /* kaydı görmeyen kişiye gösterilmez */
+    return {cevap:h.metin||Ld('Öğrenilmiş kayıt:','Learned record:'), liste:[asOge(g.ust,g.alt,asHedefGit(g.hedef))], hassas:asHedefBolum(g.hedef)==='isg_olay', ogrAd:o.soru}; }
+  if(h.tip==='bolum') return {cevap:(h.metin?h.metin+' — ':'')+(h.ad||Ld('İlgili ekran','Related screen')), liste:[], git:asHedefGit(h.hedef), ogrAd:o.soru};
+  if(h.tip==='metin') return {cevap:h.metin, liste:[], git:'', ogrAd:o.soru};
   return null;
 }
 /* ── pencere ── */
@@ -14059,12 +14151,12 @@ function asBaslikYaz(){
 function asKarsila(){
   const ol=[Ld('Kaç açık aksiyon var?','How many open actions?'), Ld('Bu ay kaç olay oldu?','How many incidents this month?'), Ld('Geciken aksiyonlar','Overdue actions'),
     ...(can('personel')?[Ld('Süresi dolan belgeler','Expired documents')]:[]), ...(can('makine')?[Ld('Kontrolü geçmiş makineler','Equipment with overdue inspection')]:[]), Ld('Olay nasıl bildirilir?','How do I report an incident?')];
-  $('asMesaj').innerHTML=`<div class="asBalon asOnlar"><div>${esc(Ld('Merhaba, portaldaki kayıtlarınız hakkında sorabilirsiniz. Cevaplar yalnız görebildiğiniz kayıtlardan gelir; 👍 / 👎 ile bana öğretirsiniz.','Hi, ask me about your records in the portal. Answers come only from records you can see; teach me with 👍 / 👎.'))}</div>
+  $('asMesaj').innerHTML=`<div class="asBalon asOnlar"><div>${esc(Ld('Merhaba, portaldaki kayıtlarınız hakkında sorabilirsiniz. Cevaplar yalnız görebildiğiniz kayıtlardan gelir; Doğru / Yanlış ile bana öğretirsiniz.','Hi, ask me about your records in the portal. Answers come only from records you can see; teach me with Right / Wrong.'))}</div>
     <div class="asOneri">${ol.map(s=>`<button type="button" onclick="asSor(${jsA(s)})">${esc(s)}</button>`).join('')}</div></div>`;
 }
 function asAc(soru){
   const p=$('asPanel'); if(!p) return;
-  p.hidden=false; document.body.classList.add('asAcik'); asBaslikYaz();
+  p.hidden=false; document.body.classList.add('asAcik'); asBaslikYaz(); asOgrYukle();
   setTimeout(()=>{ const i=$('asSoru'); if(i) i.focus(); },50);
   if(soru) asSor(soru);
 }
@@ -14081,14 +14173,17 @@ function asSor(soru, sesli){
 }
 function asCevapHtml(id, soru, c){
   const bos=!c.cevap && !(c.liste||[]).length;
-  const liste=(c.liste||[]).map((o,i)=>`<div class="hp-oge" onclick="asGit(${jsA(o.git)})"><div class="m"><span class="u">${c.ara?asIsaret(o.ust,c.K):esc(o.ust)}</span><small>${esc(o.alt||'')}</small>${c.ara&&c.metinler&&c.metinler[i]?`<small class="asCumle">${asIsaret(asCumle(c.metinler[i],c.K),c.K)}</small>`:''}</div></div>`).join('');
+  const liste=(c.liste||[]).map((o,i)=>{ const u=asAdMaske(o.ust), a=asAdMaske(o.alt||'');
+    const cum = (o.hassas||c.hassas) ? `<small class="asCumle">${esc(Ld('Ayrıntı kayıtta','Details in the record'))}</small>`
+      : (c.ara&&c.metinler&&c.metinler[i] ? `<small class="asCumle">${asIsaret(asAdMaske(asCumle(c.metinler[i],c.K)),c.K)}</small>` : '');
+    return `<div class="hp-oge" onclick="asGit(${jsA(o.git)})"><div class="m"><span class="u">${c.ara?asIsaret(u,c.K):esc(u)}</span><small>${esc(a)}</small>${cum}</div></div>`; }).join('');
   return `<div class="asBalon asOnlar" id="${id}">
     ${bos?`<div>${esc(Ld('Bunu bulamadım. Bana öğretebilirsiniz:','I could not find this. You can teach me:'))}</div>`:''}
     ${c.cevap?`<div class="asCevap">${c.ogrAd?`<span class="asOgrRoz" title="${esc(Ld('Öğrenilmiş cevap','Learned answer'))}">${esc(Ld('öğrenilmiş','learned'))}</span> `:''}${esc(c.cevap)}</div>`:''}
     ${liste?`<div class="asListe">${liste}</div>`:''}
     ${(c.toplam||0)>(c.liste||[]).length?`<div class="hint">+ ${c.toplam-(c.liste||[]).length} ${esc(Ld('kayıt daha','more'))}</div>`:''}
     <div class="asAlt">${c.kutu?`<button type="button" class="denHapBtn kucuk" onclick="anaKutuAc(${jsA(c.kutu)})">${esc(Ld('Listele','List'))}</button>`:''}${c.git?`<button type="button" class="denHapBtn kucuk" onclick="asGit(${jsA(c.git)})">${esc(Ld('Ekrana git →','Go to screen →'))}</button>`:''}
-      <span class="asOy">${bos?'':`<button type="button" title="${esc(Ld('Doğru','Right'))}" onclick="asOy(${jsA(id)},1)">👍</button><button type="button" title="${esc(Ld('Yanlış','Wrong'))}" onclick="asOy(${jsA(id)},-1)">👎</button>`}<button type="button" class="asOkuB" title="${esc(Ld('Sesli oku','Read aloud'))}" onclick="asOku(${jsA(id)})">🔊</button></span></div>
+      <span class="asOy">${bos?'':`<button type="button" class="asOyB" onclick="asOy(${jsA(id)},1)">${esc(Ld('Doğru','Right'))}</button><button type="button" class="asOyB" onclick="asOy(${jsA(id)},-1)">${esc(Ld('Yanlış','Wrong'))}</button>`}<button type="button" class="asOkuB" title="${esc(Ld('Sesli oku','Read aloud'))}" onclick="asOku(${jsA(id)})">🔊</button></span></div>
     ${bos?asOgretHtml(id):''}</div>`;
 }
 const asCumle = (m,K) => { const C=String(m||'').split(/(?<=[.!?])\s+/); return (C.find(c=>K.some(k=>asIcerir(c,k)))||C[0]||'').slice(0,180); };
@@ -14112,56 +14207,62 @@ function asGit(git){
     case 'egtAc': return egtAc(...c.A); case 'denAc': return denAc(...c.A); case 'anaKutuAc': return anaKutuAc(...c.A); case 'openAct': return openAct(...c.A);
     case 'dilDegis': return dilDegis(); case 'sgkListeAc': return sgkListeAc(); } }catch(e){}
 }
-/* ── öğrenme ── */
-function asOgrKaydet(soru, K, hedef){
-  const D=asOgrDepo(), ac=hedef.tip+'|'+(hedef.soru||hedef.git||hedef.metin||'');
-  let o=D.kayit.find(x=>asBenzer(K,x.kok||[])>=0.8 && (x.hedef.tip+'|'+(x.hedef.soru||x.hedef.git||x.hedef.metin||''))===ac);
-  if(!o){ o={id:uid(), soru, kok:K, hedef, olumlu:0, olumsuz:0, kim:(SES&&SES.ad)||'', at:new Date().toISOString(), dil:DIL}; D.kayit.push(o); }
-  o.olumlu=(o.olumlu||0)+1; o.son=new Date().toISOString();
-  D.kayit=D.kayit.slice(-500); asOgrYaz(D); return o;
-}
-function asOy(id, y){
+/* ── öğrenme (tarif: Doğru / Yanlış; "Doğrusunu gösterin, öğreneyim") ── */
+async function asOy(id, y){
   const x=AS_GECMIS.find(g=>g.id===id); if(!x) return;
   const el=$(id), oy=el&&el.querySelector('.asOy'); if(oy) oy.querySelectorAll('button:not(.asOkuB)').forEach(b=>b.disabled=true);
-  if(y>0){
-    if(x.c.ogr){ const D=asOgrDepo(), o=D.kayit.find(k=>k.id===x.c.ogr); if(o){ o.olumlu=(o.olumlu||0)+1; asOgrYaz(D); } }
-    else if(x.c.kalip) asOgrKaydet(x.soru, x.c.K, {tip:'kalip', soru:x.soru});
-    else if((x.c.liste||[]).length) asOgrKaydet(x.soru, x.c.K, {tip:'kalip', soru:x.soru});
-    toast(Ld('Teşekkürler — öğrendim.','Thanks — learned.')); return;
-  }
-  if(x.c.ogr){ const D=asOgrDepo(), o=D.kayit.find(k=>k.id===x.c.ogr); if(o){ o.olumsuz=(o.olumsuz||0)+1; asOgrYaz(D); } }
+  if(x.c.ogr){ const ob=AS_OGR.find(z=>z.id===x.c.ogr); await asOgrIstek({islem:'oy', id:x.c.ogr, y, bolum:(ob&&ob.bolum)||'genel'}); }
+  else if(y>0 && (x.c.kalip || (x.c.liste||[]).length)){
+    await asOgrIstek({islem:'ekle', bolum:'genel', soru:asMaske(x.soru).slice(0,300), K:x.c.K.slice(0,12), hedef:{tip:'kalip', soru:asMaske(x.soru).slice(0,300)}}); }
+  if(y>0){ toast(Ld('Teşekkürler — öğrendim.','Thanks — learned.')); return; }
   el.insertAdjacentHTML('beforeend', asOgretHtml(id, x.c));
 }
 function asOgretHtml(id, c){
-  const L1=(c&&c.liste||[]).map((o,i)=>`<option value="l${i}">${esc(o.ust)}</option>`).join('');
-  return `<div class="asOgret"><div class="hint">${esc(Ld('Doğrusunu gösterin — öğreneyim:','Show me the right answer — I will learn:'))}</div>
-    <select id="${id}_s"><option value="">${esc(Ld('— bir ekran ya da kayıt seçin —','— choose a screen or record —'))}</option>${L1?`<optgroup label="${esc(Ld('Sonuçlardan','From results'))}">${L1}</optgroup>`:''}
-      <optgroup label="${esc(Ld('Ekranlar','Screens'))}">${AS_EKRAN().map(([v,a])=>`<option value="e${v}">${esc(a)}</option>`).join('')}</optgroup></select>
-    <textarea id="${id}_m" rows="2" placeholder="${esc(Ld('ya da cevabı yazın','or type the answer'))}"></textarea>
+  const L1=(c&&c.liste||[]).map((o,i)=>[i,o,asGitHedef(o.git)]).filter(([,,h])=>h && asBolumIzin(asHedefBolum(h)))
+    .map(([i,o])=>`<option value="l${i}">${esc(asAdMaske(o.ust))}</option>`).join('');
+  const E=AS_EKRAN().filter(([v])=>asBolumIzin(asGorunumBolum(v)));
+  const B=Object.keys(AS_BOLUM_AD).filter(b=>asBolumIzin(b) && !AS_HASSAS.includes(b));
+  return `<div class="asOgret"><div class="hint">${esc(Ld('Doğrusunu gösterin, öğreneyim:','Show me the right answer — I will learn:'))}</div>
+    <select id="${id}_s"><option value="">${esc(Ld('— bir kayıt ya da ekran seçin —','— choose a record or screen —'))}</option>${L1?`<optgroup label="${esc(Ld('Sonuçlardan','From results'))}">${L1}</optgroup>`:''}
+      <optgroup label="${esc(Ld('Ekranlar','Screens'))}">${E.map(([v,a])=>`<option value="e${v}">${esc(a)}</option>`).join('')}</optgroup></select>
+    <textarea id="${id}_m" rows="2" maxlength="500" placeholder="${esc(Ld('ya da cevabı yazın (en çok 500 karakter; olay ve sağlık bölümünde yazılı cevap yok)','or type the answer (max 500 characters; no written answers for incidents and health)'))}"></textarea>
+    <label class="hint" style="display:flex;gap:6px;align-items:center">${esc(Ld('Yazılı cevabın bölümü:','Section of the written answer:'))}
+      <select id="${id}_b">${B.map(b=>`<option value="${b}">${esc(asBolumAd(b))}</option>`).join('')}</select></label>
     <button type="button" class="btn sm pri" onclick="asOgret(${jsA(id)})">${esc(Ld('Öğret','Teach'))}</button></div>`;
 }
-function asOgret(id){
+async function asOgret(id){
   const x=AS_GECMIS.find(g=>g.id===id); if(!x) return;
-  const s=($(id+'_s')||{}).value||'', m=(($(id+'_m')||{}).value||'').trim();
-  let hedef=null;
-  if(s.startsWith('l')){ const o=(x.c.liste||[])[+s.slice(1)]; if(o) hedef={tip:'git', git:o.git, metin:m||o.ust}; }
-  else if(s.startsWith('e')) hedef={tip:m?'metin':'git', git:'go('+JSON.stringify(s.slice(1))+')', metin:m||AS_EKRAN().find(e=>e[0]===s.slice(1))[1]};
-  else if(m) hedef={tip:'metin', metin:m};
+  const s=($(id+'_s')||{}).value||'', m=asMaske((($(id+'_m')||{}).value||'').trim()).slice(0,500), bSec=($(id+'_b')||{}).value||'genel';
+  let hedef=null, bolum='genel';
+  if(s.startsWith('l')){ const o=(x.c.liste||[])[+s.slice(1)], h=o&&asGitHedef(o.git); if(!h){ toast(Ld('Bu sonuç öğretilemez.','This result cannot be taught.')); return; }
+    bolum=asHedefBolum(h); const no=String(o.ust||'').split(' — ')[0];
+    hedef={tip:'kayit', hedef:h, kayitNo:(/^\S{1,40}$/.test(no) && !/prsAc/.test(h) ? no : asIz(h)).slice(0,60)}; }
+  else if(s.startsWith('e')){ const v=s.slice(1), e=AS_EKRAN().find(z=>z[0]===v); bolum=asGorunumBolum(v); hedef={tip:'bolum', hedef:'#go='+v, ad:e?e[1]:v}; }
+  else if(m){ bolum=bSec; hedef={tip:'metin'}; }
   if(!hedef){ toast(Ld('Bir seçim yapın ya da cevabı yazın.','Choose an option or type the answer.')); return; }
-  asOgrKaydet(x.soru, x.c.K, hedef);
+  if(!asBolumIzin(bolum)){ toast(Ld('Bu bölüme yetkiniz yok.','No permission for this section.')); return; }
+  if(m){ if(AS_HASSAS.includes(bolum)){ toast(Ld('Olay ve sağlık bölümünde yazılı cevap kapalı — yalnız kayıt ya da ekran öğretilir.','Written answers are disabled for incidents and health — teach a record or screen.')); return; } hedef.metin=m; }
+  const ok=await asOgrIstek({islem:'ekle', bolum, soru:asMaske(x.soru).slice(0,300), K:x.c.K.slice(0,12), hedef});
+  if(!ok) return;
   const el=$(id); const og=el&&el.querySelector('.asOgret'); if(og) og.outerHTML=`<div class="hint">${esc(Ld('Öğrendim — bir dahaki sefere bu cevabı veririm.','Learned — I will answer this next time.'))}</div>`;
 }
-/* Ayarlar › Genel › Asistan: öğrenilenler (yönetici siler) */
-function asOgrKartCiz(){
+/* Ayarlar › Genel › Asistan — Öğrenilenler: soru, cevap, Doğru / Yanlış, öğreten; silme yönetici ya da öğreten kişi */
+async function asOgrKartCiz(){
   const el=$('asOgrKart'); if(!el) return;
-  const D=asOgrDepo().kayit.slice().reverse();
-  el.innerHTML=D.length?`<div class="tw"><table><thead><tr><th>${esc(Ld('Soru','Question'))}</th><th>${esc(Ld('Cevap','Answer'))}</th><th>👍</th><th>👎</th><th>${esc(Ld('Öğreten','Taught by'))}</th><th></th></tr></thead><tbody>`
-    +D.map(o=>`<tr><td>${esc(o.soru)}</td><td>${esc(o.hedef.tip==='kalip'?Ld('kalıp: ','pattern: ')+o.hedef.soru:o.hedef.metin||o.hedef.git||'')}</td><td>${o.olumlu||0}</td><td>${o.olumsuz||0}</td><td>${esc(o.kim||'')}</td>`
-      +`<td>${can('ayar')?`<button class="btn sm" onclick="asOgrSil(${jsA(o.id)})">✕</button>`:''}</td></tr>`).join('')+'</tbody></table></div>'
-    :`<div class="hint">${esc(Ld('Henüz öğrenilen yok. Asistanın cevaplarına 👍 / 👎 verdikçe burada birikir.','Nothing learned yet. It builds up as you give 👍 / 👎 to answers.'))}</div>`;
+  await asOgrYukle();
+  const G=asGorunurHedefler(), D=AS_OGR.slice().reverse();
+  const cevap=o=>{ const h=o.hedef||{}; if(h.tip==='kalip') return Ld('eşdeğer soru: ','same as: ')+(h.soru||'');
+    if(h.tip==='kayit'){ const g=G.get(h.iz); return (g?asAdMaske(g.ust):Ld('(görmediğiniz kayıt)','(record not visible to you)'))+(h.metin?' — '+h.metin:''); }
+    if(h.tip==='bolum') return Ld('ekran: ','screen: ')+(h.ad||'')+(h.metin?' — '+h.metin:''); return h.metin||''; };
+  el.innerHTML=(asSunucu()?`<div class="hint" style="margin-bottom:6px">${esc(Ld('Ortak öğrenme havuzu — yalnız yetkili olduğunuz bölümler.','Shared learning pool — only sections you can access.'))}</div>`:`<div class="hint" style="margin-bottom:6px">${esc(Ld('Bu tarayıcıda (ortak havuz veri havuzu açılınca).','In this browser (shared pool once the data pool is enabled).'))}</div>`)
+    +(D.length?`<div class="tw"><table><thead><tr><th>${esc(Ld('Soru','Question'))}</th><th>${esc(Ld('Bölüm','Section'))}</th><th>${esc(Ld('Cevap','Answer'))}</th><th>${esc(Ld('Doğru','Right'))}</th><th>${esc(Ld('Yanlış','Wrong'))}</th><th>${esc(Ld('Öğreten','Taught by'))}</th><th></th></tr></thead><tbody>`
+    +D.map(o=>`<tr><td>${esc(o.soru)}</td><td>${esc(asBolumAd(o.bolum))}</td><td>${esc(cevap(o))}</td><td>${o.olumlu||0}</td><td>${o.olumsuz||0}</td><td>${esc(o.ogreten||'')}</td>`
+      +`<td>${(AS_OGR_YON||o.benim)?`<button class="btn sm" onclick="asOgrSil(${jsA(o.id)})">✕</button>`:''}</td></tr>`).join('')+'</tbody></table></div>'
+    :`<div class="hint">${esc(Ld('Henüz öğrenilen yok. Asistanın cevaplarına Doğru / Yanlış verdikçe burada birikir.','Nothing learned yet. It builds up as you mark answers Right / Wrong.'))}</div>`);
 }
-function asOgrSil(id){ if(!can('ayar')) return; if(!confirm(Ld('Bu öğrenilen cevap silinsin mi?','Delete this learned answer?'))) return;
-  const D=asOgrDepo(); D.kayit=D.kayit.filter(o=>o.id!==id); asOgrYaz(D); asOgrKartCiz(); }
+async function asOgrSil(id){ const o=AS_OGR.find(x=>x.id===id); if(!o || !(AS_OGR_YON||o.benim)) return;
+  if(!confirm(Ld('Bu öğrenilen cevap silinsin mi?','Delete this learned answer?'))) return;
+  if(await asOgrIstek({islem:'sil', id, bolum:o.bolum})) asOgrKartCiz(); }
 /* ── ses ── */
 const AS_SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function asMikBitir(){ if(AS_SES){ try{ AS_SES.abort(); }catch(e){} AS_SES=null; } const b=$('asMik'); if(b) b.classList.remove('aktif'); }
@@ -14221,7 +14322,8 @@ try{ dilUygula(); }catch(e){}
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.10.3':['Personel ve makine kartı salt okunur açılır; değişiklik belge gruplarının altındaki Düzenle ile (Vazgeç / Kaydet)','Kartın üstündeki Klasöre yaz ve Kaydet düğmeleri kaldırıldı; silme yok, pasife alınır (Ayrıldı / Hizmet dışı)'],
+const SURUM_NOTU={'1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
+  '1.10.3':['Personel ve makine kartı salt okunur açılır; değişiklik belge gruplarının altındaki Düzenle ile (Vazgeç / Kaydet)','Kartın üstündeki Klasöre yaz ve Kaydet düğmeleri kaldırıldı; silme yok, pasife alınır (Ayrıldı / Hizmet dışı)'],
   '1.10.2':['Asistan: cevaptaki listeden kayda tıklayınca kayıt açılır','Güvenlik iyileştirmeleri (asistan bağlantıları, çeviri belleği)'],
   '1.10.1':['Asistan sağ alttaki AI düğmesinde: üzerine gelince Analiz et ve Asistan','Dil düğmesi (TR / EN) Ayarlar düğmesinin solunda'],
   '1.10.0':['Asistan: portaldaki kayıtlarınız hakkında yazarak ya da konuşarak sorun; 👍 / 👎 ile öğrenir (üst çubuk ve ana sayfa)',
