@@ -856,6 +856,22 @@ body[data-modul="egitim"] #nav [data-mv]:not([data-mv~="egitim"]){display:none!i
 /* 11.11.2026 (kullanıcı: "listeyi aşağıya kadar indir"): yan yana düzende liste kartın altına kadar uzar; kart yüksekliğini
    sağ sütun belirler (liste yüksekliğe katkı vermez: taban 0), fazlası listede kayar. Tek sütunda eski üst sınır geçerli. */
 .hp-gov:not(.dar) #anaAjanda .hp-liste{flex:1 1 0;height:0;max-height:none;min-height:240px}
+/* 11.11.2026 (kullanıcı: "diğer ekrana geçince yine kaydırma çubuğu çıktı; ekrana göre ayarla, çubuksuz hizala"): pano pencere
+   yüksekliğine sığdırılır (anaSigdir); ajanda kendi içinde çubuksuz kayar (altta solma = devamı var), son olaylarda sığan kadar satır. */
+@media (min-width:641px) and (hover:hover),(min-width:641px) and (pointer:fine){
+  /* ana sayfada alt dock yok: dock payı ve geniş alt boşluk kalkar, alt bilgi ince satır — panoya yer kalır */
+  body:has(#v-ana.on){padding-bottom:0}
+  body:has(#v-ana.on) main{padding-bottom:8px}
+  body:has(#v-ana.on) .appFoot{margin-top:0;padding:5px 12px;border-top:0}
+}
+.hp-pano.sigdi{grid-template-rows:minmax(0,1fr)}
+.hp-pano.sigdi > *{min-height:0}
+.hp-pano.sigdi #anaAjanda .hp-liste{min-height:0;scrollbar-width:none}
+.hp-pano.sigdi #anaAjanda .hp-liste::-webkit-scrollbar{display:none}
+.hp-pano.sigdi #anaAjanda .hp-liste.devam{-webkit-mask-image:linear-gradient(#000 calc(100% - 36px),transparent);mask-image:linear-gradient(#000 calc(100% - 36px),transparent)}
+.hp-pano.sigdi .hp-sag{overflow:hidden}
+.hp-pano.sigdi .hp-sag > :last-child{min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.hp-pano.sigdi .hp-sag > :last-child .hp-liste{flex:1;min-height:0;overflow:hidden;max-height:none}
 .hp-sag{height:100%}
 .hp-sag .hp-kutular{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:1fr;flex:1}
 (max-width:900px){ .hp-pano{grid-template-columns:1fr!important} #anaAjanda .hp-oge .m{white-space:normal;flex-wrap:wrap} }
@@ -2285,7 +2301,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.11.3';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.11.4';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6350,9 +6366,32 @@ function anaDuzen(){
   g.style.setProperty('--sut',s); g.classList.toggle('dar', s<3);
   const m=document.querySelector('#v-ana .anaModuller'); if(m){ m.style.setProperty('--sut',s); m.classList.toggle('dar', s<3); m.classList.toggle('tek', s<2); }
   const h=document.getElementById('anaHava'); if(h) h.classList.toggle('kisa', !s || (w/s)<300);   /* dar sÃ¼tunda 3 gÃ¼nlÃ¼k tahmin gizlenir, Åehir adÄ± sÄ±ÄsÄ±n */
+  anaSigdir(g, s<3);
+}
+/* PENCEREYE SIĞDIR (11.11.2026, kullanıcı: "diğer ekrana geçince yine kaydırma çubuğu çıktı; ekrana göre ayarla, çubuksuz hizala"):
+   pano (ajanda + sağ sütun) sayfanın altı pencerenin altına denk gelecek yükseklikte; altındaki her şey (alt boşluk, alt bilgi) ölçülür.
+   Pano çok kısalacaksa (< 300 px) ya da tek sütunsa sığdırılmaz, sayfa olağan kayar. */
+function anaSigdir(g, dar){
+  const p=g.querySelector('.hp-pano'); if(!p) return;
+  const se=document.scrollingElement||document.documentElement;
+  p.classList.remove('sigdi'); p.style.height='';
+  if(dar || !p.offsetParent) return;
+  p.style.height='3000px';   /* sayfa kesin taşsın: panonun altında kalan pay doğru ölçülür */
+  const r=p.getBoundingClientRect(), ust=r.top+scrollY, alt=se.scrollHeight-(r.bottom+scrollY);
+  const H=Math.floor(innerHeight-ust-alt)-2;   /* kesirli piksel yuvarlaması 1 px taşıp çubuk açmasın */
+  if(H<300){ p.style.height=''; return; }
+  p.style.height=H+'px'; p.classList.add('sigdi');
+  /* son olaylar: yarım kalan satır gösterilmez */
+  const so=p.querySelector('.hp-sag > :last-child .hp-liste');
+  if(so){ const oge=[...so.children]; oge.forEach(o=>o.style.display=''); const sb=so.getBoundingClientRect().bottom; oge.forEach(o=>{ if(o.getBoundingClientRect().bottom>sb+1) o.style.display='none'; }); }
+  /* ajanda: devamı varsa altta solma */
+  const aj=p.querySelector('#anaAjanda .hp-liste');
+  if(aj){ const d=()=>aj.classList.toggle('devam', aj.scrollTop+aj.clientHeight<aj.scrollHeight-4); d(); if(!aj._dv){ aj._dv=1; aj.addEventListener('scroll',d,{passive:true}); } }
 }
 { let z=null; const tetik=()=>{ clearTimeout(z); z=setTimeout(anaDuzen,60); };
   addEventListener('resize',tetik);
+  /* başka ekrana geçiş (farklı ölçek): piksel oranı değişince de yeniden sığdır */
+  const dpr=()=>{ try{ matchMedia('(resolution: '+devicePixelRatio+'dppx)').addEventListener('change',()=>{ tetik(); dpr(); },{once:true}); }catch(e){} }; dpr();
   try{ const ro=new ResizeObserver(tetik); const izle=()=>{ const v=document.getElementById('v-ana'); if(v) ro.observe(v); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',izle); else izle(); }catch(e){} }
 function anaRender(){
   const w=$('anaWrap'); if(!w||!SES) return;
@@ -14528,7 +14567,7 @@ async function pencereKucult(){
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
