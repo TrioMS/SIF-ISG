@@ -331,3 +331,20 @@
 }
 /* QR oku düğmesi ana sayfada yalnız uygulamada (telefon + dokunmatik tablet); masaüstü portalda gizli (portal sayfası kuralı) */
 @media(max-width:640px),(hover:none) and (pointer:coarse){ .anaModuller .anaQr{display:flex} }
+/* Makine / Personel / Eğitim listesi telefonda kart (12.11.2026): masaüstü tablosu 375 px'e sıkışıp harfler alt alta düşüyordu.
+   İlk iki bilgi (no + tür/ad) tam satır, kalanlar iki sütun ve küçük başlıklı (başlık = sütun adı, data-l; sayfadaki etiketleme). */
+@media(max-width:640px){
+  .tw:has(tr.denSatir){background:transparent!important;border:none!important;box-shadow:none!important;border-radius:0;overflow:visible!important}
+  .tw:has(tr.denSatir) table,.tw:has(tr.denSatir) tbody{display:block;width:100%!important;min-width:0!important}
+  .tw:has(tr.denSatir) thead{display:none}
+  .tw tr.denSatir{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:8px;background:var(--surface);
+      border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .tw tr.denSatir td{display:block;width:auto!important;padding:0!important;border:none!important;background:none!important;min-width:0;
+      overflow-wrap:break-word;word-break:normal;font-size:13px;line-height:1.35;text-align:left;white-space:normal}
+  .tw tr.denSatir td.sn{display:none}
+  .tw tr.denSatir td:nth-child(2){grid-column:1/-1;font-weight:700;font-size:14px}
+  .tw tr.denSatir td:nth-child(3){grid-column:1/-1;font-weight:600;font-size:14px}
+  .tw tr.denSatir td[data-l]:not(:nth-child(2)):not(:nth-child(3))::before{content:attr(data-l);display:block;font-size:10.5px;font-weight:600;
+      letter-spacing:.4px;text-transform:uppercase;color:var(--text2);margin-bottom:2px}
+  .tw tr.denSatir .pill{white-space:nowrap}
+}

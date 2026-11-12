@@ -1173,9 +1173,9 @@ header .hbtn.hdZil svg{display:block}
 /* AYARLAR — sade düzen (02.10.2026): başlıklar solda dikey liste, seçilen başlığın ayarı
    sağda açılır. Telefon/dar ekranda (≤760px) eski yatay çip dizisi kalır. */
 .setAlt{display:none}   /* alt başlıklar yalnız geniş ekranda (sol sütun) */
-/* KAYMA YOK (16.10.2026): kısa bir bölüm/ekran açılınca dikey kaydırma çubuğu kaybolup
-   tüm sayfa (ortalı alt çubuk dahil) yana kayıyordu. Çubuğun yeri her zaman ayrılır. */
-html{scrollbar-gutter:stable}
+/* KAYMA YOK (16.10.2026) → KALDIRILDI (11.11.2026, kullanıcı: "üst barın sağında boşluk / şerit var, önceden düzgündü"):
+   html{scrollbar-gutter:stable} kaydırma çubuğu için sağda her zaman 15–17 px yer ayırıyordu; Windows 11 Edge çubuğu gizlediği
+   için bu yer üst çubuğun ve sayfanın sağında boş / farklı renkte bir şerit olarak görünüyordu. Yer ayrılmaz; sayfa tam genişlik. */
 @media (min-width:761px){
   .setDuzen{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px;align-items:start}
   .setDuzen #setTabs{flex-direction:column;flex-wrap:nowrap;gap:2px;margin:0;position:sticky;top:84px;
@@ -2339,7 +2339,7 @@ header .hdAiListe .rz.arti{background:#B4400E;color:#fff}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_SURUM = '1.15.2';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
+const APP_SURUM = '1.15.3';   /* YAYIN SÜRÜMÜ (27.10.2026) — her yayında yükselt (ana.ara.yama); Raporlar/GUNCELLEME_GUNLUGU.md başlığında aynı numara */
 /* GÜVENLİK (20.10.2026) — ÇERÇEVEYE GÖMÜLMEZ: GitHub Pages "X-Frame-Options" başlığı gönderemiyor;
    uygulama başka bir sitenin içinde (iframe) açılıp kullanıcı görünmez düğmelere tıklatılamasın.
    Çerçevedeyse sayfa boşaltılır ve uygulama betiği burada durur. Aynı kökenden çerçeve (ör.
@@ -6603,15 +6603,18 @@ function assistAraDizin(){
   return R.filter(x=>x.no);
 }
 let _asZam=null, _asImza='', _asAraImza='';
+/* YAZAR KİMLİĞİ (11.11.2026, Assist özeti titriyordu: iki açık sayfa farklı veriyle sırayla yazıyordu): her sayfa açılışında rastgele;
+   sunucu bir sayfa yazarken 150 sn başka sayfanın aynı ürünü ezmesine izin vermez (409). Veri ortak havuza geçince gereksizleşir. */
+const ASSIST_YAZAR = Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,'0')).join('');
 function assistBirak(){
   clearTimeout(_asZam);
   _asZam=setTimeout(()=>{
     try{
       if(!SES || !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
-      const oz=JSON.stringify({ogeler:assistOgeler(), takvim:assistTakvim(), dizin:assistDizin()});
+      const oz=JSON.stringify({yazar:ASSIST_YAZAR, ogeler:assistOgeler(), takvim:assistTakvim(), dizin:assistDizin()});
       if(oz!==_asImza) fetch('/api/assist/ozet?urun='+ASSIST_URUN,{method:'POST',headers:{'Content-Type':'application/json'},body:oz}).then(r=>{ if(r.ok) _asImza=oz; }).catch(()=>{});
       const K=assistAraDizin(); if(!K.length) return;   /* boş dizin gönderilmez */
-      const ad=JSON.stringify({surum:1, kayitlar:K});
+      const ad=JSON.stringify({surum:1, yazar:ASSIST_YAZAR, kayitlar:K});
       if(ad!==_asAraImza) fetch('/api/assist/aradizin?urun='+ASSIST_URUN,{method:'POST',headers:{'Content-Type':'application/json'},body:ad}).then(r=>{ if(r.ok) _asAraImza=ad; }).catch(()=>{});
     }catch(e){}
   }, 900);
@@ -15121,6 +15124,7 @@ async function pencereKucult(){
   finally{ document.title=eski; }
 }
 { const b=$('hdKucult'); if(b && PW_YEREL) b.style.display=''; }
+
 /* AI DÜĞMESİ MENÜSÜ (11.11.2026, kullanıcı: "yukarıdaki asistan butonunu alt köşedeki AI butonu içine alalım; üzerine gelince analiz et ve
    asistan seçenekleri oluşsun"): üst çubuktaki asistan düğmesi kaldırıldı. Sağ alttaki AI düğmesinin üzerine gelince menü: "Analiz et"
    (o ekranın AI düğmesinin kendi işi) ve "Asistan". Düğmeye doğrudan tıklamak eskisi gibi analiz eder. Telefonda ilk dokunuş menüyü açar.
@@ -15144,6 +15148,17 @@ async function pencereKucult(){
   document.addEventListener('click',e=>{ if(!icinde(e.target)) m.hidden=true; });
   const gor=()=>{ const v=document.querySelector('.view.on'); g.style.display=(SES && v && !v.querySelector('.aiFab')) ? '' : 'none'; if(!m.hidden && hedef && !hedef.offsetParent) m.hidden=true; };
   const go_=new MutationObserver(gor); document.querySelectorAll('.view').forEach(v=>go_.observe(v,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
+})();
+/* ═══ TELEFON: MAKİNE / PERSONEL / EĞİTİM LİSTESİ KART DÜZENİ (12.11.2026, kullanıcı: "telefon ekranında görüntüler bozuk, harfler alt alta gelmiş") ═══
+   Bu üç liste masaüstü tablosuydu; telefonda dokuz sütun 375 px'e sıkışıp her harf alt satıra düşüyordu. Görünüm uygulama.css'te
+   (.tw:has(tr.denSatir), yalnız max-width:640px); burada her hücreye sütun başlığı (data-l) yazılır ki kartta küçük etiket olarak çıksın. */
+(function(){
+  let bek=0;
+  const etiketle=()=>{ bek=0; document.querySelectorAll('.tw table').forEach(t=>{ const h=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim()); if(!h.length) return;
+    t.querySelectorAll('tbody tr.denSatir').forEach(tr=>[...tr.children].forEach((td,i)=>{ if(h[i] && td.dataset.l!==h[i]) td.dataset.l=h[i]; })); }); };
+  const mo=new MutationObserver(()=>{ if(!bek) bek=requestAnimationFrame(etiketle); });
+  ['makineWrap','personelWrap','egitimWrap'].forEach(id=>{ const k=document.getElementById(id); if(k) mo.observe(k,{childList:true,subtree:true}); });
+  etiketle();
 })();
 /* ═══ TELEFON: TEK MENÜ BALONU (11.11.2026, kullanıcı: "app tarafında ekrana sığmıyor taşıyor; alt balonlar tek balona düşsün,
    ona basınca listeden seçelim, AI da onun içinde olsun") ═══
@@ -15192,7 +15207,7 @@ async function pencereKucult(){
   const mo=new MutationObserver(gor); document.querySelectorAll('.view').forEach(x=>mo.observe(x,{attributes:true,attributeFilter:['class']})); setTimeout(gor,0);
 })();
 /* ═══ GÜNCELLENDİ NOTU — açılışta bir kez (cihaz başına) ═══ */
-const SURUM_NOTU={'1.15.2':['Disiplin kayıtları yalnız İnsan Kaynakları ve Yönetici görür (yeni yetki; Ayarlar › Pozisyonlar)'],'1.15.1':['Personel › Performans ekranı: kişiler aksiyon, zamanında tamamlama, çözüm süresi, eğitim ve belge uyumu, ödül / disiplin ölçütleriyle; sütuna göre sıralanır','Personel QR iki yönlü: cihazda olmayan kişi etiketteki bilgilerle eklenir (yeni etiket basın)'],'1.15.0':['Personel QR kodu: ID kart ve baret etiketi baskısı; okutunca yetkiye göre eğitim geçmişi, belgeler, KKD, görevlendirme, muayene tarihleri','Personel kartında Performans: atanan aksiyonlar, zamanında tamamlama, ortalama çözüm süresi; Ödüller ve Disiplin kayıtları (ilgili olay, belge)','QR oku yalnız uygulamada; telefonda makine QR kodu fotoğrafın sağında'],'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
+const SURUM_NOTU={'1.15.3':['Telefonda Makine, Personel ve Eğitim listeleri kart düzeninde: sütunlar sıkışmaz, harfler alt alta düşmez','Üst çubuk her ekranda tam genişlik: sağdaki boşluk giderildi'],'1.15.2':['Disiplin kayıtları yalnız İnsan Kaynakları ve Yönetici görür (yeni yetki; Ayarlar › Pozisyonlar)'],'1.15.1':['Personel › Performans ekranı: kişiler aksiyon, zamanında tamamlama, çözüm süresi, eğitim ve belge uyumu, ödül / disiplin ölçütleriyle; sütuna göre sıralanır','Personel QR iki yönlü: cihazda olmayan kişi etiketteki bilgilerle eklenir (yeni etiket basın)'],'1.15.0':['Personel QR kodu: ID kart ve baret etiketi baskısı; okutunca yetkiye göre eğitim geçmişi, belgeler, KKD, görevlendirme, muayene tarihleri','Personel kartında Performans: atanan aksiyonlar, zamanında tamamlama, ortalama çözüm süresi; Ödüller ve Disiplin kayıtları (ilgili olay, belge)','QR oku yalnız uygulamada; telefonda makine QR kodu fotoğrafın sağında'],'1.14.2':['QR etiketinden makine kurma: cihazda olmayan makine etiketteki bilgilerle (aynı kimlik) eklenir; geçmiş gelmez (yeni etiket basın)'],'1.14.1':['QR kodu başka cihazda da makineyi bulur: kodda envanter no da var (yeni etiket basın)','QR etiketi: numara tek satır, etiket numaraya göre uzar; "telefonla okutun" yazısı kalktı','Telefonda ana sayfada menü balonu yok; Asistan kutusu ana sayfada, dil profil penceresinde'],'1.14.0':['QR oku: ana sayfada (makine yetkisi) ve servis kullanıcısının girişinde; kamerayla ya da envanter no ile makine açılır','Telefonda ekran taşmıyor: alt sekmeler ve AI tek menü balonunda; üst çubukta logo, profil ve zil','Telefonda AI analiz önerileri okunur düzende'],'1.13.0':['Makine QR kodu: kartta QR üret, fotoğrafın altında kod, etiket yazdırma; telefonla okutunca makine kartı açılır','Servis / Bakım Firması kullanıcısı: yalnız bakım kaydı girer ve servis kataloğunu görür','SGK kutusunda geciken sayısı; balonlarda "Süresi Yaklaşan", "Kontrolü Yaklaşan" adları'],'1.12.0':['Periyodik kontrol ekrandan doldurulabilir: ekipman türüne ve Ek-III tablosuna göre kontrol maddeleri, test ve ölçümler, yetkili kişi, sonuç','Pano balonları her ekranda tek sıra','Dosya seçme kutusu düzeltildi; kart üstündeki durum hapı ve Liste düğmesi kaldırıldı'],'1.11.4':['Ana sayfa ekrana sığar: kaydırma çubuğu çıkmaz, başka ekrana geçince yeniden ayarlanır'],'1.11.3':['Ana sayfa: ajanda listesi kartın altına kadar uzar','Masaüstü kısayolu açılınca boş PowerShell penceresi kalmaz'],'1.11.2':['Küçült düğmesi pencereyi saatin yanına indirir (SİF simgesi; masaüstü kısayolu)','Ana sayfa kutuları her ekran genişliğinde hizalı: sütun sayısı ekrana göre (4 / 3 / 2 / 1)'],
   '1.11.1':['Üst çubukta simge durumuna küçült düğmesi (bilgisayarda, yerel sunucuyla açılan uygulama penceresinde)'],
   '1.11.0':['Makine: bakım kaydı ekrandan, vardiya öncesi kontrol listesi, arıza bildirimi, sayaç / yakıt kaydı; sonraki bakım ajanda ve uyarılarda','Personel: KKD zimmet ve görevlendirme / yetki kayıtları (yenileme ve geçerlilik uyarısı); Eğitim: Toolbox (saha) eğitimi hızlı kaydı','Belge listelerinde başlıkta + (yeni kayıt), tamam belgede güncelle simgesi; liste dışarı tıklayınca kapanır'],
   '1.10.4':['Asistan: Doğru / Yanlış ile öğrenme; öğretilen cevap bölüme bağlı ve yalnız yetkisi olana görünür (olay ve sağlıkta yazılı cevap yok)','Asistan cevaplarında kişi adları maskeli, olay kayıtlarında ayrıntı kayıtta','Olay kayıtlarındaki Klasöre Yaz düğmesi kaldırıldı'],
